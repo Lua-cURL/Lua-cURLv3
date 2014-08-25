@@ -7,6 +7,20 @@
 -- @treturn[1] httppost new curl HTTP Post object context
 function httppost() end
 
+--- Returns libcurl version as human readable string
+--
+function version() end
+
+--- Returns libcurl version as table
+--
+-- @tparam[opt] string param specific version info
+-- @treturn[1] table full version into if `param` was not specify
+-- @return[2] specific info parameter
+--
+-- @usage
+-- proto = curl.version_info('protocols')
+-- if proto.HTTP then ... -- libcurl support http protocol
+function version_info() end
 
 --- HTTP multipart/formdata object
 -- @type httppost
@@ -108,6 +122,23 @@ function easy:setopt_writefunction() end
 --
 function easy:setopt_writefunction() end
 
+--- Set header function.
+--
+-- @tparam function writer
+-- @param[opt] context writer context
+-- @return[1] self
+--
+function easy:setopt_headerfunction() end
+
+--- Set header function.
+--
+-- This call same as easy:set_headerfunction(writer.header, writer)
+--
+-- @tparam object writer
+-- @return[1] self
+--
+function easy:setopt_headerfunction() end
+
 --- Set reader function.
 --
 -- @tparam function reader
@@ -137,6 +168,23 @@ function easy:setopt_httppost() end
 -- @tparam[opt=#data] number length
 -- @return[1] self
 function easy:setopt_postfields() end
+
+--- Perform a file transfer
+-- 
+-- @return[1] self
+function easy:perfom() end
+
+--- URL encodes the given string
+--
+-- @tparam string url 
+-- @return[1] encoded url
+function easy:escape() end
+
+--- URL decodes the given string
+--
+-- @tparam string url
+-- @return[1] decoded url
+function easy:unescape() end
 
 --- End easy session
 -- 

@@ -3,6 +3,12 @@
 #include "lcerror.h"
 #include "lchttppost.h"
 
+/*export*/
+#ifdef _WIN32
+#  define LCURL_EXPORT_API __declspec(dllexport)
+#else
+#  define LCURL_EXPORT_API LUALIB_API
+#endif
 
 static int lcurl_easy_new_safe(lua_State *L){
   return lcurl_easy_create(L, LCURL_ERROR_RETURN);
@@ -65,9 +71,9 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   return 1;
 }
 
-__declspec(dllexport)
+LCURL_EXPORT_API
 int luaopen_lcurl(lua_State *L){ return luaopen_lcurl_(L, lcurl_functions); }
 
-__declspec(dllexport)
+LCURL_EXPORT_API
 int luaopen_lcurl_safe(lua_State *L){ return luaopen_lcurl_(L, lcurl_functions_safe); }
 

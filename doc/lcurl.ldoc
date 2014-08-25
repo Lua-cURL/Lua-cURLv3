@@ -1,0 +1,145 @@
+---
+-- @module lcurl
+
+
+--- Create HTTP multipart object.
+--
+-- @treturn[1] httppost new curl HTTP Post object context
+function httppost() end
+
+
+--- HTTP multipart/formdata object
+-- @type httppost
+--
+do
+
+--- Add new part to form.
+--
+-- @tparam string name provide the name of this part
+-- @tparam string content actual data to send
+-- @tparam[opt] string type provides the content-type for this part
+-- @tparam[opt] table headers specifies extra headers for the form POST section
+-- @return[1] self
+function httppost:add_content() end
+
+--- Add new part to form.
+--
+-- @tparam string name provide the name of this part
+-- @tparam string filename provides the filename field in the content header
+-- @tparam string content actual data to send
+-- @tparam[opt] string type provides the content-type for this part
+-- @tparam[opt] table headers specifies extra headers for the form POST section
+-- @return[1] self
+function httppost:add_buffer() end
+
+--- Add new part to form.
+--
+-- @tparam string name provide the name of this part
+-- @tparam string path path to file that contain actual data to send
+-- @tparam[opt] string type provides the content-type for this part
+-- @tparam[opt] string filename provides the filename field in the content header.
+--   By default it is basename of path.
+-- @tparam[opt] table headers specifies extra headers for the form POST section
+-- @return[1] self
+function httppost:add_file() end
+
+--- Serialize multipart/formdata HTTP POST chain.
+--
+-- @return[1] string serialized data
+--
+-- @usage print(post:get())
+--
+function httppost:get() end
+
+--- Serialize multipart/formdata HTTP POST chain.
+--
+-- Writer function can return true or number of written bytes.
+-- Also if function does not return anything is considered as success.
+--
+-- @tparam function writer
+-- @param[opt] context writer context
+-- @return[1] self
+--
+-- @usage 
+-- t = {}
+-- post:get(table.insert, t)
+-- print(table.concat(t))
+--
+function httppost:get() end
+
+--- Serialize multipart/formdata HTTP POST chain.
+--
+-- This call same as httppost:get(writer.write, writer)
+--
+-- @tparam object writer
+-- @return[1] self
+--
+-- @usage 
+-- f = io.open(...)
+-- post:get(f)
+--
+function httppost:get() end
+
+--- Free multipart/formdata.
+--
+function httppost:free() end
+
+end
+
+--- Easy curl object
+-- @type easy
+--
+do
+
+--- Set writer function.
+--
+-- @tparam function writer
+-- @param[opt] context writer context
+-- @return[1] self
+--
+function easy:setopt_writefunction() end
+
+--- Set writer function.
+--
+-- This call same as easy:set_writefunction(writer.write, writer)
+--
+-- @tparam object writer
+-- @return[1] self
+--
+function easy:setopt_writefunction() end
+
+--- Set reader function.
+--
+-- @tparam function reader
+-- @param[opt] context reader context
+-- @return[1] self
+--
+function easy:setopt_readfunction() end
+
+--- Set reader function.
+--
+-- This call same as easy:set_readfunction(reader.read, reader)
+--
+-- @tparam object reader
+-- @return[1] self
+--
+function easy:setopt_readfunction() end
+
+--- Set HTTP multipart/formdata
+--
+-- @tparam httppost data
+-- @return[1] self
+function easy:setopt_httppost() end
+
+--- Set HTTP multipart/formdata
+--
+-- @tparam string data
+-- @tparam[opt=#data] number length
+-- @return[1] self
+function easy:setopt_postfields() end
+
+--- End easy session
+-- 
+function easy:close() end
+
+end

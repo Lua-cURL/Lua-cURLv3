@@ -46,6 +46,7 @@ typedef struct lcurl_easy_tag{
   int err_mode;
   lcurl_callback_t wr;
   lcurl_callback_t rd;
+  lcurl_callback_t hd;
   lcurl_read_buffer_t rbuffer;
   
 }lcurl_easy_t;
@@ -62,6 +63,7 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   p->err_mode    = error_mode;
   p->wr.cb_ref   = p->wr.ud_ref = LUA_NOREF;
   p->rd.cb_ref   = p->rd.ud_ref = LUA_NOREF;
+  p->hd.cb_ref   = p->hd.ud_ref = LUA_NOREF;
   p->rbuffer.ref = LUA_NOREF;
   for(i = 0; i < LCURL_LIST_COUNT; ++i){
     p->lists[i] = LUA_NOREF;
@@ -404,16 +406,14 @@ static int lcurl_easy_set_callback(lua_State *L,
   return lua_error(L);
 }
 
-
-//{ Writer
-
-static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
-  lcurl_easy_t *p = arg;
-  lua_State *L = p->L;
+static int lcurl_write_callback_(lua_State*L, 
+  lcurl_easy_t *p, lcurl_callback_t *c,
+  char *ptr, size_t size, size_t nmemb
+){
 
   size_t ret = size * nmemb;
   int    top = lua_gettop(L);
-  int    n   = lcurl_util_push_cb(L, &p->wr);
+  int    n   = lcurl_util_push_cb(L, c);
 
   lua_pushlstring(L, ptr, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)){
@@ -433,6 +433,14 @@ static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg)
 
   lua_settop(L, top);
   return ret;
+}
+
+
+//{ Writer
+
+static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+  lcurl_easy_t *p = arg;
+  return lcurl_write_callback_(p->L, p, &p->wr, ptr, size, nmemb);
 }
 
 static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
@@ -511,6 +519,23 @@ static int lcurl_easy_set_READFUNCTION(lua_State *L){
 
 //}
 
+//{ Header
+
+static int lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+  lcurl_easy_t *p = arg;
+  return lcurl_write_callback_(p->L, p, &p->hd, ptr, size, nmemb);
+}
+
+static int lcurl_easy_set_HEADERFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  return lcurl_easy_set_callback(L, p, &p->hd,
+    CURLOPT_HEADERFUNCTION, CURLOPT_HEADERDATA,
+    "header", lcurl_header_callback
+  );
+}
+
+//}
+
 //}
 
 //}
@@ -521,9 +546,10 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 
   #include "lcopteasy.h"
 
-  OPT_ENTRY(httppost,      HTTPPOST,      TTT, 0)
-  OPT_ENTRY(writefunction, WRITEFUNCTION, TTT, 0)
-  OPT_ENTRY(readfunction,  READFUNCTION,  TTT, 0)
+  OPT_ENTRY(httppost,        HTTPPOST,       TTT, 0)
+  OPT_ENTRY(writefunction,   WRITEFUNCTION,  TTT, 0)
+  OPT_ENTRY(readfunction,    READFUNCTION,   TTT, 0)
+  OPT_ENTRY(headerfunction,  HEADERFUNCTION, TTT, 0)
 
   {"getinfo_effective_url", lcurl_easy_get_EFFECTIVE_URL },
 

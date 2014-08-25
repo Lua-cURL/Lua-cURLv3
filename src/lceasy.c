@@ -133,6 +133,31 @@ static int lcurl_easy_perform(lua_State *L){
   return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
 }
 
+static int lcurl_easy_escape(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  size_t data_size; const char *data = luaL_checklstring(L, 2, &data_size);
+  const char *ret = curl_easy_escape(p->curl, data, (int)data_size);
+  if(!ret){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
+  }
+  lua_pushstring(L, ret);
+  curl_free((char*)ret);
+  return 1;
+}
+
+static int lcurl_easy_unescape(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  size_t data_size; const char *data = luaL_checklstring(L, 2, &data_size);
+  int ret_size; const char *ret = curl_easy_unescape(p->curl, data, (int)data_size, &ret_size);
+  if(!ret){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
+  }
+  lua_pushlstring(L, ret, ret_size);
+  curl_free((char*)ret);
+  return 1;
+}
+
+
 //{ OPTIONS
 
 static int lcurl_opt_set_long_(lua_State *L, int opt){
@@ -418,7 +443,7 @@ static int lcurl_write_callback_(lua_State*L,
   lua_pushlstring(L, ptr, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)){
     assert(lua_gettop(L) >= top);
-    lua_pushlightuserdata(L, LCURL_ERROR_TAG);
+    lua_pushlightuserdata(L, (void*)LCURL_ERROR_TAG);
     lua_insert(L, top+1);
     return 0;
   }
@@ -555,9 +580,11 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
 
-  {"perform",  lcurl_easy_perform        },
-  {"close",    lcurl_easy_cleanup        },
-  {"__gc",     lcurl_easy_cleanup        },
+  { "escape",   lcurl_easy_escape,        },
+  { "unescape", lcurl_easy_unescape,      },
+  { "perform",  lcurl_easy_perform        },
+  { "close",    lcurl_easy_cleanup        },
+  { "__gc",     lcurl_easy_cleanup        },
 
   {NULL,NULL}
 };

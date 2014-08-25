@@ -157,7 +157,6 @@ static int lcurl_easy_unescape(lua_State *L){
   return 1;
 }
 
-
 //{ OPTIONS
 
 static int lcurl_opt_set_long_(lua_State *L, int opt){
@@ -563,13 +562,32 @@ static int lcurl_easy_set_HEADERFUNCTION(lua_State *L){
 
 //}
 
-//}
+static int lcurl_easy_setopt(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  int opt = luaL_checklong(L, 2);
+  lua_remove(L, 2);
 
+#define OPT_ENTRY(l, N, T, S) case CURLOPT_##N: return lcurl_easy_set_##N(L);
+  switch(opt){
+    #include "lcopteasy.h"
+    OPT_ENTRY(postfields,      POSTFIELDS,     TTT, 0)
+    OPT_ENTRY(httppost,        HTTPPOST,       TTT, 0)
+    OPT_ENTRY(writefunction,   WRITEFUNCTION,  TTT, 0)
+    OPT_ENTRY(readfunction,    READFUNCTION,   TTT, 0)
+    OPT_ENTRY(headerfunction,  HEADERFUNCTION, TTT, 0)
+  }
+#undef OPT_ENTRY
+
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_UNKNOWN_OPTION);
+}
+
+//}
 
 static const struct luaL_Reg lcurl_easy_methods[] = {
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_easy_set_##N },
   #include "lcopteasy.h"
+  OPT_ENTRY(postfields,      POSTFIELDS,     TTT, 0)
   OPT_ENTRY(httppost,        HTTPPOST,       TTT, 0)
   OPT_ENTRY(writefunction,   WRITEFUNCTION,  TTT, 0)
   OPT_ENTRY(readfunction,    READFUNCTION,   TTT, 0)
@@ -580,8 +598,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
 
-  { "escape",   lcurl_easy_escape,        },
-  { "unescape", lcurl_easy_unescape,      },
+  { "setopt",   lcurl_easy_setopt         },
+  { "escape",   lcurl_easy_escape         },
+  { "unescape", lcurl_easy_unescape       },
   { "perform",  lcurl_easy_perform        },
   { "close",    lcurl_easy_cleanup        },
   { "__gc",     lcurl_easy_cleanup        },
@@ -589,8 +608,28 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   {NULL,NULL}
 };
 
+static const lcurl_const_t lcurl_easy_opt[] = {
+
+#define OPT_ENTRY(L, N, T, S) { "OPT_"#N, CURLOPT_##N },
+#include "lcopteasy.h"
+  OPT_ENTRY(postfields,      POSTFIELDS,     TTT, 0)
+  OPT_ENTRY(httppost,        HTTPPOST,       TTT, 0)
+  OPT_ENTRY(writefunction,   WRITEFUNCTION,  TTT, 0)
+  OPT_ENTRY(readfunction,    READFUNCTION,   TTT, 0)
+  OPT_ENTRY(headerfunction,  HEADERFUNCTION, TTT, 0)
+#undef OPT_ENTRY
+
+#define OPT_ENTRY(L, N, T, S) { "INFO_"#N, CURLINFO_##N },
+#include "lcinfoeasy.h"
+#undef OPT_ENTRY
+
+  {NULL, 0}
+};
+
 void lcurl_easy_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_EASY, lcurl_easy_methods, nup))
     lua_pop(L, nup);
   lua_pop(L, 1);
+
+  lcurl_util_set_const(L, lcurl_easy_opt);
 }

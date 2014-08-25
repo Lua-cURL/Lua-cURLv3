@@ -4,6 +4,8 @@
 #include "lcutils.h"
 #include "lchttppost.h"
 
+static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
+
 #define LCURL_EASY_NAME LCURL_PREFIX" Easy"
 static const char *LCURL_EASY = LCURL_EASY_NAME;
 
@@ -93,7 +95,8 @@ static int lcurl_easy_cleanup(lua_State *L){
 static int lcurl_easy_perform(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   CURLcode code;
-  lua_settop(L, 1);
+  int top = 1;
+  lua_settop(L, top);
 
   assert(p->rbuffer.ref == LUA_NOREF);
 
@@ -109,18 +112,19 @@ static int lcurl_easy_perform(lua_State *L){
     return 1;
   }
 
+  if((lua_gettop(L) > top)&&(lua_touserdata(L, top + 1) == LCURL_ERROR_TAG)){
+    return lua_error(L);
+  }
+
   if(code == CURLE_WRITE_ERROR){
-    /* error from callback*/
-    if(lua_gettop(L) > 1){
-      if(lua_isstring(L, 2)) return lua_error(L);
-      return lua_gettop(L) - 1;
+    if(lua_gettop(L) > top){
+      return lua_gettop(L) - top;
     }
   }
 
   if(code == CURLE_ABORTED_BY_CALLBACK){
-    if(lua_gettop(L) > 1){
-      if(lua_isstring(L, 2)) return lua_error(L);
-      return lua_gettop(L) - 1;
+    if(lua_gettop(L) > top){
+      return lua_gettop(L) - top;
     }
   }
 
@@ -339,8 +343,70 @@ static int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c){
   return 1;
 }
 
+static int lcurl_easy_set_callback(lua_State *L, 
+  lcurl_easy_t *p, lcurl_callback_t *c,
+  int OPT_CB, int OPT_UD,
+  const char *method, void *func
+)
+{
+  if(c->ud_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
+    c->ud_ref = LUA_NOREF;
+  }
+
+  if(c->cb_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
+    c->cb_ref = LUA_NOREF;
+  }
+
+  if(lua_gettop(L) >= 3){// function + context
+    lua_settop(L, 3);
+    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    assert(1 == lua_gettop(L));
+    return 1;
+  }
+
+  lua_settop(L, 2);
+
+  if(lua_isnoneornil(L, 2)){
+    lua_pop(L, 1);
+    assert(1 == lua_gettop(L));
+
+    curl_easy_setopt(p->curl, OPT_UD, 0);
+    curl_easy_setopt(p->curl, OPT_CB, 0);
+
+    return 1;
+  }
+
+  if(lua_isfunction(L, 2)){
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    assert(1 == lua_gettop(L));
+
+    curl_easy_setopt(p->curl, OPT_UD, p);
+    curl_easy_setopt(p->curl, OPT_CB, func);
+    return 1;
+  }
+
+  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
+    lua_getfield(L, 2, method);
+    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    curl_easy_setopt(p->curl, OPT_UD, p);
+    curl_easy_setopt(p->curl, OPT_CB, func);
+    assert(1 == lua_gettop(L));
+    return 1;
+  }
+
+  lua_pushliteral(L, "invalid object type");
+  return lua_error(L);
+}
+
+
 //{ Writer
-  
+
 static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
   lua_State *L = p->L;
@@ -350,7 +416,12 @@ static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg)
   int    n   = lcurl_util_push_cb(L, &p->wr);
 
   lua_pushlstring(L, ptr, ret);
-  if(lua_pcall(L, n, LUA_MULTRET, 0)) return 0;
+  if(lua_pcall(L, n, LUA_MULTRET, 0)){
+    assert(lua_gettop(L) >= top);
+    lua_pushlightuserdata(L, LCURL_ERROR_TAG);
+    lua_insert(L, top+1);
+    return 0;
+  }
 
   if(lua_gettop(L) > top){
     if(lua_isnil(L, top + 1)) return 0;
@@ -366,59 +437,10 @@ static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg)
 
 static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  lcurl_callback_t *c = &p->wr;
-
-  if(c->ud_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    c->ud_ref = LUA_NOREF;
-  }
-
-  if(c->cb_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
-    c->cb_ref = LUA_NOREF;
-  }
-
-  if(lua_gettop(L) >= 3){// writer + context
-    lua_settop(L, 3);
-    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no writer present");
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_settop(L, 2);
-
-  if(lua_isnoneornil(L, 2)){
-    lua_pop(L, 1);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, CURLOPT_WRITEDATA,     0);
-    curl_easy_setopt(p->curl, CURLOPT_WRITEFUNCTION, 0);
-
-    return 1;
-  }
-
-  curl_easy_setopt(p->curl, CURLOPT_WRITEDATA,     p);
-  curl_easy_setopt(p->curl, CURLOPT_WRITEFUNCTION, lcurl_write_callback);
-
-  if(lua_isfunction(L, 2)){
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
-    lua_getfield(L, 2, "write");
-    luaL_argcheck(L, lua_isfunction(L, -1), 2, "write method not found in object");
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_pushliteral(L, "invalid writer type");
-  return lua_error(L);
+  return lcurl_easy_set_callback(L, p, &p->wr,
+    CURLOPT_WRITEFUNCTION, CURLOPT_WRITEDATA,
+    "write", lcurl_write_callback
+  );
 }
 
 //}
@@ -481,59 +503,10 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
 
 static int lcurl_easy_set_READFUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  lcurl_callback_t *c = &p->rd;
-
-  if(c->ud_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    c->ud_ref = LUA_NOREF;
-  }
-
-  if(c->cb_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
-    c->cb_ref = LUA_NOREF;
-  }
-
-  if(lua_gettop(L) >= 3){// writer + context
-    lua_settop(L, 3);
-    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no writer present");
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_settop(L, 2);
-
-  if(lua_isnoneornil(L, 2)){
-    lua_pop(L, 1);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, CURLOPT_READDATA,     0);
-    curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
-
-    return 1;
-  }
-
-  curl_easy_setopt(p->curl, CURLOPT_READDATA,     p);
-  curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, lcurl_read_callback);
-
-  if(lua_isfunction(L, 2)){
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
-    lua_getfield(L, 2, "read");
-    luaL_argcheck(L, lua_isfunction(L, -1), 2, "read method not found in object");
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_pushliteral(L, "invalid reader type");
-  return lua_error(L);
+  return lcurl_easy_set_callback(L, p, &p->rd, 
+    CURLOPT_READFUNCTION, CURLOPT_READDATA,
+    "read", lcurl_read_callback
+  );
 }
 
 //}

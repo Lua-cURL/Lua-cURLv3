@@ -541,17 +541,19 @@ static int lcurl_easy_set_HEADERFUNCTION(lua_State *L){
 //}
 
 
-#define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_easy_set_##N },
 static const struct luaL_Reg lcurl_easy_methods[] = {
 
+#define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_easy_set_##N },
   #include "lcopteasy.h"
-
   OPT_ENTRY(httppost,        HTTPPOST,       TTT, 0)
   OPT_ENTRY(writefunction,   WRITEFUNCTION,  TTT, 0)
   OPT_ENTRY(readfunction,    READFUNCTION,   TTT, 0)
   OPT_ENTRY(headerfunction,  HEADERFUNCTION, TTT, 0)
+#undef OPT_ENTRY
 
-  {"getinfo_effective_url", lcurl_easy_get_EFFECTIVE_URL },
+#define OPT_ENTRY(L, N, T, S) { "getinfo_"#L, lcurl_easy_get_##N },
+  #include "lcinfoeasy.h"
+#undef OPT_ENTRY
 
   {"perform",  lcurl_easy_perform        },
   {"close",    lcurl_easy_cleanup        },
@@ -559,7 +561,6 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 
   {NULL,NULL}
 };
-#undef OPT_ENTRY
 
 void lcurl_easy_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_EASY, lcurl_easy_methods, nup))

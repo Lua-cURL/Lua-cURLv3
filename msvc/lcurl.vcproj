@@ -226,6 +226,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcinfoeasy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcopteasy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcurl.h"
 				>
 			</File>

@@ -26,7 +26,7 @@ typedef struct lcurl_read_buffer_tag{
 #define OPT_ENTRY(L, N, T, S) LCURL_##T##_INDEX(N)
 
 enum {
-  LCURL_LISY_DUMMY = -1,
+  LCURL_LIST_DUMMY = -1,
 
   #include"lcopteasy.h"
 

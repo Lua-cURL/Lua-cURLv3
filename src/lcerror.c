@@ -57,13 +57,14 @@ static const char* lcurl_err_share_mnemo(int err){
 }
 
 static const char* lcurl_err_form_mnemo(int err){
-#define RETURN_IF(E) case CURL_FORMADD_##E: return #E;
+#define ERR_ENTRY(E) case CURL_FORMADD_##E: return #E;
 
   switch (err){
+    #include "lcerr_form.h"
   }
   return "UNKNOWN";
 
-#undef RETURN_IF
+#undef ERR_ENTRY
 }
 
 static const char* _lcurl_err_mnemo(int tp, int err){
@@ -204,8 +205,32 @@ static const struct luaL_Reg lcurl_err_methods[] = {
   {NULL,NULL}
 };
 
+static const lcurl_const_t lcurl_error_codes[] = {
+
+#define ERR_ENTRY(N) { "E_"#N, CURLE_##N },
+#include "lcerr_easy.h"
+#undef ERR_ENTRY
+
+#define ERR_ENTRY(N) { "E_MULTI_"#N, CURLM_##N },
+#include "lcerr_multi.h"
+#undef ERR_ENTRY
+
+#define ERR_ENTRY(N) { "E_SHARE_"#N, CURLSHE_##N },
+#include "lcerr_share.h"
+#undef ERR_ENTRY
+
+#define ERR_ENTRY(N) { "E_FORM_"#N, CURL_FORMADD_##N },
+#include "lcerr_form.h"
+#undef ERR_ENTRY
+
+  {NULL, 0}
+};
+
+
 void lcurl_error_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_ERROR, lcurl_err_methods, nup))
     lua_pop(L, nup);
   lua_pop(L, 1);
+
+  lcurl_util_set_const(L, lcurl_error_codes);
 }

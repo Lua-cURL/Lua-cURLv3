@@ -2,6 +2,7 @@
 #include "lceasy.h"
 #include "lcerror.h"
 #include "lchttppost.h"
+#include "lcutils.h"
 
 /*export*/
 #ifdef _WIN32
@@ -32,7 +33,7 @@ static int lcurl_version(lua_State *L){
 }
 
 static int lcurl_version_info(lua_State *L){
-  const char **p;
+  const char * const*p;
   curl_version_info_data *data = curl_version_info(CURLVERSION_NOW);
 
   lua_newtable(L);
@@ -71,8 +72,6 @@ static int lcurl_version_info(lua_State *L){
   return 1;
 }
 
-
-
 static const struct luaL_Reg lcurl_functions[] = {
   {"error",           lcurl_error_new        },
   {"httppost",        lcurl_hpost_new        },
@@ -89,6 +88,15 @@ static const struct luaL_Reg lcurl_functions_safe[] = {
   {"easy",            lcurl_easy_new_safe         },
 
   {NULL,NULL}
+};
+
+static const lcurl_const_t lcurl_flags[] = {
+
+#define FLG_ENTRY(N) { #N, CURL##N },
+#include "lcflags.h"
+#undef FLG_ENTRY
+
+  {NULL, 0}
 };
 
 static volatile int LCURL_INIT = 0;
@@ -116,6 +124,8 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   lua_pushvalue(L, -2); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
 
   lua_remove(L, -2); /* registry */
+
+  lcurl_util_set_const(L, lcurl_flags);
 
   return 1;
 }

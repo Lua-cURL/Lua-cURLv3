@@ -112,6 +112,11 @@ do
 
 --- Set writer function.
 --
+-- A callback accepting one or two parameters.
+-- The first is the writer context if any, and the second is a string with the data to be written.
+-- Function must return `true` or full data length or nothing to continue operation.
+-- Otherwise the transfer will be aborted with an error.
+--
 -- @tparam function writer
 -- @param[opt] context writer context
 -- @return[1] self
@@ -128,6 +133,11 @@ function easy:setopt_writefunction() end
 function easy:setopt_writefunction() end
 
 --- Set header function.
+--
+-- A callback accepting one or two parameters.
+-- The first is the writer context if any, and the second is a string with the data to be written.
+-- Function must return `true` or full data length or nothing to continue operation.
+-- Otherwise the transfer will be aborted with an error.
 --
 -- @tparam function writer
 -- @param[opt] context writer context
@@ -146,11 +156,43 @@ function easy:setopt_headerfunction() end
 
 --- Set reader function.
 --
+-- A callback accepting one or two parameters.
+-- The first is the reader context if any, and the second is the maximum amount of data to be read.
+-- You can ignore second argument and pass as mach data as you need. lcurl can split data.
+-- Function must return data to continue operation. To stop operation it must return empty string.
+-- Otherwise the transfer will be aborted with an error.
+--
 -- @tparam function reader
 -- @param[opt] context reader context
 -- @return[1] self
 --
 function easy:setopt_readfunction() end
+
+--- Set reader function.
+--
+-- This call same as easy:set_readfunction(reader.read, reader)
+--
+-- @tparam object reader
+-- @return[1] self
+--
+function easy:setopt_readfunction() end
+
+--- Set progress function.
+--
+-- A callback accepting four or five parameters.
+-- The first is the reader context if any, the second is the total number
+-- of bytes expected to be downloaded in this transfer,
+-- the third is the number of bytes downloaded so far,
+-- the fourth is the total number of bytes expected to be uploaded
+-- in this transfer, and the fifth is the number of bytes uploaded so far.
+-- Function must return `true` or or nothing to continue operation.
+-- Otherwise the transfer will be aborted with an error.
+--
+-- @tparam function progress
+-- @param[opt] context progress context
+-- @return[1] self
+--
+function easy:setopt_progressfunction() end
 
 --- Set reader function.
 --

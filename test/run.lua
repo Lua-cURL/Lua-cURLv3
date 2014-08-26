@@ -1,6 +1,6 @@
 local ok, curl = pcall(require, "lcurl")
 local version if ok then
-  version = curl.version
+  version = curl.version()
 else
   version = "<UNKNOWN>"
 end

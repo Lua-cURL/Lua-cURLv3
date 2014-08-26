@@ -7,6 +7,11 @@
 -- @treturn[1] httppost new curl HTTP Post object context
 function httppost() end
 
+--- Create Easy object
+--
+-- @treturn[1] easy new curl easy object
+function easy() end
+
 --- Returns libcurl version as human readable string
 --
 function version() end

@@ -164,7 +164,10 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
   long val; CURLcode code;
 
   if(lua_isboolean(L, 2)) val = lua_toboolean(L, 2);
-  else val = luaL_checklong(L, 2);
+  else{
+    luaL_argcheck(L, lua_type(L, 2) == LUA_TNUMBER, 2, "number or boolean expected");
+    val = luaL_checklong(L, 2);
+  }
   
   code = curl_easy_setopt(p->curl, opt, val);
   if(code != CURLE_OK){
@@ -176,12 +179,17 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
 
 static int lcurl_opt_set_string_(lua_State *L, int opt, int store){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  const char *val = luaL_checkstring(L, 2);
-  CURLcode code = curl_easy_setopt(p->curl, opt, val);
+  CURLcode code;
+
+  luaL_argcheck(L, lua_type(L, 2) == LUA_TSTRING, 2, "string expected");
+
+  code = curl_easy_setopt(p->curl, opt, lua_tostring(L, 2));
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
+
   if(store)lcurl_storage_preserve_value(L, p->storage, 2);
+
   lua_settop(L, 1);
   return 1;
 }

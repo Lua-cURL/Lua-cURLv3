@@ -5,7 +5,7 @@ source = {
   dir = "lua-lcurl-master",
 }
 description = {
-  summary = "Lua module binding CURL",
+  summary = "Lua binding to libcurl",
   detailed = [[
   ]],
   homepage = "https://github.com/moteus/lua-lcurl",

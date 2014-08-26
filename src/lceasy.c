@@ -9,16 +9,10 @@ static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
 #define LCURL_EASY_NAME LCURL_PREFIX" Easy"
 static const char *LCURL_EASY = LCURL_EASY_NAME;
 
-typedef struct lcurl_callback_tag{
-  int cb_ref;
-  int ud_ref;
-}lcurl_callback_t;
-
 typedef struct lcurl_read_buffer_tag{
   int ref;
   int off;
 }lcurl_read_buffer_t;
-
 
 #define LCURL_LST_INDEX(N) LCURL_##N##_LIST,
 #define LCURL_STR_INDEX(N)
@@ -366,16 +360,6 @@ static int lcurl_info_get_slist_(lua_State *L, int opt){
 //}
 
 //{ CallBack
-
-static int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c){
-  assert(c->cb_ref != LUA_NOREF);
-  lua_rawgeti(L, LCURL_LUA_REGISTRY, c->cb_ref);
-  if(c->ud_ref != LUA_NOREF){
-    lua_rawgeti(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    return 2;
-  }
-  return 1;
-}
 
 static int lcurl_easy_set_callback(lua_State *L, 
   lcurl_easy_t *p, lcurl_callback_t *c,

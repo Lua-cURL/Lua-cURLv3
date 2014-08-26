@@ -1,6 +1,7 @@
 # Lua binding to [libcurl](http://curl.haxx.se/libcurl)
 
-
+## Documentation
+[API](http://moteus.github.com/lcurl)
 
 ## Usage
 

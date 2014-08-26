@@ -9,7 +9,11 @@
 */
 
 #ifndef LCURL_STORE_STRING
-#  define LCURL_STORE_STRING 0
+#  if LCURL_CURL_VER_GE(7,17,0)
+#    define LCURL_STORE_STRING 0
+#  else
+#    define LCURL_STORE_STRING 1
+#  endif
 #endif
 
 OPT_ENTRY( verbose,                VERBOSE,                  LNG, 0 )
@@ -39,9 +43,11 @@ OPT_ENTRY( buffersize,             BUFFERSIZE,               LNG, 0 )
 OPT_ENTRY( port,                   PORT,                     LNG, 0 )
 OPT_ENTRY( tcp_nodelay,            TCP_NODELAY,              LNG, 0 )
 OPT_ENTRY( address_scope,          ADDRESS_SCOPE,            LNG, 0 )
+#if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( tcp_keepalive,          TCP_KEEPALIVE,            LNG, 0 )
 OPT_ENTRY( tcp_keepidle,           TCP_KEEPIDLE,             LNG, 0 )
 OPT_ENTRY( tcp_keepintvl,          TCP_KEEPINTVL,            LNG, 0 )
+#endif
 
 OPT_ENTRY( netrc,                  NETRC,                    LNG, 0 )
 OPT_ENTRY( netrc_file,             NETRC_FILE,               STR, LCURL_STORE_STRING )
@@ -49,15 +55,21 @@ OPT_ENTRY( userpwd,                USERPWD,                  STR, LCURL_STORE_ST
 OPT_ENTRY( proxyuserpwd,           PROXYUSERPWD,             STR, LCURL_STORE_STRING )
 OPT_ENTRY( username,               USERNAME,                 STR, LCURL_STORE_STRING )
 OPT_ENTRY( password,               PASSWORD,                 STR, LCURL_STORE_STRING )
+#if LCURL_CURL_VER_GE(7,31,0)
 OPT_ENTRY( login_options,          LOGIN_OPTIONS,            STR, LCURL_STORE_STRING )
+#endif
 OPT_ENTRY( proxyusername,          PROXYUSERNAME,            STR, LCURL_STORE_STRING )
 OPT_ENTRY( proxypassword,          PROXYPASSWORD,            STR, LCURL_STORE_STRING )
 OPT_ENTRY( httpauth,               HTTPAUTH,                 STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_username,       TLSAUTH_USERNAME,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_password,       TLSAUTH_PASSWORD,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( proxyauth,              PROXYAUTH,                LNG, 0 )
+#if LCURL_CURL_VER_GE(7,31,0)
 OPT_ENTRY( sasl_ir,                SASL_IR,                  LNG, 0 )
+#endif
+#if LCURL_CURL_VER_GE(7,33,0)
 OPT_ENTRY( xoauth2_bearer,         XOAUTH2_BEARER,           STR, LCURL_STORE_STRING )
+#endif
 
 OPT_ENTRY( autoreferer,            AUTOREFERER,              LNG, 0 )
 OPT_ENTRY( accept_encoding,        ACCEPT_ENCODING,          STR, LCURL_STORE_STRING )
@@ -70,9 +82,13 @@ OPT_ENTRY( put,                    PUT,                      LNG, 0 )
 OPT_ENTRY( post,                   POST,                     LNG, 0 )
 OPT_ENTRY( referer,                REFERER,                  STR, LCURL_STORE_STRING )
 OPT_ENTRY( useragent,              USERAGENT,                STR, LCURL_STORE_STRING )
+#if LCURL_CURL_VER_GE(7,37,0)
 OPT_ENTRY( headeropt,              HEADEROPT,                LNG, 0 )
+#endif
 OPT_ENTRY( httpheader,             HTTPHEADER,               LST, 0 )
+#if LCURL_CURL_VER_GE(7,37,0)
 OPT_ENTRY( proxyheader,            PROXYHEADER,              LST, 0 )
+#endif
 OPT_ENTRY( http200aliases,         HTTP200ALIASES,           LST, 0 )
 OPT_ENTRY( cookie,                 COOKIE,                   STR, LCURL_STORE_STRING )
 OPT_ENTRY( cookiefile,             COOKIEFILE,               STR, LCURL_STORE_STRING )
@@ -84,11 +100,15 @@ OPT_ENTRY( http_version,           HTTP_VERSION,             LNG, 0 )
 OPT_ENTRY( ignore_content_length,  IGNORE_CONTENT_LENGTH,    LNG, 0 )
 OPT_ENTRY( http_content_decoding,  HTTP_CONTENT_DECODING,    LNG, 0 )
 OPT_ENTRY( http_transfer_decoding, HTTP_TRANSFER_DECODING,   LNG, 0 )
+#if LCURL_CURL_VER_GE(7,36,0)
 OPT_ENTRY( expect_100_timeout_ms,  EXPECT_100_TIMEOUT_MS,    LNG, 0 )
+#endif
 
 OPT_ENTRY( mail_from,              MAIL_FROM,                STR, LCURL_STORE_STRING )
 OPT_ENTRY( mail_rcpt,              MAIL_RCPT,                STR, LCURL_STORE_STRING )
+#if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( mail_auth,              MAIL_AUTH,                STR, LCURL_STORE_STRING )
+#endif
 
 OPT_ENTRY( tftp_blksize,           TFTP_BLKSIZE,             LNG, 0 )
 
@@ -142,10 +162,12 @@ OPT_ENTRY( ipresolve,               IPRESOLVE,               LNG, 0 )
 OPT_ENTRY( connect_only,            CONNECT_ONLY,            LNG, 0 )
 OPT_ENTRY( use_ssl,                 USE_SSL,                 LNG, 0 )
 OPT_ENTRY( resolve,                 RESOLVE,                 LST, 0 )
+#if LCURL_CURL_VER_GE(7,33,0)
 OPT_ENTRY( dns_interface,           DNS_INTERFACE,           STR, LCURL_STORE_STRING )
 OPT_ENTRY( dns_local_ip4,           DNS_LOCAL_IP4,           STR, LCURL_STORE_STRING )
 OPT_ENTRY( dns_local_ip6,           DNS_LOCAL_IP6,           STR, LCURL_STORE_STRING )
 OPT_ENTRY( accepttimeout_ms,        ACCEPTTIMEOUT_MS,        LNG, 0 )
+#endif
 
 OPT_ENTRY( ssh_auth_types,          SSH_AUTH_TYPES,          LNG, 0)
 OPT_ENTRY( ssh_host_public_key_md5, SSH_HOST_PUBLIC_KEY_MD5, STR, 0)

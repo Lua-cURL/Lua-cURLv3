@@ -16,13 +16,6 @@ before_install:
   - sudo apt-get update
   - bash .travis/setup_lua.sh
   - sudo luarocks install lunitx
-  - wget http://curl.haxx.se/download/curl-7.37.0.tar.gz
-  - tar -xzf curl-7.37.0.tar.gz
-  - cd curl-7.37.0/
-  - ./configure
-  - make
-  - sudo make install
-  - cd ..
   - sudo pip install cpp-coveralls
 
 install:

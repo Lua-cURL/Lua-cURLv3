@@ -21,3 +21,9 @@
 *.i*86
 *.x86_64
 *.hex
+
+#MSVC
+msvc/
+
+#ldoc
+doc/doc/

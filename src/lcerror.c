@@ -36,9 +36,13 @@ static const char* lcurl_err_easy_mnemo(int err){
     RETURN_IF ( COULDNT_CONNECT          )
     RETURN_IF ( FTP_WEIRD_SERVER_REPLY   )
     RETURN_IF ( REMOTE_ACCESS_DENIED     )
+#if LCURL_CURL_VER_GE(7,24,0)
     RETURN_IF ( FTP_ACCEPT_FAILED        )
+#endif
     RETURN_IF ( FTP_WEIRD_PASS_REPLY     )
+#if LCURL_CURL_VER_GE(7,24,0)
     RETURN_IF ( FTP_ACCEPT_TIMEOUT       )
+#endif
     RETURN_IF ( FTP_WEIRD_PASV_REPLY     )
     RETURN_IF ( FTP_WEIRD_227_FORMAT     )
     RETURN_IF ( FTP_CANT_GET_HOST        )
@@ -115,7 +119,9 @@ static const char* lcurl_err_easy_mnemo(int err){
     RETURN_IF ( RTSP_SESSION_ERROR       )
     RETURN_IF ( FTP_BAD_FILE_LIST        )
     RETURN_IF ( CHUNK_FAILED             )
+#if LCURL_CURL_VER_GE(7,30,0)
     RETURN_IF ( NO_CONNECTION_AVAILABLE  )
+#endif
   }
   return "UNKNOWN";
 
@@ -134,7 +140,9 @@ static const char* lcurl_err_multi_mnemo(int err){
     RETURN_IF ( INTERNAL_ERROR     )
     RETURN_IF ( BAD_SOCKET         )
     RETURN_IF ( UNKNOWN_OPTION     )
+#if LCURL_CURL_VER_GE(7,32,1)
     RETURN_IF ( ADDED_ALREADY      )
+#endif
   }
   return "UNKNOWN";
 
@@ -150,7 +158,9 @@ static const char* lcurl_err_share_mnemo(int err){
     RETURN_IF ( IN_USE        )
     RETURN_IF ( INVALID       )
     RETURN_IF ( NOMEM         )
+#if LCURL_CURL_VER_GE(7,23,0)
     RETURN_IF ( NOT_BUILT_IN  )
+#endif
   }
   return "UNKNOWN";
 

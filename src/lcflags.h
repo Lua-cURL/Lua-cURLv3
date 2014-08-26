@@ -1,23 +1,46 @@
-
+/* Bitmasks for CURLOPT_HTTPAUTH and CURLOPT_PROXYAUTH options */
 FLG_ENTRY(AUTH_NONE                       )
 FLG_ENTRY(AUTH_BASIC                      )
 FLG_ENTRY(AUTH_DIGEST                     )
 FLG_ENTRY(AUTH_GSSNEGOTIATE               )
 FLG_ENTRY(AUTH_NTLM                       )
+#if LCURL_CURL_VER_GE(7,19,3)
 FLG_ENTRY(AUTH_DIGEST_IE                  )
+#endif
+#if LCURL_CURL_VER_GE(7,22,0)
 FLG_ENTRY(AUTH_NTLM_WB                    )
+#endif
+#if LCURL_CURL_VER_GE(7,21,3)
 FLG_ENTRY(AUTH_ONLY                       )
+#endif
 FLG_ENTRY(AUTH_ANY                        )
 FLG_ENTRY(AUTH_ANYSAFE                    )
 
+#ifdef CURLSSH_AUTH_ANY
 FLG_ENTRY(SSH_AUTH_ANY                    )
+#endif
+#ifdef CURLSSH_AUTH_NONE
 FLG_ENTRY(SSH_AUTH_NONE                   )
+#endif
+#ifdef CURLSSH_AUTH_PUBLICKEY
 FLG_ENTRY(SSH_AUTH_PUBLICKEY              )
+#endif
+#ifdef CURLSSH_AUTH_PASSWORD
 FLG_ENTRY(SSH_AUTH_PASSWORD               )
+#endif
+#ifdef CURLSSH_AUTH_HOST
 FLG_ENTRY(SSH_AUTH_HOST                   )
+#endif
+#ifdef CURLSSH_AUTH_KEYBOARD
 FLG_ENTRY(SSH_AUTH_KEYBOARD               )
+#endif
+#ifdef CURLSSH_AUTH_AGENT
 FLG_ENTRY(SSH_AUTH_AGENT                  )
+#endif
+#ifdef CURLSSH_AUTH_DEFAULT
 FLG_ENTRY(SSH_AUTH_DEFAULT                )
+#endif
+
 
 FLG_ENTRY(GSSAPI_DELEGATION_NONE          )
 FLG_ENTRY(GSSAPI_DELEGATION_POLICY_FLAG   )
@@ -28,7 +51,9 @@ FLG_ENTRY(USESSL_NONE                     )
 FLG_ENTRY(USESSL_TRY                      )
 FLG_ENTRY(USESSL_CONTROL                  )
 FLG_ENTRY(USESSL_ALL                      )
+#ifdef CURLSSLOPT_ALLOW_BEAST
 FLG_ENTRY(SSLOPT_ALLOW_BEAST              )
+#endif
 
 /* parameter for the CURLOPT_FTP_SSL_CCC option */
 FLG_ENTRY(FTPSSL_CCC_NONE                 )
@@ -53,8 +78,10 @@ FLG_ENTRY(FTPMETHOD_NOCWD                 )
 FLG_ENTRY(FTPMETHOD_SINGLECWD             )
 
 /* bitmask defines for CURLOPT_HEADEROPT */
+#if LCURL_CURL_VER_GE(7,37,0)
 FLG_ENTRY(HEADER_UNIFIED                  )
 FLG_ENTRY(HEADER_SEPARATE                 )
+#endif
 
 /* CURLPROTO_ defines are for the CURLOPT_*PROTOCOLS options */
 FLG_ENTRY(PROTO_HTTP                      )

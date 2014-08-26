@@ -11,6 +11,7 @@
 #include "lcurl.h"
 #include "lcerror.h"
 #include <assert.h>
+#include "lcutils.h"
 
 #define LCURL_ERROR_NAME LCURL_PREFIX" Error"
 static const char *LCURL_ERROR = LCURL_ERROR_NAME;
@@ -23,162 +24,42 @@ typedef struct lcurl_error_tag{
 //{
 
 static const char* lcurl_err_easy_mnemo(int err){
-#define RETURN_IF(E) case CURLE_##E: return #E;
+#define ERR_ENTRY(E) case CURLE_##E: return #E;
 
   switch (err){
-    RETURN_IF ( OK                       )
-    RETURN_IF ( UNSUPPORTED_PROTOCOL     )
-    RETURN_IF ( FAILED_INIT              )
-    RETURN_IF ( URL_MALFORMAT            )
-    RETURN_IF ( NOT_BUILT_IN             )
-    RETURN_IF ( COULDNT_RESOLVE_PROXY    )
-    RETURN_IF ( COULDNT_RESOLVE_HOST     )
-    RETURN_IF ( COULDNT_CONNECT          )
-    RETURN_IF ( FTP_WEIRD_SERVER_REPLY   )
-    RETURN_IF ( REMOTE_ACCESS_DENIED     )
-#if LCURL_CURL_VER_GE(7,24,0)
-    RETURN_IF ( FTP_ACCEPT_FAILED        )
-#endif
-    RETURN_IF ( FTP_WEIRD_PASS_REPLY     )
-#if LCURL_CURL_VER_GE(7,24,0)
-    RETURN_IF ( FTP_ACCEPT_TIMEOUT       )
-#endif
-    RETURN_IF ( FTP_WEIRD_PASV_REPLY     )
-    RETURN_IF ( FTP_WEIRD_227_FORMAT     )
-    RETURN_IF ( FTP_CANT_GET_HOST        )
-    RETURN_IF ( OBSOLETE16               )
-    RETURN_IF ( FTP_COULDNT_SET_TYPE     )
-    RETURN_IF ( PARTIAL_FILE             )
-    RETURN_IF ( FTP_COULDNT_RETR_FILE    )
-    RETURN_IF ( OBSOLETE20               )
-    RETURN_IF ( QUOTE_ERROR              )
-    RETURN_IF ( HTTP_RETURNED_ERROR      )
-    RETURN_IF ( WRITE_ERROR              )
-    RETURN_IF ( OBSOLETE24               )
-    RETURN_IF ( UPLOAD_FAILED            )
-    RETURN_IF ( READ_ERROR               )
-    RETURN_IF ( OUT_OF_MEMORY            )
-    RETURN_IF ( OPERATION_TIMEDOUT       )
-    RETURN_IF ( OBSOLETE29               )
-    RETURN_IF ( FTP_PORT_FAILED          )
-    RETURN_IF ( FTP_COULDNT_USE_REST     )
-    RETURN_IF ( OBSOLETE32               )
-    RETURN_IF ( RANGE_ERROR              )
-    RETURN_IF ( HTTP_POST_ERROR          )
-    RETURN_IF ( SSL_CONNECT_ERROR        )
-    RETURN_IF ( BAD_DOWNLOAD_RESUME      )
-    RETURN_IF ( FILE_COULDNT_READ_FILE   )
-    RETURN_IF ( LDAP_CANNOT_BIND         )
-    RETURN_IF ( LDAP_SEARCH_FAILED       )
-    RETURN_IF ( OBSOLETE40               )
-    RETURN_IF ( FUNCTION_NOT_FOUND       )
-    RETURN_IF ( ABORTED_BY_CALLBACK      )
-    RETURN_IF ( BAD_FUNCTION_ARGUMENT    )
-    RETURN_IF ( OBSOLETE44               )
-    RETURN_IF ( INTERFACE_FAILED         )
-    RETURN_IF ( OBSOLETE46               )
-    RETURN_IF ( TOO_MANY_REDIRECTS       )
-    RETURN_IF ( UNKNOWN_OPTION           )
-    RETURN_IF ( TELNET_OPTION_SYNTAX     )
-    RETURN_IF ( OBSOLETE50               )
-    RETURN_IF ( PEER_FAILED_VERIFICATION )
-    RETURN_IF ( GOT_NOTHING              )
-    RETURN_IF ( SSL_ENGINE_NOTFOUND      )
-    RETURN_IF ( SSL_ENGINE_SETFAILED     )
-    RETURN_IF ( SEND_ERROR               )
-    RETURN_IF ( RECV_ERROR               )
-    RETURN_IF ( OBSOLETE57               )
-    RETURN_IF ( SSL_CERTPROBLEM          )
-    RETURN_IF ( SSL_CIPHER               )
-    RETURN_IF ( SSL_CACERT               )
-    RETURN_IF ( BAD_CONTENT_ENCODING     )
-    RETURN_IF ( LDAP_INVALID_URL         )
-    RETURN_IF ( FILESIZE_EXCEEDED        )
-    RETURN_IF ( USE_SSL_FAILED           )
-    RETURN_IF ( SEND_FAIL_REWIND         )
-    RETURN_IF ( SSL_ENGINE_INITFAILED    )
-    RETURN_IF ( LOGIN_DENIED             )
-    RETURN_IF ( TFTP_NOTFOUND            )
-    RETURN_IF ( TFTP_PERM                )
-    RETURN_IF ( REMOTE_DISK_FULL         )
-    RETURN_IF ( TFTP_ILLEGAL             )
-    RETURN_IF ( TFTP_UNKNOWNID           )
-    RETURN_IF ( REMOTE_FILE_EXISTS       )
-    RETURN_IF ( TFTP_NOSUCHUSER          )
-    RETURN_IF ( CONV_FAILED              )
-    RETURN_IF ( CONV_REQD                )
-    RETURN_IF ( SSL_CACERT_BADFILE       )
-    RETURN_IF ( REMOTE_FILE_NOT_FOUND    )
-    RETURN_IF ( SSH                      )
-    RETURN_IF ( SSL_SHUTDOWN_FAILED      )
-    RETURN_IF ( AGAIN                    )
-    RETURN_IF ( SSL_CRL_BADFILE          )
-    RETURN_IF ( SSL_ISSUER_ERROR         )
-    RETURN_IF ( FTP_PRET_FAILED          )
-    RETURN_IF ( RTSP_CSEQ_ERROR          )
-    RETURN_IF ( RTSP_SESSION_ERROR       )
-    RETURN_IF ( FTP_BAD_FILE_LIST        )
-    RETURN_IF ( CHUNK_FAILED             )
-#if LCURL_CURL_VER_GE(7,30,0)
-    RETURN_IF ( NO_CONNECTION_AVAILABLE  )
-#endif
+    #include "lcerr_easy.h"
   }
   return "UNKNOWN";
 
-#undef RETURN_IF
+#undef ERR_ENTRY
 }
 
 static const char* lcurl_err_multi_mnemo(int err){
-#define RETURN_IF(E) case CURLM_##E: return #E;
+#define ERR_ENTRY(E) case CURLM_##E: return #E;
 
   switch (err){
-    RETURN_IF ( OK                 )
-    RETURN_IF ( CALL_MULTI_PERFORM )
-    RETURN_IF ( BAD_HANDLE         )
-    RETURN_IF ( BAD_EASY_HANDLE    )
-    RETURN_IF ( OUT_OF_MEMORY      )
-    RETURN_IF ( INTERNAL_ERROR     )
-    RETURN_IF ( BAD_SOCKET         )
-    RETURN_IF ( UNKNOWN_OPTION     )
-#if LCURL_CURL_VER_GE(7,32,1)
-    RETURN_IF ( ADDED_ALREADY      )
-#endif
+    #include "lcerr_multi.h"
   }
   return "UNKNOWN";
 
-#undef RETURN_IF
+#undef ERR_ENTRY
 }
 
 static const char* lcurl_err_share_mnemo(int err){
-#define RETURN_IF(E) case CURLSHE_##E: return #E;
+#define ERR_ENTRY(E) case CURLSHE_##E: return #E;
 
   switch (err){
-    RETURN_IF ( OK            )
-    RETURN_IF ( BAD_OPTION    )
-    RETURN_IF ( IN_USE        )
-    RETURN_IF ( INVALID       )
-    RETURN_IF ( NOMEM         )
-#if LCURL_CURL_VER_GE(7,23,0)
-    RETURN_IF ( NOT_BUILT_IN  )
-#endif
+    #include "lcerr_share.h"
   }
   return "UNKNOWN";
 
-#undef RETURN_IF
+#undef ERR_ENTRY
 }
 
 static const char* lcurl_err_form_mnemo(int err){
 #define RETURN_IF(E) case CURL_FORMADD_##E: return #E;
 
   switch (err){
-    RETURN_IF ( OK             )
-    RETURN_IF ( MEMORY         )
-    RETURN_IF ( OPTION_TWICE   )
-    RETURN_IF ( NULL           )
-    RETURN_IF ( UNKNOWN_OPTION )
-    RETURN_IF ( INCOMPLETE     )
-    RETURN_IF ( ILLEGAL_ARRAY  )
-    RETURN_IF ( DISABLED       )
   }
   return "UNKNOWN";
 

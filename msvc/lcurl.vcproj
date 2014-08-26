@@ -212,6 +212,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcerr_easy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcerr_form.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcerr_multi.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcerr_share.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcerror.h"
 				>
 			</File>

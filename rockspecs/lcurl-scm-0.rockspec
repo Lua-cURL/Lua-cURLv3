@@ -61,7 +61,7 @@ build = {
       sources = {
         "src/l52util.c",    "src/lceasy.c", "src/lcerror.c",
         "src/lchttppost.c", "src/lcurl.c",  "src/lcutils.c",
-        "src/multi.c",
+        "src/lcmulti.c",
       },
       incdirs   = { "$(CURL_INCDIR)" },
       libdirs   = { "$(CURL_LIBDIR)" }

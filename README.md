@@ -1,4 +1,7 @@
 # Lua binding to [libcurl](http://curl.haxx.se/libcurl)
+[![Build Status](https://travis-ci.org/moteus/lua-lcurl.png?branch=master)](https://travis-ci.org/moteus/lua-lcurl)
+[![Coverage Status](https://coveralls.io/repos/moteus/lua-lcurl/badge.png?branch=master)](https://coveralls.io/r/moteus/lua-lcurl?branch=master)
+[![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
 
 ## Documentation
 [API](http://moteus.github.com/lcurl)

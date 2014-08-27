@@ -1,11 +1,11 @@
 ---
 -- @module lcurl
-
+do
 
 --- Create HTTP multipart object.
 --
--- @treturn[1] httppost new curl HTTP Post object context
-function httppost() end
+-- @treturn[1] httpform new curl HTTP Post object context
+function form() end
 
 --- Create Easy object
 --
@@ -27,8 +27,10 @@ function version() end
 -- if proto.HTTP then ... -- libcurl support http protocol
 function version_info() end
 
+end
+
 --- HTTP multipart/formdata object
--- @type httppost
+-- @type httpform
 --
 do
 
@@ -39,7 +41,7 @@ do
 -- @tparam[opt] string type provides the content-type for this part
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httppost:add_content() end
+function httpform:add_content() end
 
 --- Add new part to form.
 --
@@ -49,7 +51,7 @@ function httppost:add_content() end
 -- @tparam[opt] string type provides the content-type for this part
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httppost:add_buffer() end
+function httpform:add_buffer() end
 
 --- Add new part to form.
 --
@@ -60,7 +62,7 @@ function httppost:add_buffer() end
 --   By default it is basename of path.
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httppost:add_file() end
+function httpform:add_file() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
@@ -68,7 +70,7 @@ function httppost:add_file() end
 --
 -- @usage print(post:get())
 --
-function httppost:get() end
+function httpform:get() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
@@ -84,11 +86,11 @@ function httppost:get() end
 -- post:get(table.insert, t)
 -- print(table.concat(t))
 --
-function httppost:get() end
+function httpform:get() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
--- This call same as httppost:get(writer.write, writer)
+-- This call same as httpform:get(writer.write, writer)
 --
 -- @tparam object writer
 -- @return[1] self
@@ -97,11 +99,11 @@ function httppost:get() end
 -- f = io.open(...)
 -- post:get(f)
 --
-function httppost:get() end
+function httpform:get() end
 
 --- Free multipart/formdata.
 --
-function httppost:free() end
+function httpform:free() end
 
 end
 
@@ -251,9 +253,9 @@ function easy:setopt_readfunction() end
 
 --- Set HTTP multipart/formdata
 --
--- @tparam httppost data
+-- @tparam httpform data
 -- @return[1] self
-function easy:setopt_httppost() end
+function easy:setopt_httpform() end
 
 --- Set HTTP multipart/formdata
 --

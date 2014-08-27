@@ -74,7 +74,7 @@ static int lcurl_version_info(lua_State *L){
 
 static const struct luaL_Reg lcurl_functions[] = {
   {"error",           lcurl_error_new        },
-  {"httppost",        lcurl_hpost_new        },
+  {"form",            lcurl_hpost_new        },
   {"easy",            lcurl_easy_new         },
   {"version",         lcurl_version          },
   {"version_info",    lcurl_version_info     },

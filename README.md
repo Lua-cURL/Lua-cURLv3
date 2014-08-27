@@ -23,7 +23,7 @@ curl:easy()
 curl:easy()
   :setopt_url('http://posttestserver.com/post.php')
   :setopt_writefunction(io.write)
-  :setopt_httppost(curl.httppost()
+  :setopt_httppost(curl.form()
     :add_content("test_content", "some data", {
       "MyHeader: SomeValue"
     })

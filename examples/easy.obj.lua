@@ -121,7 +121,7 @@ function easy:perform(opt)
 end
  
 function easy:post(data)
-  local post = curl.httppost()
+  local post = curl.form()
   local ok, err
   for k, v in data do
     if type(v) == "string" then

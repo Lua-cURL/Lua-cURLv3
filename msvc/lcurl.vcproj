@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcmulti.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcurl.c"
 				>
 			</File>
@@ -237,6 +241,10 @@
 			</File>
 			<File
 				RelativePath="..\src\lcinfoeasy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcmulti.h"
 				>
 			</File>
 			<File

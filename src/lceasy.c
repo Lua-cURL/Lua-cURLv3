@@ -32,7 +32,7 @@ int lcurl_easy_create(lua_State *L, int error_mode){
 
 lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i){
   lcurl_easy_t *p = (lcurl_easy_t *)lutil_checkudatap (L, i, LCURL_EASY);
-  luaL_argcheck (L, p != NULL, 1, LCURL_PREFIX"HTTPPost object expected");
+  luaL_argcheck (L, p != NULL, 1, LCURL_EASY_NAME" expected");
   return p;
 }
 

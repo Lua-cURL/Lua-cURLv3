@@ -12,6 +12,11 @@ function form() end
 -- @treturn[1] easy new curl easy object
 function easy() end
 
+--- Create Multi object
+--
+-- @treturn[1] multi new curl multi object
+function multi() end
+
 --- Returns libcurl version as human readable string
 --
 function version() end
@@ -41,7 +46,7 @@ do
 -- @tparam[opt] string type provides the content-type for this part
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httpform:add_content() end
+function add_content() end
 
 --- Add new part to form.
 --
@@ -51,7 +56,7 @@ function httpform:add_content() end
 -- @tparam[opt] string type provides the content-type for this part
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httpform:add_buffer() end
+function add_buffer() end
 
 --- Add new part to form.
 --
@@ -62,7 +67,7 @@ function httpform:add_buffer() end
 --   By default it is basename of path.
 -- @tparam[opt] table headers specifies extra headers for the form POST section
 -- @return[1] self
-function httpform:add_file() end
+function add_file() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
@@ -70,7 +75,7 @@ function httpform:add_file() end
 --
 -- @usage print(post:get())
 --
-function httpform:get() end
+function get() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
@@ -86,7 +91,7 @@ function httpform:get() end
 -- post:get(table.insert, t)
 -- print(table.concat(t))
 --
-function httpform:get() end
+function get() end
 
 --- Serialize multipart/formdata HTTP POST chain.
 --
@@ -99,11 +104,11 @@ function httpform:get() end
 -- f = io.open(...)
 -- post:get(f)
 --
-function httpform:get() end
+function get() end
 
 --- Free multipart/formdata.
 --
-function httpform:free() end
+function free() end
 
 end
 
@@ -115,28 +120,28 @@ do
 --- Perform a file transfer
 -- 
 -- @return[1] self
-function easy:perfom() end
+function perfom() end
 
 --- URL encodes the given string
 --
 -- @tparam string url 
 -- @return[1] encoded url
-function easy:escape() end
+function escape() end
 
 --- URL decodes the given string
 --
 -- @tparam string url
 -- @return[1] decoded url
-function easy:unescape() end
+function unescape() end
 
 --- Re-initializes all options previously set.
 --
 -- @treturn easy self
-function easy:reset() end
+function reset() end
 
 --- End easy session
 -- 
-function easy:close() end
+function close() end
 
 --- Set options.
 --
@@ -150,7 +155,7 @@ function easy:close() end
 --    function(t, n) return table.remove(t) end,
 --    {"1111", "2222"}
 -- )
-function easy:setopt() end
+function setopt() end
 
 --- Get information.
 --
@@ -161,7 +166,7 @@ function easy:setopt() end
 -- print(c:getinfo(curl.INFO_EFFECTIVE_URL))
 -- print(c:getinfo(curl.INFO_TOTAL_TIME))
 -- print(c:getinfo(curl.INFO_RESPONSE_CODE))
-function easy:getinfo() end
+function getinfo() end
 
 --- Set writer function.
 --
@@ -174,7 +179,7 @@ function easy:getinfo() end
 -- @param[opt] context writer context
 -- @return[1] self
 --
-function easy:setopt_writefunction() end
+function setopt_writefunction() end
 
 --- Set writer function.
 --
@@ -183,7 +188,7 @@ function easy:setopt_writefunction() end
 -- @tparam object writer
 -- @return[1] self
 --
-function easy:setopt_writefunction() end
+function setopt_writefunction() end
 
 --- Set header function.
 --
@@ -196,7 +201,7 @@ function easy:setopt_writefunction() end
 -- @param[opt] context writer context
 -- @return[1] self
 --
-function easy:setopt_headerfunction() end
+function setopt_headerfunction() end
 
 --- Set header function.
 --
@@ -205,7 +210,7 @@ function easy:setopt_headerfunction() end
 -- @tparam object writer
 -- @return[1] self
 --
-function easy:setopt_headerfunction() end
+function setopt_headerfunction() end
 
 --- Set reader function.
 --
@@ -219,7 +224,7 @@ function easy:setopt_headerfunction() end
 -- @param[opt] context reader context
 -- @return[1] self
 --
-function easy:setopt_readfunction() end
+function setopt_readfunction() end
 
 --- Set reader function.
 --
@@ -228,7 +233,7 @@ function easy:setopt_readfunction() end
 -- @tparam object reader
 -- @return[1] self
 --
-function easy:setopt_readfunction() end
+function setopt_readfunction() end
 
 --- Set progress function.
 --
@@ -245,7 +250,7 @@ function easy:setopt_readfunction() end
 -- @param[opt] context progress context
 -- @return[1] self
 --
-function easy:setopt_progressfunction() end
+function setopt_progressfunction() end
 
 --- Set reader function.
 --
@@ -254,19 +259,30 @@ function easy:setopt_progressfunction() end
 -- @tparam object reader
 -- @return[1] self
 --
-function easy:setopt_readfunction() end
+function setopt_readfunction() end
 
 --- Set HTTP multipart/formdata
 --
 -- @tparam httpform data
 -- @return[1] self
-function easy:setopt_httpform() end
+function setopt_httpform() end
 
 --- Set HTTP multipart/formdata
 --
 -- @tparam string data
 -- @tparam[opt=#data] number length
 -- @return[1] self
-function easy:setopt_postfields() end
+function setopt_postfields() end
+
+end
+
+--- Muli curl object
+-- @type multi
+--
+do
+
+--- End multi session
+-- 
+function close() end
 
 end

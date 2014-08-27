@@ -4,6 +4,7 @@ source = {
   url = "https://github.com/moteus/lua-lcurl/archive/master.zip",
   dir = "lua-lcurl-master",
 }
+
 description = {
   summary = "Lua binding to libcurl",
   detailed = [[
@@ -11,6 +12,7 @@ description = {
   homepage = "https://github.com/moteus/lua-lcurl",
   license = "MIT/X11"
 }
+
 dependencies = {
   "lua >= 5.1"
 }
@@ -58,7 +60,8 @@ build = {
     lcurl = {
       sources = {
         "src/l52util.c",    "src/lceasy.c", "src/lcerror.c",
-        "src/lchttppost.c", "src/lcurl.c",  "src/lcutils.c"
+        "src/lchttppost.c", "src/lcurl.c",  "src/lcutils.c",
+        "src/multi.c",
       },
       incdirs   = { "$(CURL_INCDIR)" },
       libdirs   = { "$(CURL_LIBDIR)" }

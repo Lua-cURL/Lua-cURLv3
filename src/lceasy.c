@@ -384,6 +384,10 @@ static int lcurl_easy_set_callback(lua_State *L,
     luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
     c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
     c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+
+    curl_easy_setopt(p->curl, OPT_UD, p);
+    curl_easy_setopt(p->curl, OPT_CB, func);
+
     assert(1 == lua_gettop(L));
     return 1;
   }
@@ -511,7 +515,10 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
   lua_pushnumber(L, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)) return CURL_READFUNC_ABORT;
 
-  if(lua_isnoneornil(L, top + 1)) return CURL_READFUNC_ABORT;
+  if(lua_isnoneornil(L, top + 1)){
+    if(lua_gettop(L) <= (top + 1))return 0;
+    return CURL_READFUNC_ABORT;
+  }
   data = lua_tolstring(L, -1, &data_size);
   if(!data) return CURL_READFUNC_ABORT;
 

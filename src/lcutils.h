@@ -24,7 +24,7 @@ int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * 
 
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx);
 
-void lcurl_storage_free(lua_State *L, int storage);
+int lcurl_storage_free(lua_State *L, int storage);
 
 struct curl_slist* lcurl_util_array_to_slist(lua_State *L, int t);
 

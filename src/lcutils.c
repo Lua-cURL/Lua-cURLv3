@@ -44,7 +44,7 @@ struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx
   return list;
 }
 
-void lcurl_storage_free(lua_State *L, int storage){
+int lcurl_storage_free(lua_State *L, int storage){
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
   lua_rawgeti(L, -1, 1); // list storage
   if(lua_istable(L, -1)){
@@ -59,6 +59,7 @@ void lcurl_storage_free(lua_State *L, int storage){
   }
   lua_pop(L, 1);
   luaL_unref(L, LCURL_LUA_REGISTRY, storage);
+  return LUA_NOREF;
 }
 
 struct curl_slist* lcurl_util_array_to_slist(lua_State *L, int t){

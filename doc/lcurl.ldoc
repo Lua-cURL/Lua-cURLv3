@@ -129,6 +129,11 @@ function easy:escape() end
 -- @return[1] decoded url
 function easy:unescape() end
 
+--- Re-initializes all options previously set.
+--
+-- @treturn easy self
+function easy:reset() end
+
 --- End easy session
 -- 
 function easy:close() end

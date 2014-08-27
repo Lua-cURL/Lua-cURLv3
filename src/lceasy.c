@@ -83,8 +83,7 @@ static int lcurl_easy_cleanup(lua_State *L){
   }
 
   if(p->storage != LUA_NOREF){
-    lcurl_storage_free(L, p->storage);
-    p->storage = LUA_NOREF;
+    p->storage = lcurl_storage_free(L, p->storage);
   }
 
   return 0;
@@ -150,6 +149,22 @@ static int lcurl_easy_unescape(lua_State *L){
   }
   lua_pushlstring(L, ret, ret_size);
   curl_free((char*)ret);
+  return 1;
+}
+
+static int lcurl_easy_reset(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_init(p->curl);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  lua_settop(L, 1);
+
+  if(p->storage != LUA_NOREF){
+    lcurl_storage_free(L, p->storage);
+    p->storage = lcurl_storage_init(L);
+  }
+
   return 1;
 }
 
@@ -682,6 +697,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
 
+  { "reset",    lcurl_easy_reset          },
   { "setopt",   lcurl_easy_setopt         },
   { "getinfo",  lcurl_easy_getinfo        },
   { "escape",   lcurl_easy_escape         },

@@ -6,6 +6,20 @@
 ## Documentation
 [API](http://moteus.github.com/lcurl)
 
+## Why one more curl binding
+
+Existing [lua-curl](http://msva.github.io/lua-curl) binding has several problems:
+
+* it can not return error codes but just raise Lua errors
+* it raise Lua error from callback that may result resource leak in libcurl
+* it does not provide building multipart/formdata explicitly
+* it has memory leak when send multipart/formdata
+* it does not save string for curl options that may result crush in libcurl
+* there no way to get result for operations in multi interface (e.g. if one of easy operation fail you can not get result code/error message)
+* you can not use multi interface for upload operation
+* you can not use your own callback function to perform operation with multi interface
+* you can not pass your context to callback functions
+
 ## Installation
 
 ```
@@ -22,7 +36,7 @@ curl:easy()
     "X-Test-Header1: Header-Data1",
     "X-Test-Header2: Header-Data2",
   }
-  :setopt_writefunction(io.stderr)
+  :setopt_writefunction(io.stderr) -- use io.stderr:write()
   :perform()
 :close()
 ```
@@ -32,7 +46,7 @@ curl:easy()
 curl:easy()
   :setopt_url('http://posttestserver.com/post.php')
   :setopt_writefunction(io.write)
-  :setopt_httppost(curl.form()
+  :setopt_httppost(curl.form() -- lcurl guarantee that form will be alive
     :add_content("test_content", "some data", {
       "MyHeader: SomeValue"
     })

@@ -2,7 +2,7 @@
 -- @module lcurl
 do
 
---- Create HTTP multipart object.
+--- Create HTTP multipart/formdata object.
 --
 -- @treturn[1] httpform new curl HTTP Post object context
 function form() end

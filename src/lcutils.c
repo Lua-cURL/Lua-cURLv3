@@ -98,7 +98,7 @@ void lcurl_util_slist_to_table(lua_State *L, struct curl_slist* list){
 }
 
 void lcurl_util_set_const(lua_State *L, const lcurl_const_t *reg){
-  lcurl_const_t *p;
+  const lcurl_const_t *p;
   for(p = reg; p->name; ++p){
     lua_pushstring(L, p->name);
     lua_pushnumber(L, p->value);

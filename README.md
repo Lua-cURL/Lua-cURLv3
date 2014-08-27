@@ -3,6 +3,12 @@
 ## Documentation
 [API](http://moteus.github.com/lcurl)
 
+## Installation
+
+```
+luarocks install lcurl --server=https://rocks.moonscript.org/dev
+```
+
 ## Usage
 
 ```Lua

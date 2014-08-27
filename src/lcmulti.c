@@ -15,10 +15,11 @@ int lcurl_multi_create(lua_State *L, int error_mode){
   lcurl_multi_t *p = lutil_newudatap(L, lcurl_multi_t, LCURL_MULTI);
   p->curl = curl_multi_init();
   if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_INTERNAL_ERROR);
+  p->L = L;
   p->err_mode = error_mode;
   lcurl_util_new_weak_table(L, "v");
   p->h_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-
+  p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
   return 1;
 }
 
@@ -177,6 +178,122 @@ static int lcurl_opt_set_string_array_(lua_State *L, int opt){
 #undef LCURL_LNG_OPT
 #undef LCURL_STR_ARR_OPT
 
+//}
+
+//{ CallBack
+
+static int lcurl_multi_set_callback(lua_State *L, 
+  lcurl_multi_t *p, lcurl_callback_t *c,
+  int OPT_CB, int OPT_UD,
+  const char *method, void *func
+)
+{
+  if(c->ud_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
+    c->ud_ref = LUA_NOREF;
+  }
+
+  if(c->cb_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
+    c->cb_ref = LUA_NOREF;
+  }
+
+  if(lua_gettop(L) >= 3){// function + context
+    lua_settop(L, 3);
+    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+
+    curl_multi_setopt(p->curl, OPT_UD, p);
+    curl_multi_setopt(p->curl, OPT_CB, func);
+
+    assert(1 == lua_gettop(L));
+    return 1;
+  }
+
+  lua_settop(L, 2);
+
+  if(lua_isnoneornil(L, 2)){
+    lua_pop(L, 1);
+    assert(1 == lua_gettop(L));
+
+    curl_multi_setopt(p->curl, OPT_UD, 0);
+    curl_multi_setopt(p->curl, OPT_CB, 0);
+
+    return 1;
+  }
+
+  if(lua_isfunction(L, 2)){
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    assert(1 == lua_gettop(L));
+
+    curl_multi_setopt(p->curl, OPT_UD, p);
+    curl_multi_setopt(p->curl, OPT_CB, func);
+    return 1;
+  }
+
+  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
+    lua_getfield(L, 2, method);
+    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    curl_multi_setopt(p->curl, OPT_UD, p);
+    curl_multi_setopt(p->curl, OPT_CB, func);
+    assert(1 == lua_gettop(L));
+    return 1;
+  }
+
+  lua_pushliteral(L, "invalid object type");
+  return lua_error(L);
+}
+
+//{Timer
+
+int lcurl_multi_timer_callback(CURLM *multi, long ms, void *arg){
+  lcurl_multi_t *p = arg;
+  lua_State *L = p->L;
+
+  int ret = 0;
+  int top = lua_gettop(L);
+  int n   = lcurl_util_push_cb(L, &p->tm);
+
+  lua_pushnumber(L, ms);
+  if(lua_pcall(L, n, LUA_MULTRET, 0)){
+    assert(lua_gettop(L) >= top);
+    lua_settop(L, top); //! @todo 
+    // lua_pushlightuserdata(L, (void*)LCURL_ERROR_TAG);
+    // lua_insert(L, top+1);
+    return -1;
+  }
+
+  if(lua_gettop(L) > top){
+    if(lua_isnil(L, top + 1)){
+      lua_settop(L, top);
+      return -1;
+    }
+    
+    if(lua_isboolean(L, top + 1))
+      ret = lua_toboolean(L, top + 1)?0:-1;
+    else ret = lua_tonumber(L, top + 1);
+  }
+
+  lua_settop(L, top);
+  return ret;
+}
+
+
+static int lcurl_multi_set_TIMERFUNCTION(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  return lcurl_multi_set_callback(L, p, &p->tm,
+    CURLMOPT_TIMERFUNCTION, CURLMOPT_TIMERDATA,
+    "write", lcurl_multi_timer_callback
+  );
+}
+
+//}
+
+//}
+
 static int lcurl_multi_setopt(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   int opt = luaL_checklong(L, 2);
@@ -185,13 +302,12 @@ static int lcurl_multi_setopt(lua_State *L){
 #define OPT_ENTRY(l, N, T, S) case CURLMOPT_##N: return lcurl_multi_set_##N(L);
   switch(opt){
     #include "lcoptmulti.h"
+    OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
   }
 #undef OPT_ENTRY
 
   return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
 }
-
-//}
 
 //}
 
@@ -204,6 +320,7 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_multi_set_##N },
   #include "lcoptmulti.h"
+  OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
 #undef OPT_ENTRY
 
   {"close",            lcurl_multi_cleanup          },
@@ -214,7 +331,8 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
 
 static const lcurl_const_t lcurl_multi_opt[] = {
 #define OPT_ENTRY(L, N, T, S) { "OPT_MULTI_"#N, CURLMOPT_##N },
-#include "lcoptmulti.h"
+  #include "lcoptmulti.h"
+  OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
 #undef OPT_ENTRY
 
   {NULL, 0}

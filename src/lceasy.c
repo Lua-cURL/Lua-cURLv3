@@ -579,8 +579,6 @@ static int lcurl_progress_callback(void *arg, double dltotal, double dlnow,
   );
 }
 
-
-
 static int lcurl_easy_set_PROGRESSFUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   int n = lcurl_easy_set_callback(L, p, &p->pr,

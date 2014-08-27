@@ -134,12 +134,27 @@ function easy:close() end
 --- Set options.
 --
 -- @tparam number opt one of `curl.OPT_XXX` constant
--- @params ... value
+-- @param ... value
+-- @treturn easy self
 --
 -- @usage
 -- c:setopt(curl.OPT_URL, "http://example.com")
--- c:setopt(curl.OPT_READFUNCTION, function(t, n) return table.remove(t) end, {"1111", "2222"})
+-- c:setopt(curl.OPT_READFUNCTION,
+--    function(t, n) return table.remove(t) end,
+--    {"1111", "2222"}
+-- )
 function easy:setopt() end
+
+--- Get information.
+--
+-- @tparam number info one of `curl.INFO_XXX` constant
+-- @return value
+--
+-- @usage
+-- print(c:getinfo(curl.INFO_EFFECTIVE_URL))
+-- print(c:getinfo(curl.INFO_TOTAL_TIME))
+-- print(c:getinfo(curl.INFO_RESPONSE_CODE))
+function easy:getinfo() end
 
 --- Set writer function.
 --

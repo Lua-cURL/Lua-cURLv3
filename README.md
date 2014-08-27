@@ -56,6 +56,43 @@ curl:easy()
   )
   :perform()
 :close()
+```
 
+```Lua
+-- Multi FTP Upload
+
+-- We get error E_LOGIN_DENIED for this operation
+e1 = curl:easy()
+  :setopt_url("ftp://moteus:999999@127.0.0.1/test1.dat")
+  :setopt_upload(true)
+  :setopt_readfunction(
+    function(t) return table.remove(t) end, {"1111", "2222"}
+  )
+
+e2 = curl:easy()
+  :setopt_url("ftp://moteus:123456@127.0.0.1/test2.dat")
+  :setopt_upload(true)
+  :setopt_readfunction(get_bin_by(("e"):rep(1000), 5))
+
+m = curl:multi()
+m:add_handle(e1)
+m:add_handle(e2)
+
+while m:perform() > 0 do end
+
+while true do
+  h, ok, err = m:info_read()
+  if h == 0 then break end
+
+  if h == e1 then 
+    assert(ok == nil)
+    assert(err:name() == "LOGIN_DENIED")
+    assert(err:no() == curl.E_LOGIN_DENIED)
+  end
+
+  if h == e2 then 
+    assert(ok == true)
+  end
+end
 ```
 

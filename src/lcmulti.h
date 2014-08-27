@@ -7,6 +7,7 @@
 typedef struct lcurl_multi_tag{
   CURLM *curl;
   int err_mode;
+  int h_ref;
 }lcurl_multi_t;
 
 int lcurl_multi_create(lua_State *L, int error_mode);

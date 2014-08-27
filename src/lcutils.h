@@ -38,4 +38,6 @@ void lcurl_util_set_const(lua_State *L, const lcurl_const_t *reg);
 
 int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c);
 
+int lcurl_util_new_weak_table(lua_State*L, const char *mode);
+
 #endif

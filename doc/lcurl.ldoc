@@ -183,7 +183,7 @@ function setopt_writefunction() end
 
 --- Set writer function.
 --
--- This call same as easy:set_writefunction(writer.write, writer)
+-- This call same as easy:setopt_writefunction(writer.write, writer)
 --
 -- @tparam object writer
 -- @return[1] self
@@ -205,7 +205,7 @@ function setopt_headerfunction() end
 
 --- Set header function.
 --
--- This call same as easy:set_headerfunction(writer.header, writer)
+-- This call same as easy:setopt_headerfunction(writer.header, writer)
 --
 -- @tparam object writer
 -- @return[1] self
@@ -228,7 +228,7 @@ function setopt_readfunction() end
 
 --- Set reader function.
 --
--- This call same as easy:set_readfunction(reader.read, reader)
+-- This call same as easy:setopt_readfunction(reader.read, reader)
 --
 -- @tparam object reader
 -- @return[1] self
@@ -252,16 +252,18 @@ function setopt_readfunction() end
 --
 function setopt_progressfunction() end
 
---- Set reader function.
+--- Set progress function.
 --
--- This call same as easy:set_readfunction(reader.read, reader)
+-- This call same as easy:setopt_progressfunction(progress.progress, progress)
 --
--- @tparam object reader
+-- @tparam object progress
 -- @return[1] self
 --
-function setopt_readfunction() end
+function setopt_progressfunction() end
 
 --- Set HTTP multipart/formdata
+--
+-- Caller does not have to save data.
 --
 -- @tparam httpform data
 -- @return[1] self
@@ -281,8 +283,37 @@ end
 --
 do
 
---- End multi session
--- 
+--- Add Easy object.
+--
+-- Caller must ensure that easy object is alive until end of operation.
+--
+-- @treturn multi self
+-- @tparam easy handle
+function add_handle() end
+
+--- Remove Easy object.
+--
+-- @tparam easy handle
+-- @treturn multi self
+function remove_handle() end
+
+--- reads/writes available data from each easy handle.
+--
+-- @treturn number handles number of active easy handles
+function perfom() end
+
+--- Read multi stack informationals.
+--
+-- @treturn[1] number 0 there no informationals
+-- @treturn[2] easy handle
+-- @treturn[2] boolean true
+-- @treturn[3] easy handle
+-- @treturn[3] nil
+-- @treturn[3] error error code
+function info_read() end
+
+--- End multi session.
+--
 function close() end
 
 end

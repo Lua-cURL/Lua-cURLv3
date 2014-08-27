@@ -116,3 +116,13 @@ int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c){
   return 1;
 }
 
+int lcurl_util_new_weak_table(lua_State*L, const char *mode){
+  int top = lua_gettop(L);
+  lua_newtable(L);
+  lua_newtable(L);
+  lua_pushstring(L, mode);
+  lua_setfield(L, -2, "__mode");
+  lua_setmetatable(L,-2);
+  assert((top+1) == lua_gettop(L));
+  return 1;
+}

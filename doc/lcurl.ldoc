@@ -312,6 +312,16 @@ function perfom() end
 -- @treturn[3] error error code
 function info_read() end
 
+--- Set options.
+--
+-- @tparam number opt one of `curl.OPT_MULTI_XXX` constant
+-- @param ... value
+-- @treturn easy self
+--
+-- @usage
+-- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
+function setopt() end
+
 --- End multi session.
 --
 function close() end

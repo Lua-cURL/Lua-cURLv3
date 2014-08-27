@@ -108,6 +108,91 @@ static int lcurl_multi_info_read(lua_State *L){
   return 1;
 }
 
+//{ OPTIONS
+static int lcurl_opt_set_long_(lua_State *L, int opt){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  long val; CURLMcode code;
+
+  if(lua_isboolean(L, 2)) val = lua_toboolean(L, 2);
+  else{
+    luaL_argcheck(L, lua_type(L, 2) == LUA_TNUMBER, 2, "number or boolean expected");
+    val = luaL_checklong(L, 2);
+  }
+  
+  code = curl_multi_setopt(p->curl, opt, val);
+  if(code != CURLM_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_opt_set_string_array_(lua_State *L, int opt){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  CURLMcode code;
+  int n;
+  luaL_argcheck(L, lua_type(L, 2) == LUA_TTABLE, 2, "array expected");
+  n = lua_rawlen(L, 2);
+  if(n == 0){
+    char *val[] = {NULL};
+    code = curl_multi_setopt(p->curl, opt, val);
+  }
+  else{
+    int i;
+    char const* *val = malloc(sizeof(char*) * (n + 1));
+    if(!*val){
+      return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_OUT_OF_MEMORY);
+    }
+    for(i = 1; i <= n; ++i){
+      lua_rawgeti(L, 2, i);
+      val[i-1] = lua_tostring(L, -1);
+      lua_pop(L, 1);
+    }
+    val[n] = NULL;
+    code = curl_multi_setopt(p->curl, opt, val);
+    free((void*)val);
+  }
+
+  if(code != CURLM_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#define LCURL_LNG_OPT(N, S) static int lcurl_multi_set_##N(lua_State *L){\
+  return lcurl_opt_set_long_(L, CURLMOPT_##N);\
+}
+
+#define LCURL_STR_ARR_OPT(N, S) static int lcurl_multi_set_##N(lua_State *L){\
+  return lcurl_opt_set_string_array_(L, CURLMOPT_##N);\
+}
+
+#define OPT_ENTRY(L, N, T, S) LCURL_##T##_OPT(N, S)
+
+#include "lcoptmulti.h"
+
+#undef OPT_ENTRY
+#undef LCURL_LNG_OPT
+#undef LCURL_STR_ARR_OPT
+
+static int lcurl_multi_setopt(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  int opt = luaL_checklong(L, 2);
+  lua_remove(L, 2);
+
+#define OPT_ENTRY(l, N, T, S) case CURLMOPT_##N: return lcurl_multi_set_##N(L);
+  switch(opt){
+    #include "lcoptmulti.h"
+  }
+#undef OPT_ENTRY
+
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
+}
+
+//}
+
 //}
 
 static const struct luaL_Reg lcurl_multi_methods[] = {
@@ -115,6 +200,11 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
   {"remove_handle",    lcurl_multi_remove_handle    },
   {"perform",          lcurl_multi_perform          },
   {"info_read",        lcurl_multi_info_read        },
+  {"setopt",           lcurl_multi_setopt           },
+
+#define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_multi_set_##N },
+  #include "lcoptmulti.h"
+#undef OPT_ENTRY
 
   {"close",            lcurl_multi_cleanup          },
   {"__gc",             lcurl_multi_cleanup          },
@@ -123,6 +213,9 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
 };
 
 static const lcurl_const_t lcurl_multi_opt[] = {
+#define OPT_ENTRY(L, N, T, S) { "OPT_MULTI_"#N, CURLMOPT_##N },
+#include "lcoptmulti.h"
+#undef OPT_ENTRY
 
   {NULL, 0}
 };

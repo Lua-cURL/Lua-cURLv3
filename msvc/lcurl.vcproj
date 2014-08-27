@@ -252,6 +252,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcoptmulti.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcurl.h"
 				>
 			</File>

@@ -202,6 +202,7 @@ OPT_ENTRY( krblevel,                KRBLEVEL,                STR, LCURL_STORE_ST
 OPT_ENTRY( cainfo,                  CAINFO,                  STR, LCURL_STORE_STRING )
 OPT_ENTRY( capath,                  CAPATH,                  STR, LCURL_STORE_STRING )
 OPT_ENTRY( certinfo,                CERTINFO,                LNG, 0 )
+OPT_ENTRY( crlfile,                 CRLFILE,                 STR, LCURL_STORE_STRING )
 
 OPT_ENTRY( sslcert,                 SSLCERT,                 STR, LCURL_STORE_STRING )
 OPT_ENTRY( sslcerttype,             SSLCERTTYPE,             STR, LCURL_STORE_STRING )

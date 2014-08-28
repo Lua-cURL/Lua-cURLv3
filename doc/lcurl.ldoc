@@ -358,8 +358,8 @@ function close() end
 
 end
 
---- Muli curl object
--- @type multi
+--- Share curl object
+-- @type share
 --
 do
 

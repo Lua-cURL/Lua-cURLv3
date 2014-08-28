@@ -1,0 +1,33 @@
+PROJECT = 'lcurl'
+
+INITLAKEFILE()
+
+DEFINES = L{DEFINES, 
+  IF(WINDOWS,  'DLL_EXPORT',  '');
+}
+
+cURL = c.shared{PROJECT,
+  base     = 'src',
+  src      = '*.c',
+  needs    = {LUA_NEED, 'libcurl', IF(WINDOWS, 'winsock2', 'sockets')},
+  defines  = DEFINES,
+  dynamic  = DYNAMIC,
+  strip    = true,
+}
+
+target('build', cURL)
+
+install = target('install', {
+  file.group{odir=LIBDIR;  src = cURL                                   };
+  file.group{odir=J(ROOT, 'examples'); src = 'examples'; recurse = true };
+  file.group{odir=TESTDIR; src = 'test'; recurse = true };
+})
+
+target('test', install, function()
+  run_test('run.lua')
+
+  if not test_summary() then
+    quit("test fail")
+  end
+end)
+

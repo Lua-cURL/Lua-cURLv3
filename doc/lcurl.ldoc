@@ -17,6 +17,11 @@ function easy() end
 -- @treturn[1] multi new curl multi object
 function multi() end
 
+--- Create Share object
+--
+-- @treturn[1] share new curl share object
+function share() end
+
 --- Returns libcurl version as human readable string
 --
 function version() end

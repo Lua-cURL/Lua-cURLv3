@@ -194,6 +194,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcshare.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcurl.c"
 				>
 			</File>
@@ -253,6 +257,14 @@
 			</File>
 			<File
 				RelativePath="..\src\lcoptmulti.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcoptshare.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcshare.h"
 				>
 			</File>
 			<File

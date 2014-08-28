@@ -316,7 +316,7 @@ function info_read() end
 --
 -- @tparam number opt one of `curl.OPT_MULTI_XXX` constant
 -- @param ... value
--- @treturn easy self
+-- @treturn multi self
 --
 -- @usage
 -- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
@@ -348,12 +348,32 @@ function wait() end
 
 --- How long to wait for action before proceeding.
 --
--- @tparam number timeout millisecnds timeout
--- @treturn number number of affected objects
+-- @treturn number timeout millisecnds timeout
 --
 function timeout() end
 
 --- End multi session.
+--
+function close() end
+
+end
+
+--- Muli curl object
+-- @type multi
+--
+do
+
+--- Set options.
+--
+-- @tparam number opt one of `curl.OPT_SHARE_XXX` constant
+-- @param ... value
+-- @treturn share self
+--
+-- @usage
+-- c:setopt(curl.OPT_SHARE_SHARE, curl.LOCK_DATA_COOKIE)
+function setopt() end
+
+--- End share session.
 --
 function close() end
 

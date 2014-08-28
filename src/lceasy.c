@@ -14,11 +14,11 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
 int lcurl_easy_create(lua_State *L, int error_mode){
   lcurl_easy_t *p = lutil_newudatap(L, lcurl_easy_t, LCURL_EASY);
   int i;
-  p->L = L;
   p->curl = curl_easy_init();
-  if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_FAILED_INIT);
-  p->storage     = lcurl_storage_init(L);
   p->err_mode    = error_mode;
+  if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_FAILED_INIT);
+  p->L           = L;
+  p->storage     = lcurl_storage_init(L);
   p->wr.cb_ref   = p->wr.ud_ref = LUA_NOREF;
   p->rd.cb_ref   = p->rd.ud_ref = LUA_NOREF;
   p->hd.cb_ref   = p->hd.ud_ref = LUA_NOREF;

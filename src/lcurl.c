@@ -1,6 +1,7 @@
 #include "lcurl.h"
 #include "lceasy.h"
 #include "lcmulti.h"
+#include "lcshare.h"
 #include "lcerror.h"
 #include "lchttppost.h"
 #include "lcutils.h"
@@ -20,6 +21,10 @@ static int lcurl_multi_new_safe(lua_State *L){
   return lcurl_multi_create(L, LCURL_ERROR_RETURN);
 }
 
+static int lcurl_share_new_safe(lua_State *L){
+  return lcurl_share_create(L, LCURL_ERROR_RETURN);
+}
+
 static int lcurl_hpost_new_safe(lua_State *L){
   return lcurl_hpost_create(L, LCURL_ERROR_RETURN);
 }
@@ -30,6 +35,10 @@ static int lcurl_easy_new(lua_State *L){
 
 static int lcurl_multi_new(lua_State *L){
   return lcurl_multi_create(L, LCURL_ERROR_RAISE);
+}
+
+static int lcurl_share_new(lua_State *L){
+  return lcurl_share_create(L, LCURL_ERROR_RAISE);
 }
 
 static int lcurl_hpost_new(lua_State *L){
@@ -86,6 +95,7 @@ static const struct luaL_Reg lcurl_functions[] = {
   {"form",            lcurl_hpost_new        },
   {"easy",            lcurl_easy_new         },
   {"multi",           lcurl_multi_new        },
+  {"share",           lcurl_share_new        },
   {"version",         lcurl_version          },
   {"version_info",    lcurl_version_info     },
 
@@ -97,6 +107,7 @@ static const struct luaL_Reg lcurl_functions_safe[] = {
   {"form",            lcurl_hpost_new_safe        },
   {"easy",            lcurl_easy_new_safe         },
   {"multi",           lcurl_multi_new_safe        },
+  {"share",           lcurl_share_new_safe        },
   {"version",         lcurl_version               },
   {"version_info",    lcurl_version_info          },
 

@@ -191,30 +191,30 @@ OPT_ENTRY( new_directory_perms,     NEW_DIRECTORY_PERMS,     LNG, 0)
 
 OPT_ENTRY( telnetoptions,           TELNETOPTIONS,           LST, 0)
 
-OPT_ENTRY(cainfo,              CAINFO,              STR, LCURL_STORE_STRING )
-OPT_ENTRY(capath,              CAPATH,              STR, LCURL_STORE_STRING )
-OPT_ENTRY(certinfo,            CERTINFO,            LNG, 0 )
+OPT_ENTRY( random_file,             RANDOM_FILE,             STR, LCURL_STORE_STRING )
 
-OPT_ENTRY(sslcert,             SSLCERT,             STR, LCURL_STORE_STRING )
-OPT_ENTRY(sslcerttype,         SSLCERTTYPE,         STR, LCURL_STORE_STRING )
-OPT_ENTRY(sslengine,           SSLENGINE,           STR, LCURL_STORE_STRING )
-OPT_ENTRY(sslengine_default,   SSLENGINE_DEFAULT,   LNG, 0 )
-OPT_ENTRY(sslkey,              SSLKEY,              STR, LCURL_STORE_STRING )
-OPT_ENTRY(sslkeytype,          SSLKEYTYPE,          STR, LCURL_STORE_STRING )
-OPT_ENTRY(sslversion,          SSLVERSION,          LNG, 0 )
-OPT_ENTRY(ssl_cipher_list,     SSL_CIPHER_LIST,     STR, LCURL_STORE_STRING )
-// OPT_ENTRY(ssl_ctx_data,        SSL_CTX_DATA,        0 )  //! @todo
-// OPT_ENTRY(ssl_ctx_function,    SSL_CTX_FUNCTION,    0 )  //! @todo
+OPT_ENTRY( cainfo,                  CAINFO,                  STR, LCURL_STORE_STRING )
+OPT_ENTRY( capath,                  CAPATH,                  STR, LCURL_STORE_STRING )
+OPT_ENTRY( certinfo,                CERTINFO,                LNG, 0 )
+
+OPT_ENTRY( sslcert,                 SSLCERT,                 STR, LCURL_STORE_STRING )
+OPT_ENTRY( sslcerttype,             SSLCERTTYPE,             STR, LCURL_STORE_STRING )
+OPT_ENTRY( sslengine,               SSLENGINE,               STR, LCURL_STORE_STRING )
+OPT_ENTRY( sslengine_default,       SSLENGINE_DEFAULT,       LNG, 0 )
+OPT_ENTRY( sslkey,                  SSLKEY,                  STR, LCURL_STORE_STRING )
+OPT_ENTRY( sslkeytype,              SSLKEYTYPE,              STR, LCURL_STORE_STRING )
+OPT_ENTRY( sslversion,              SSLVERSION,              LNG, 0 )
+OPT_ENTRY( ssl_cipher_list,         SSL_CIPHER_LIST,         STR, LCURL_STORE_STRING )
 #if LCURL_CURL_VER_GE(7,33,0)
-OPT_ENTRY(ssl_enable_alpn,     SSL_ENABLE_ALPN,     LNG, 0 )
-OPT_ENTRY(ssl_enable_npn,      SSL_ENABLE_NPN,      LNG, 0 )
+OPT_ENTRY( ssl_enable_alpn,         SSL_ENABLE_ALPN,         LNG, 0 )
+OPT_ENTRY( ssl_enable_npn,          SSL_ENABLE_NPN,          LNG, 0 )
 #endif
-#if LCURL_CURL_VER_GE(7,25,0)
-OPT_ENTRY(ssl_options,         SSL_OPTIONS,         LNG, 0 )
+#if LCURL_CURL_VER_GE(7,25,0)                                
+OPT_ENTRY( ssl_options,             SSL_OPTIONS,             LNG, 0 )
 #endif
-OPT_ENTRY(ssl_sessionid_cache, SSL_SESSIONID_CACHE, LNG, 0 )
-OPT_ENTRY(ssl_verifyhost,      SSL_VERIFYHOST,      LNG, 0 )
-OPT_ENTRY(ssl_verifypeer,      SSL_VERIFYPEER,      LNG, 0 )
+OPT_ENTRY( ssl_sessionid_cache,     SSL_SESSIONID_CACHE,     LNG, 0 )
+OPT_ENTRY( ssl_verifyhost,          SSL_VERIFYHOST,          LNG, 0 )
+OPT_ENTRY( ssl_verifypeer,          SSL_VERIFYPEER,          LNG, 0 )
 
 
 FLG_ENTRY( SSLVERSION_DEFAULT )

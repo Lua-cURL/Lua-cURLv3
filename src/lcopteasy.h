@@ -192,6 +192,9 @@ OPT_ENTRY( new_directory_perms,     NEW_DIRECTORY_PERMS,     LNG, 0)
 OPT_ENTRY( telnetoptions,           TELNETOPTIONS,           LST, 0)
 
 OPT_ENTRY( random_file,             RANDOM_FILE,             STR, LCURL_STORE_STRING )
+OPT_ENTRY( egdsocket,               EGDSOCKET,               STR, LCURL_STORE_STRING )
+OPT_ENTRY( issuercert,              ISSUERCERT,              STR, LCURL_STORE_STRING )
+OPT_ENTRY( krblevel,                KRBLEVEL,                STR, LCURL_STORE_STRING )
 
 OPT_ENTRY( cainfo,                  CAINFO,                  STR, LCURL_STORE_STRING )
 OPT_ENTRY( capath,                  CAPATH,                  STR, LCURL_STORE_STRING )

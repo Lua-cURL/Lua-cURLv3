@@ -101,7 +101,7 @@ m = curl.multi()
 m:add_handle(e1)
 m:add_handle(e2)
 
-while m:perform() > 0 do end
+while m:perform() > 0 do m:wait() end
 
 while true do
   h, ok, err = m:info_read()

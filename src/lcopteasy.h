@@ -73,6 +73,7 @@ OPT_ENTRY( proxypassword,          PROXYPASSWORD,            STR, LCURL_STORE_ST
 OPT_ENTRY( httpauth,               HTTPAUTH,                 STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_username,       TLSAUTH_USERNAME,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_password,       TLSAUTH_PASSWORD,         STR, LCURL_STORE_STRING )
+OPT_ENTRY( tlsauth_type,           TLSAUTH_TYPE,             LNG, 0 )
 OPT_ENTRY( proxyauth,              PROXYAUTH,                LNG, 0 )
 #if LCURL_CURL_VER_GE(7,31,0)
 OPT_ENTRY( sasl_ir,                SASL_IR,                  LNG, 0 )
@@ -224,6 +225,10 @@ FLG_ENTRY( SSLVERSION_SSLv3   )
 FLG_ENTRY( SSLVERSION_TLSv1_0 )
 FLG_ENTRY( SSLVERSION_TLSv1_1 )
 FLG_ENTRY( SSLVERSION_TLSv1_2 )
+#endif
+
+#if LCURL_CURL_VER_GE(7,21,4)
+FLG_ENTRY( TLSAUTH_SRP )
 #endif
 
 

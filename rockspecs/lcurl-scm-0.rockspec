@@ -46,7 +46,7 @@ build = {
   platforms = {
     windows = { modules = {
       lcurl = {
-        libraries = {"libcurl"},
+        libraries = {"libcurl", "ws2_32"},
       }
     }},
     unix    = { modules = {

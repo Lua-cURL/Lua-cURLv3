@@ -109,6 +109,33 @@ static int lcurl_multi_info_read(lua_State *L){
   return 1;
 }
 
+#if LCURL_CURL_VER_GE(7,28,0)
+
+static int lcurl_multi_wait(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  int n, ms = luaL_optint(L, 2, 0);
+  //! @todo supports extra_fds
+  CURLMcode code = curl_multi_wait(p->curl, 0, 0, ms, &n);
+  if(code != CURLM_OK){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+  lua_pushnumber(L, n);
+  return 1;
+}
+
+#endif
+
+static int lcurl_multi_timeout(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  long n;
+  CURLMcode code = curl_multi_timeout(p->curl, &n);
+  if(code != CURLM_OK){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+  lua_pushnumber(L, n);
+  return 1;
+}
+
 //{ OPTIONS
 static int lcurl_opt_set_long_(lua_State *L, int opt){
   lcurl_multi_t *p = lcurl_getmulti(L);
@@ -286,7 +313,7 @@ static int lcurl_multi_set_TIMERFUNCTION(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   return lcurl_multi_set_callback(L, p, &p->tm,
     CURLMOPT_TIMERFUNCTION, CURLMOPT_TIMERDATA,
-    "write", lcurl_multi_timer_callback
+    "timer", lcurl_multi_timer_callback
   );
 }
 
@@ -317,6 +344,10 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
   {"perform",          lcurl_multi_perform          },
   {"info_read",        lcurl_multi_info_read        },
   {"setopt",           lcurl_multi_setopt           },
+#if LCURL_CURL_VER_GE(7,28,0)
+  {"wait",             lcurl_multi_wait             },
+#endif
+  {"timeout",          lcurl_multi_timeout          },
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_multi_set_##N },
   #include "lcoptmulti.h"

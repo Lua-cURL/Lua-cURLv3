@@ -1,3 +1,13 @@
+#if !defined(_WINDOWS) && !defined(_WIN32)
+#  define LCURL_WINDOWS
+#endif
+
+#ifdef LCURL_WINDOWS
+#  include <sys/select.h>
+#else
+#  include <winsock2.h>
+#endif
+
 #include "lcurl.h"
 #include "lceasy.h"
 #include "lcmulti.h"
@@ -109,21 +119,68 @@ static int lcurl_multi_info_read(lua_State *L){
   return 1;
 }
 
-#if LCURL_CURL_VER_GE(7,28,0)
-
 static int lcurl_multi_wait(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
-  int n, ms = luaL_optint(L, 2, 0);
+  CURLMcode code;
+  int maxfd; long ms;
+
+  if(lua_isnoneornil(L, 2)){
+    code = curl_multi_timeout(p->curl, &ms);
+    if(code != CURLM_OK){
+      lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    }
+  }
+  else{
+    ms = luaL_checklong(L, 2);
+  }
+
+  if(ms < 0){
+    /* if libcurl returns a -1 timeout here, it just means that libcurl 
+       currently has no stored timeout value. You must not wait too long
+       (more than a few seconds perhaps) before you call 
+       curl_multi_perform() again.
+     */
+    ms = 1000;
+  }
+
+#if LCURL_CURL_VER_GE(7,28,0)
   //! @todo supports extra_fds
-  CURLMcode code = curl_multi_wait(p->curl, 0, 0, ms, &n);
+  code = curl_multi_wait(p->curl, 0, 0, ms, &maxfd);
   if(code != CURLM_OK){
     lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
-  lua_pushnumber(L, n);
+  lua_pushnumber(L, maxfd);
   return 1;
-}
+#else
+  {
+  fd_set fdread, fdwrite, fdexcep;
 
+  FD_ZERO(&fdread);
+  FD_ZERO(&fdwrite);
+  FD_ZERO(&fdexcep);
+
+  code = curl_multi_fdset(p->curl, &fdread, &fdwrite, &fdexcep, &maxfd);
+  if(code != CURLM_OK){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+
+  //if(maxfd > 0)
+  {
+    struct timeval tv;
+    tv.tv_sec  = ms / 1000;
+    tv.tv_usec = (ms % 1000) * 1000;
+
+    maxfd = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &tv);
+    if(maxfd < 0){
+      //! @fixme return error
+    }
+  }
+
+  lua_pushnumber(L, maxfd);
+  return 1;
+  }
 #endif
+}
 
 static int lcurl_multi_timeout(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
@@ -344,9 +401,7 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
   {"perform",          lcurl_multi_perform          },
   {"info_read",        lcurl_multi_info_read        },
   {"setopt",           lcurl_multi_setopt           },
-#if LCURL_CURL_VER_GE(7,28,0)
   {"wait",             lcurl_multi_wait             },
-#endif
   {"timeout",          lcurl_multi_timeout          },
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_multi_set_##N },

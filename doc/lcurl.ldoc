@@ -375,14 +375,14 @@ function setopt_timerfunction() end
 
 --- Polls on all easy objects in a multi object.
 --
--- @tparam number timeout millisecnds timeout
+-- @tparam[opt] number timeout milliseconds timeout. By default it is `multi:timeout()`.
 -- @treturn number number of affected objects
 --
 function wait() end
 
 --- How long to wait for action before proceeding.
 --
--- @treturn number timeout millisecnds timeout
+-- @treturn number timeout milliseconds timeout
 --
 function timeout() end
 

@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lua5.1.lib libcurl.lib"
+				AdditionalDependencies="lua5.1.lib libcurl.lib ws2_32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(CPPLIB_DIR)\curl\7.37.1\lib&quot;;&quot;$(LUA_DIR)\lib&quot;"
 				GenerateDebugInformation="true"

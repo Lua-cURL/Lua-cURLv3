@@ -16,6 +16,16 @@
 #  endif
 #endif
 
+#ifndef OPT_ENTRY
+#  define OPT_ENTRY(a,b,c,d)
+#  define OPT_ENTRY_IS_NULL
+#endif
+
+#ifndef FLG_ENTRY
+#  define FLG_ENTRY(a)
+#  define FLG_ENTRY_IS_NULL
+#endif
+
 OPT_ENTRY( verbose,                VERBOSE,                  LNG, 0 )
 OPT_ENTRY( header,                 HEADER,                   LNG, 0 )
 OPT_ENTRY( noprogress,             NOPROGRESS,               LNG, 0 )
@@ -180,6 +190,10 @@ OPT_ENTRY( new_directory_perms,     NEW_DIRECTORY_PERMS,     LNG, 0)
 
 OPT_ENTRY( telnetoptions,           TELNETOPTIONS,           LST, 0)
 
+OPT_ENTRY(cainfo,              CAINFO,              STR, LCURL_STORE_STRING )
+OPT_ENTRY(capath,              CAPATH,              STR, LCURL_STORE_STRING )
+OPT_ENTRY(certinfo,            CERTINFO,            LNG, 0 )
+
 OPT_ENTRY(sslcert,             SSLCERT,             STR, LCURL_STORE_STRING )
 OPT_ENTRY(sslcerttype,         SSLCERTTYPE,         STR, LCURL_STORE_STRING )
 OPT_ENTRY(sslengine,           SSLENGINE,           STR, LCURL_STORE_STRING )
@@ -190,9 +204,33 @@ OPT_ENTRY(sslversion,          SSLVERSION,          LNG, 0 )
 OPT_ENTRY(ssl_cipher_list,     SSL_CIPHER_LIST,     STR, LCURL_STORE_STRING )
 // OPT_ENTRY(ssl_ctx_data,        SSL_CTX_DATA,        0 )  //! @todo
 // OPT_ENTRY(ssl_ctx_function,    SSL_CTX_FUNCTION,    0 )  //! @todo
+#if LCURL_CURL_VER_GE(7,33,0)
 OPT_ENTRY(ssl_enable_alpn,     SSL_ENABLE_ALPN,     LNG, 0 )
 OPT_ENTRY(ssl_enable_npn,      SSL_ENABLE_NPN,      LNG, 0 )
+#endif
+#if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY(ssl_options,         SSL_OPTIONS,         LNG, 0 )
+#endif
 OPT_ENTRY(ssl_sessionid_cache, SSL_SESSIONID_CACHE, LNG, 0 )
 OPT_ENTRY(ssl_verifyhost,      SSL_VERIFYHOST,      LNG, 0 )
 OPT_ENTRY(ssl_verifypeer,      SSL_VERIFYPEER,      LNG, 0 )
+
+
+FLG_ENTRY( SSLVERSION_DEFAULT )
+FLG_ENTRY( SSLVERSION_TLSv1   )
+FLG_ENTRY( SSLVERSION_SSLv2   )
+FLG_ENTRY( SSLVERSION_SSLv3   )
+#if LCURL_CURL_VER_GE(7,34,0)
+FLG_ENTRY( SSLVERSION_TLSv1_0 )
+FLG_ENTRY( SSLVERSION_TLSv1_1 )
+FLG_ENTRY( SSLVERSION_TLSv1_2 )
+#endif
+
+
+#ifdef OPT_ENTRY_IS_NULL
+#  undef OPT_ENTRY
+#endif
+
+#ifdef FLG_ENTRY_IS_NULL
+#  undef FLG_ENTRY
+#endif

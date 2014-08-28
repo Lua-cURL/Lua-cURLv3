@@ -685,6 +685,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 static const lcurl_const_t lcurl_easy_opt[] = {
 
 #define OPT_ENTRY(L, N, T, S) { "OPT_"#N, CURLOPT_##N },
+#define FLG_ENTRY(N) { #N, CURL_##N },
 #include "lcopteasy.h"
   OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
   OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
@@ -694,6 +695,7 @@ static const lcurl_const_t lcurl_easy_opt[] = {
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0)
 #undef OPT_ENTRY
+#undef FLG_ENTRY
 
 #define OPT_ENTRY(L, N, T, S) { "INFO_"#N, CURLINFO_##N },
 #include "lcinfoeasy.h"

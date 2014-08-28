@@ -1,5 +1,4 @@
 #include "lcurl.h"
-#include "lceasy.h"
 #include "lcshare.h"
 #include "lcerror.h"
 #include "lcutils.h"
@@ -36,9 +35,62 @@ static int lcurl_share_cleanup(lua_State *L){
   return 0;
 }
 
+//{ OPTIONS
+
+static int lcurl_opt_set_long_(lua_State *L, int opt){
+  lcurl_share_t *p = lcurl_getshare(L);
+  long val; CURLSHcode code;
+
+  if(lua_isboolean(L, 2)) val = lua_toboolean(L, 2);
+  else{
+    luaL_argcheck(L, lua_type(L, 2) == LUA_TNUMBER, 2, "number or boolean expected");
+    val = luaL_checklong(L, 2);
+  }
+
+  code = curl_share_setopt(p->curl, opt, val);
+  if(code != CURLSHE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_SHARE, code);
+  }
+  lua_settop(L, 1);
+  return 1;
+}
+
+#define LCURL_LNG_OPT(N, S) static int lcurl_share_set_##N(lua_State *L){\
+  return lcurl_opt_set_long_(L, CURLSHOPT_##N);\
+}
+
+#define OPT_ENTRY(L, N, T, S) LCURL_##T##_OPT(N, S)
+
+#include "lcoptshare.h"
+
+#undef OPT_ENTRY
+#undef LCURL_LNG_OPT
+
+//}
+
+static int lcurl_share_setopt(lua_State *L){
+  lcurl_share_t *p = lcurl_getshare(L);
+  int opt = luaL_checklong(L, 2);
+  lua_remove(L, 2);
+
+#define OPT_ENTRY(l, N, T, S) case CURLSHOPT_##N: return lcurl_share_set_##N(L);
+  switch(opt){
+    #include "lcoptshare.h"
+  }
+#undef OPT_ENTRY
+
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_SHARE, CURLSHE_BAD_OPTION);
+}
+
 //}
 
 static const struct luaL_Reg lcurl_share_methods[] = {
+  {"setopt",       lcurl_share_setopt           },
+
+#define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_share_set_##N },
+  #include "lcoptshare.h"
+#undef OPT_ENTRY
+
   {"close",        lcurl_share_cleanup          },
   {"__gc",         lcurl_share_cleanup          },
 
@@ -46,6 +98,12 @@ static const struct luaL_Reg lcurl_share_methods[] = {
 };
 
 static const lcurl_const_t lcurl_share_opt[] = {
+
+#define OPT_ENTRY(L, N, T, S) { "OPT_SHARE_"#N, CURLSHOPT_##N },
+#define FLG_ENTRY(N) { #N, CURL_##N },
+#  include "lcoptshare.h"
+#undef OPT_ENTRY
+#undef FLG_ENTRY
 
   {NULL, 0}
 };

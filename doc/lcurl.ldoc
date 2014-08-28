@@ -112,6 +112,32 @@ function free() end
 
 end
 
+--- Curl error object
+-- @type error
+--
+do
+--- Get the number value of error.
+-- 
+-- @treturn number number of error (curl.E_XXX constants)
+function no             ()end
+
+--- Get the error name.
+--
+-- @treturn string error name (e.g. "UNSUPPORTED_PROTOCOL", "BAD_OPTION")
+function name          ()end
+
+--- Get the error description.
+-- 
+-- @treturn string error description (e.g. "Login denied")
+function msg           ()end
+
+--- Get the full error description.
+--
+-- @treturn string string that contain name, message and number of error
+function __tostring    ()end
+
+end
+
 --- Easy curl object
 -- @type easy
 --

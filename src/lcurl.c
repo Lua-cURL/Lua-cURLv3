@@ -145,6 +145,7 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   lua_pushvalue(L, -2); lcurl_hpost_initlib(L, 1);
   lua_pushvalue(L, -2); lcurl_easy_initlib (L, 1);
   lua_pushvalue(L, -2); lcurl_multi_initlib(L, 1);
+  lua_pushvalue(L, -2); lcurl_share_initlib(L, 1);
 
   lua_pushvalue(L, -2); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
 

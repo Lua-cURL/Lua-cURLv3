@@ -106,7 +106,7 @@ static int lcurl_hpost_add_file(lua_State *L){
   size_t name_len; const char *name = luaL_checklstring(L, 2, &name_len);
   const char *path = luaL_checkstring(L, 3); 
   const char *type = 0, *fname = 0;
-  struct curl_slist *list;
+  struct curl_slist *list = NULL;
   struct curl_forms forms[3];
   CURLFORMcode code;
   int i = 0;

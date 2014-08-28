@@ -30,7 +30,7 @@ luarocks install lcurl --server=https://rocks.moonscript.org/dev
 
 ```Lua
 -- HTTP Get
-curl:easy()
+curl.easy()
   :setopt_url('http://httpbin.org/get')
   :setopt_httpheader{
     "X-Test-Header1: Header-Data1",
@@ -43,7 +43,7 @@ curl:easy()
 
 ```Lua
 -- HTTP Post
-curl:easy()
+curl.easy()
   :setopt_url('http://posttestserver.com/post.php')
   :setopt_writefunction(io.write)
   :setopt_httppost(curl.form() -- lcurl guarantee that form will be alive
@@ -71,7 +71,7 @@ local function get_bin_by(str,n)
   end
 end
 
-curl:easy()
+curl.easy()
   :setopt_url("ftp://moteus:123456@127.0.0.1/test.dat")
   :setopt_upload(true)
   :setopt_readfunction(
@@ -85,19 +85,19 @@ curl:easy()
 -- Multi FTP Upload
 
 -- We get error E_LOGIN_DENIED for this operation
-e1 = curl:easy()
+e1 = curl.easy()
   :setopt_url("ftp://moteus:999999@127.0.0.1/test1.dat")
   :setopt_upload(true)
   :setopt_readfunction(
     function(t) return table.remove(t) end, {"1111", "2222"}
   )
 
-e2 = curl:easy()
+e2 = curl.easy()
   :setopt_url("ftp://moteus:123456@127.0.0.1/test2.dat")
   :setopt_upload(true)
   :setopt_readfunction(get_bin_by(("e"):rep(1000), 5))
 
-m = curl:multi()
+m = curl.multi()
 m:add_handle(e1)
 m:add_handle(e2)
 

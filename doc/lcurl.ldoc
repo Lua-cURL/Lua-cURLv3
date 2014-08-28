@@ -322,6 +322,37 @@ function info_read() end
 -- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
 function setopt() end
 
+--- Set timer callback.
+--
+-- @tparam function timer timer callback
+-- @param[opt] context timer context
+-- @treturn multi self
+--
+function setopt_timerfunction() end
+
+--- Set timer callback.
+--
+-- This call same as easy:setopt_writefunction(timer.timer, timer)
+--
+-- @tparam userdata|table timer timer object
+-- @treturn multi self
+--
+function setopt_timerfunction() end
+
+--- Polls on all easy objects in a multi object.
+--
+-- @tparam number timeout millisecnds timeout
+-- @treturn number number of affected objects
+--
+function wait() end
+
+--- How long to wait for action before proceeding.
+--
+-- @tparam number timeout millisecnds timeout
+-- @treturn number number of affected objects
+--
+function timeout() end
+
 --- End multi session.
 --
 function close() end

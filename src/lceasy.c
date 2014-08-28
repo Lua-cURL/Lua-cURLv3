@@ -3,6 +3,7 @@
 #include "lcerror.h"
 #include "lcutils.h"
 #include "lchttppost.h"
+#include "lcshare.h"
 
 static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
 
@@ -237,6 +238,20 @@ static int lcurl_easy_set_HTTPPOST(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   lcurl_hpost_t *post = lcurl_gethpost_at(L, 2);
   CURLcode code = curl_easy_setopt(p->curl, CURLOPT_HTTPPOST, post->post);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_preserve_value(L, p->storage, 2);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_set_SHARE(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lcurl_share_t *sh = lcurl_getshare_at(L, 2);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_SHARE, sh->curl);
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
@@ -611,6 +626,7 @@ static int lcurl_easy_setopt(lua_State *L){
     #include "lcopteasy.h"
     OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
     OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
+    OPT_ENTRY(share,             SHARE,            TTT, 0)
     OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
     OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
     OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
@@ -643,6 +659,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcopteasy.h"
   OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
   OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
+  OPT_ENTRY(share,             SHARE,            TTT, 0)
   OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
   OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
@@ -671,6 +688,7 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 #include "lcopteasy.h"
   OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
   OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
+  OPT_ENTRY(share,             SHARE,            TTT, 0)
   OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
   OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)

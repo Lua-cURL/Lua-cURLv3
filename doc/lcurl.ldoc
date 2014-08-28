@@ -287,20 +287,28 @@ function setopt_progressfunction() end
 --
 function setopt_progressfunction() end
 
---- Set HTTP multipart/formdata
+--- Set HTTP multipart/formdata.
 --
 -- Caller does not have to save data.
 --
 -- @tparam httpform data
 -- @return[1] self
-function setopt_httpform() end
+function setopt_httppost() end
 
---- Set HTTP multipart/formdata
+--- Set HTTP multipart/formdata.
 --
 -- @tparam string data
 -- @tparam[opt=#data] number length
 -- @return[1] self
 function setopt_postfields() end
+
+--- Set curl share object.
+--
+-- Caller does not have to save data.
+--
+-- @tparam share data
+-- @return[1] self
+function setopt_share() end
 
 end
 

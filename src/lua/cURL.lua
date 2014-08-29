@@ -12,6 +12,16 @@ local function wrap_function(k)
   end
 end
 
+local function wrap_setopt_flags(k, flags)
+  k = "setopt_" .. k
+  return function(self, v)
+    v = assert(flags[v], "Unsupported value " .. tostring(v))
+    local ok, err = self._handle[k](self._handle, v)
+    if ok == self._handle then return self end
+    return ok, err
+  end
+end
+
 -------------------------------------------
 local Easy = {} do
 
@@ -108,6 +118,15 @@ end
 function Easy:setopt_share(s)
   return setopt_share(self, s:handle())
 end
+
+Easy.setopt_proxytype = wrap_setopt_flags("proxytype", {
+  ["HTTP"            ] = curl.PROXY_HTTP;
+  ["HTTP_1_0"        ] = curl.PROXY_HTTP_1_0;
+  ["SOCKS4"          ] = curl.PROXY_SOCKS4;
+  ["SOCKS5"          ] = curl.PROXY_SOCKS5;
+  ["SOCKS4A"         ] = curl.PROXY_SOCKS4A;
+  ["SOCKS5_HOSTNAME" ] = curl.PROXY_SOCKS5_HOSTNAME;
+})
 
 end
 -------------------------------------------
@@ -242,17 +261,11 @@ function Share:handle()
   return self._handle
 end
 
-local setopt_share = wrap_function("setopt_share")
-
-local SHARE_FLAGS = {
+Share.setopt_share = wrap_setopt_flags("share", {
   [ "COOKIE"      ] = curl.LOCK_DATA_COOKIE;
   [ "DNS"         ] = curl.LOCK_DATA_DNS;
   [ "SSL_SESSION" ] = curl.LOCK_DATA_SSL_SESSION;
-}
-
-function Share:setopt_share(k)
-  return setopt_share(self, assert(SHARE_FLAGS[k]))
-end
+})
 
 end
 -------------------------------------------

@@ -111,3 +111,10 @@ FLG_ENTRY(PROTO_RTMPS                     )
 FLG_ENTRY(PROTO_RTMPTS                    )
 FLG_ENTRY(PROTO_GOPHER                    )
 FLG_ENTRY(PROTO_ALL                       )
+
+FLG_ENTRY(PROXY_HTTP                      ) /* added in 7.10.0 */
+FLG_ENTRY(PROXY_HTTP_1_0                  ) /* added in 7.19.4 */
+FLG_ENTRY(PROXY_SOCKS4                    ) /* added in 7.15.2 */
+FLG_ENTRY(PROXY_SOCKS5                    ) /* added in 7.10.0 */
+FLG_ENTRY(PROXY_SOCKS4A                   ) /* added in 7.18.0 */
+FLG_ENTRY(PROXY_SOCKS5_HOSTNAME           ) /* added in 7.18.0 */

@@ -240,6 +240,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcflags.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lchttppost.h"
 				>
 			</File>

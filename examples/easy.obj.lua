@@ -123,7 +123,7 @@ end
 function easy:post(data)
   local post = curl.form()
   local ok, err
-  for k, v in data do
+  for k, v in pairs(data) do
     if type(v) == "string" then
       ok, err = post:add_content(k, v)
     else

@@ -128,6 +128,27 @@ Easy.setopt_proxytype = wrap_setopt_flags("proxytype", {
   ["SOCKS5_HOSTNAME" ] = curl.PROXY_SOCKS5_HOSTNAME;
 })
 
+Easy.setopt_httpauth  = wrap_setopt_flags("httpauth", {
+  ["NONE"                                  ] = curl.AUTH_NONE;
+  ["BASIC"                                 ] = curl.AUTH_BASIC;
+  ["DIGEST"                                ] = curl.AUTH_DIGEST;
+  ["GSSNEGOTIATE"                          ] = curl.AUTH_GSSNEGOTIATE;
+  ["NTLM"                                  ] = curl.AUTH_NTLM;
+  ["DIGEST_IE"                             ] = curl.AUTH_DIGEST_IE;
+  ["NTLM_WB"                               ] = curl.AUTH_NTLM_WB;
+  ["ONLY"                                  ] = curl.AUTH_ONLY;
+  ["ANY"                                   ] = curl.AUTH_ANY;
+  ["ANYSAFE"                               ] = curl.AUTH_ANYSAFE;
+  ["SSH_ANY"                               ] = curl.SSH_AUTH_ANY;
+  ["SSH_NONE"                              ] = curl.SSH_AUTH_NONE;
+  ["SSH_PUBLICKEY"                         ] = curl.SSH_AUTH_PUBLICKEY;
+  ["SSH_PASSWORD"                          ] = curl.SSH_AUTH_PASSWORD;
+  ["SSH_HOST"                              ] = curl.SSH_AUTH_HOST;
+  ["SSH_KEYBOARD"                          ] = curl.SSH_AUTH_KEYBOARD;
+  ["SSH_AGENT"                             ] = curl.SSH_AUTH_AGENT;
+  ["SSH_DEFAULT"                           ] = curl.SSH_AUTH_DEFAULT;
+})
+
 end
 -------------------------------------------
 

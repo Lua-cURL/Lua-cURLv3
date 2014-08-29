@@ -291,9 +291,7 @@ Share.setopt_share = wrap_setopt_flags("share", {
 end
 -------------------------------------------
 
-local cURL = {}
-
-function cURL.version() return curl.version() end
+local cURL = setmetatable({}, {__index = curl})
 
 function cURL.easy_init()  return Easy:new()  end
 

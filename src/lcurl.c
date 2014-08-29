@@ -58,10 +58,32 @@ static int lcurl_version_info(lua_State *L){
   lua_pushstring(L, data->version);         lua_setfield(L, -2, "version");          /* LIBCURL_VERSION     */
   lua_pushnumber(L, data->version_num);     lua_setfield(L, -2, "version_num");      /* LIBCURL_VERSION_NUM */
   lua_pushstring(L, data->host);            lua_setfield(L, -2, "host");             /* OS/host/cpu/machine when configured */
-  lua_pushnumber(L, data->features);        lua_setfield(L, -2, "features");         /* bitmask, see defines below */
-  lua_pushstring(L, data->ssl_version);     lua_setfield(L, -2, "ssl_version");      /* human readable string */
+
+  lua_newtable(L);
+    lua_pushliteral(L, "IPV6");         lua_pushboolean(L, data->features & CURL_VERSION_IPV6        ); lua_rawset(L, -3);
+    lua_pushliteral(L, "KERBEROS4");    lua_pushboolean(L, data->features & CURL_VERSION_KERBEROS4   ); lua_rawset(L, -3);
+    lua_pushliteral(L, "SSL");          lua_pushboolean(L, data->features & CURL_VERSION_SSL         ); lua_rawset(L, -3);
+    lua_pushliteral(L, "LIBZ");         lua_pushboolean(L, data->features & CURL_VERSION_LIBZ        ); lua_rawset(L, -3);
+    lua_pushliteral(L, "NTLM");         lua_pushboolean(L, data->features & CURL_VERSION_NTLM        ); lua_rawset(L, -3);
+    lua_pushliteral(L, "GSSNEGOTIATE"); lua_pushboolean(L, data->features & CURL_VERSION_GSSNEGOTIATE); lua_rawset(L, -3);
+    lua_pushliteral(L, "DEBUG");        lua_pushboolean(L, data->features & CURL_VERSION_DEBUG       ); lua_rawset(L, -3);
+    lua_pushliteral(L, "ASYNCHDNS");    lua_pushboolean(L, data->features & CURL_VERSION_ASYNCHDNS   ); lua_rawset(L, -3);
+    lua_pushliteral(L, "SPNEGO");       lua_pushboolean(L, data->features & CURL_VERSION_SPNEGO      ); lua_rawset(L, -3);
+    lua_pushliteral(L, "LARGEFILE");    lua_pushboolean(L, data->features & CURL_VERSION_LARGEFILE   ); lua_rawset(L, -3);
+    lua_pushliteral(L, "IDN");          lua_pushboolean(L, data->features & CURL_VERSION_IDN         ); lua_rawset(L, -3);
+    lua_pushliteral(L, "SSPI");         lua_pushboolean(L, data->features & CURL_VERSION_SSPI        ); lua_rawset(L, -3);
+    lua_pushliteral(L, "CONV");         lua_pushboolean(L, data->features & CURL_VERSION_CONV        ); lua_rawset(L, -3);
+    lua_pushliteral(L, "CURLDEBUG");    lua_pushboolean(L, data->features & CURL_VERSION_CURLDEBUG   ); lua_rawset(L, -3);
+    lua_pushliteral(L, "TLSAUTH_SRP");  lua_pushboolean(L, data->features & CURL_VERSION_TLSAUTH_SRP ); lua_rawset(L, -3);
+    lua_pushliteral(L, "NTLM_WB");      lua_pushboolean(L, data->features & CURL_VERSION_NTLM_WB     ); lua_rawset(L, -3);
+#ifdef CURL_VERSION_HTTP2
+    lua_pushliteral(L, "HTTP2");        lua_pushboolean(L, data->features & CURL_VERSION_HTTP2       ); lua_rawset(L, -3);
+#endif
+  lua_setfield(L, -2, "features");         /* bitmask, see defines below */
+
+  if(data->ssl_version){lua_pushstring(L, data->ssl_version); lua_setfield(L, -2, "ssl_version");}      /* human readable string */
   lua_pushnumber(L, data->ssl_version_num); lua_setfield(L, -2, "ssl_version_num");  /* not used anymore, always 0 */
-  lua_pushstring(L, data->libz_version);    lua_setfield(L, -2, "libz_version");     /* human readable string */
+  if(data->libz_version){lua_pushstring(L, data->libz_version); lua_setfield(L, -2, "libz_version");}   /* human readable string */
 
   /* protocols is terminated by an entry with a NULL protoname */
   lua_newtable(L);
@@ -70,23 +92,24 @@ static int lcurl_version_info(lua_State *L){
   }
   lua_setfield(L, -2, "protocols");
 
-  /* The fields below this were added in CURLVERSION_SECOND */
-  // const char *ares;
-  // int ares_num;
+  if(data->age >= CURLVERSION_SECOND){
+    if(data->ares){lua_pushstring(L, data->ares); lua_setfield(L, -2, "ares");}
+    lua_pushnumber(L, data->ares_num);      lua_setfield(L, -2, "ares_num");
+  }
 
-  /* This field was added in CURLVERSION_THIRD */
-  // const char *libidn;
+  if(data->age >= CURLVERSION_THIRD){ /* added in 7.12.0 */
+    if(data->libidn){lua_pushstring(L, data->libidn); lua_setfield(L, -2, "libidn");}
+  }
 
-  /* These field were added in CURLVERSION_FOURTH */
+  if(data->age >= CURLVERSION_FOURTH){ /* added in 7.16.1 */
+    lua_pushnumber(L, data->iconv_ver_num); lua_setfield(L, -2, "iconv_ver_num");
+    if(data->libssh_version){lua_pushstring(L, data->libssh_version);lua_setfield(L, -2, "libssh_version");}
+  }
 
-  /* Same as '_libiconv_version' if built with HAVE_ICONV */
-  // int iconv_ver_num;
-
-  // const char *libssh_version; /* human readable string */
-  
   if(lua_isstring(L, 1)){
     lua_pushvalue(L, 1); lua_rawget(L, -2);
   }
+
   return 1;
 }
 

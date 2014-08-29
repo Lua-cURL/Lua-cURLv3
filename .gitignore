@@ -27,3 +27,6 @@ msvc/
 
 #ldoc
 doc/doc/
+
+#lake deps
+*.d

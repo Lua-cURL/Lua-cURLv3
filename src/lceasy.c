@@ -560,10 +560,10 @@ static int lcurl_xferinfo_callback(void *arg, curl_off_t dltotal, curl_off_t dln
   int top = lua_gettop(L);
   int n   = lcurl_util_push_cb(L, &p->pr);
 
-  lua_pushnumber( L, dltotal );
-  lua_pushnumber( L, dlnow   );
-  lua_pushnumber( L, ultotal );
-  lua_pushnumber( L, ulnow   );
+  lua_pushnumber( L, (lua_Number)dltotal );
+  lua_pushnumber( L, (lua_Number)dlnow   );
+  lua_pushnumber( L, (lua_Number)ultotal );
+  lua_pushnumber( L, (lua_Number)ulnow   );
 
   if(lua_pcall(L, n+3, LUA_MULTRET, 0)){
     assert(lua_gettop(L) >= top);

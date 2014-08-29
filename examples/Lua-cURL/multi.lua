@@ -1,4 +1,4 @@
-local cURL = require("cURL")
+local cURL = require("lcurl.cURL")
 
 -- setup easy 
 c = cURL.easy_init()

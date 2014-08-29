@@ -65,6 +65,7 @@ build = {
       },
       incdirs   = { "$(CURL_INCDIR)" },
       libdirs   = { "$(CURL_LIBDIR)" }
-    }
+    },
+    ["lcurl.cURL"] = "src/lua/cURL.lua",
   }
 }

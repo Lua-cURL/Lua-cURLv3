@@ -18,9 +18,10 @@ cURL = c.shared{PROJECT,
 target('build', cURL)
 
 install = target('install', {
-  file.group{odir=LIBDIR;  src = cURL                                   };
+  file.group{odir=LIBDIR;              src = cURL                       };
+  file.group{odir=J(LIBDIR, PROJECT);  src = J("src", "lua")            };
   file.group{odir=J(ROOT, 'examples'); src = 'examples'; recurse = true };
-  file.group{odir=TESTDIR; src = 'test'; recurse = true };
+  file.group{odir=TESTDIR;             src = 'test';     recurse = true };
 })
 
 target('test', install, function()

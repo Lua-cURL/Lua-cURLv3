@@ -1,6 +1,6 @@
 -- use LuaExpat and Lua-CuRL together for On-The-Fly XML parsing
 local lxp = require("lxp")
-local cURL = require("cURL")
+local cURL = require("lcurl.cURL")
 
 tags  = {}
 items = {}

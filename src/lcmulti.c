@@ -358,7 +358,7 @@ int lcurl_multi_timer_callback(CURLM *multi, long ms, void *arg){
     
     if(lua_isboolean(L, top + 1))
       ret = lua_toboolean(L, top + 1)?0:-1;
-    else ret = lua_tonumber(L, top + 1);
+    else ret = lua_tointeger(L, top + 1);
   }
 
   lua_settop(L, top);

@@ -73,7 +73,7 @@ OPT_ENTRY( login_options,          LOGIN_OPTIONS,            STR, LCURL_STORE_ST
 #endif
 OPT_ENTRY( proxyusername,          PROXYUSERNAME,            STR, LCURL_STORE_STRING )
 OPT_ENTRY( proxypassword,          PROXYPASSWORD,            STR, LCURL_STORE_STRING )
-OPT_ENTRY( httpauth,               HTTPAUTH,                 STR, LCURL_STORE_STRING )
+OPT_ENTRY( httpauth,               HTTPAUTH,                 LNG, 0 )
 OPT_ENTRY( tlsauth_username,       TLSAUTH_USERNAME,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_password,       TLSAUTH_PASSWORD,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_type,           TLSAUTH_TYPE,             LNG, 0 )

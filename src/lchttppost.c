@@ -361,8 +361,7 @@ static int lcurl_hpost_free(lua_State *L){
   }
 
   if(p->storage != LUA_NOREF){
-    lcurl_storage_free(L, p->storage);
-    p->storage = LUA_NOREF;
+    p->storage = lcurl_storage_free(L, p->storage);
   }
 
   return 0;

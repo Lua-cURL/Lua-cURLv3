@@ -39,6 +39,8 @@ lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i){
 
 static int lcurl_easy_cleanup(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
+  int i;
+
   if(p->curl){
     curl_easy_cleanup(p->curl);
     p->curl = NULL;
@@ -46,6 +48,27 @@ static int lcurl_easy_cleanup(lua_State *L){
 
   if(p->storage != LUA_NOREF){
     p->storage = lcurl_storage_free(L, p->storage);
+  }
+
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->wr.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->wr.ud_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->rd.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->rd.ud_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->pr.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->pr.ud_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->hd.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->hd.ud_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
+  
+  p->wr.cb_ref   = p->wr.ud_ref = LUA_NOREF;
+  p->rd.cb_ref   = p->rd.ud_ref = LUA_NOREF;
+  p->hd.cb_ref   = p->hd.ud_ref = LUA_NOREF;
+  p->pr.cb_ref   = p->pr.ud_ref = LUA_NOREF;
+  p->rbuffer.ref = LUA_NOREF;
+
+  for(i = 0; i < LCURL_LIST_COUNT; ++i){
+    luaL_unref(L, LCURL_LUA_REGISTRY, p->lists[i]);
+    p->lists[i] = LUA_NOREF;
   }
 
   return 0;

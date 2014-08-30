@@ -50,6 +50,7 @@ static int lcurl_multi_cleanup(lua_State *L){
     luaL_unref(L, LCURL_LUA_REGISTRY, p->h_ref);
     p->h_ref = LUA_NOREF;
   }
+
   luaL_unref(L, LCURL_LUA_REGISTRY, p->tm.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->tm.ud_ref);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;

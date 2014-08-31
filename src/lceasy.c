@@ -657,7 +657,13 @@ static int lcurl_easy_setopt(lua_State *L){
   }
 #undef OPT_ENTRY
 
-  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_UNKNOWN_OPTION);
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, 
+#if LCURL_CURL_VER_GE(7,21,5)
+  CURLE_UNKNOWN_OPTION
+#else
+  CURLE_UNKNOWN_TELNET_OPTION
+#endif
+  );
 }
 
 static int lcurl_easy_getinfo(lua_State *L){

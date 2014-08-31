@@ -27,17 +27,21 @@ OPT_ENTRY( proxyauth_avail,         PROXYAUTH_AVAIL,         LNG, 0)
 OPT_ENTRY( os_errno,                OS_ERRNO,                LNG, 0)
 OPT_ENTRY( num_connects,            NUM_CONNECTS,            LNG, 0)
 OPT_ENTRY( primary_ip,              PRIMARY_IP,              STR, 0)
+#if LCURL_CURL_VER_GE(7,21,0)
 OPT_ENTRY( primary_port,            PRIMARY_PORT,            LNG, 0)
 OPT_ENTRY( local_ip,                LOCAL_IP,                STR, 0)
 OPT_ENTRY( local_port,              LOCAL_PORT,              LNG, 0)
+#endif
 OPT_ENTRY( cookielist,              COOKIELIST,              LST, 0)
 OPT_ENTRY( lastsocket,              LASTSOCKET,              LNG, 0)
 OPT_ENTRY( ftp_entry_path,          FTP_ENTRY_PATH,          STR, 0)
 OPT_ENTRY( condition_unmet,         CONDITION_UNMET,         LNG, 0)
+#if LCURL_CURL_VER_GE(7,20,0)
 OPT_ENTRY( rtsp_session_id,         RTSP_SESSION_ID,         STR, 0)
 OPT_ENTRY( rtsp_client_cseq,        RTSP_CLIENT_CSEQ,        LNG, 0)
 OPT_ENTRY( rtsp_server_cseq,        RTSP_SERVER_CSEQ,        LNG, 0)
 OPT_ENTRY( rtsp_cseq_recv,          RTSP_CSEQ_RECV,          LNG, 0)
+#endif
 
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( CERTINFO,                struct curl_certinfo *

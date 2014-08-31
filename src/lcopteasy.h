@@ -30,7 +30,9 @@ OPT_ENTRY( verbose,                VERBOSE,                  LNG, 0 )
 OPT_ENTRY( header,                 HEADER,                   LNG, 0 )
 OPT_ENTRY( noprogress,             NOPROGRESS,               LNG, 0 )
 OPT_ENTRY( nosignal,               NOSIGNAL,                 LNG, 0 )
+#if LCURL_CURL_VER_GE(7,21,0)
 OPT_ENTRY( wildcardmatch,          WILDCARDMATCH,            LNG, 0 )
+#endif
 
 OPT_ENTRY( url,                    URL,                      STR, LCURL_STORE_STRING )
 OPT_ENTRY( failonerror,            FAILONERROR,              LNG, 0 )
@@ -74,9 +76,11 @@ OPT_ENTRY( login_options,          LOGIN_OPTIONS,            STR, LCURL_STORE_ST
 OPT_ENTRY( proxyusername,          PROXYUSERNAME,            STR, LCURL_STORE_STRING )
 OPT_ENTRY( proxypassword,          PROXYPASSWORD,            STR, LCURL_STORE_STRING )
 OPT_ENTRY( httpauth,               HTTPAUTH,                 LNG, 0 )
+#if LCURL_CURL_VER_GE(7,21,4)
 OPT_ENTRY( tlsauth_username,       TLSAUTH_USERNAME,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_password,       TLSAUTH_PASSWORD,         STR, LCURL_STORE_STRING )
 OPT_ENTRY( tlsauth_type,           TLSAUTH_TYPE,             LNG, 0 )
+#endif
 OPT_ENTRY( proxyauth,              PROXYAUTH,                LNG, 0 )
 #if LCURL_CURL_VER_GE(7,31,0)
 OPT_ENTRY( sasl_ir,                SASL_IR,                  LNG, 0 )
@@ -86,8 +90,10 @@ OPT_ENTRY( xoauth2_bearer,         XOAUTH2_BEARER,           STR, LCURL_STORE_ST
 #endif
 
 OPT_ENTRY( autoreferer,            AUTOREFERER,              LNG, 0 )
+#if LCURL_CURL_VER_GE(7,21,6)
 OPT_ENTRY( accept_encoding,        ACCEPT_ENCODING,          STR, LCURL_STORE_STRING )
 OPT_ENTRY( transfer_encoding,      TRANSFER_ENCODING,        LNG, 0 )
+#endif
 OPT_ENTRY( followlocation,         FOLLOWLOCATION,           LNG, 0 )
 OPT_ENTRY( unrestricted_auth,      UNRESTRICTED_AUTH,        LNG, 0 )
 OPT_ENTRY( maxredirs,              MAXREDIRS,                LNG, 0 )
@@ -118,8 +124,10 @@ OPT_ENTRY( http_transfer_decoding, HTTP_TRANSFER_DECODING,   LNG, 0 )
 OPT_ENTRY( expect_100_timeout_ms,  EXPECT_100_TIMEOUT_MS,    LNG, 0 )
 #endif
 
+#if LCURL_CURL_VER_GE(7,20,0)
 OPT_ENTRY( mail_from,              MAIL_FROM,                STR, LCURL_STORE_STRING )
 OPT_ENTRY( mail_rcpt,              MAIL_RCPT,                STR, LCURL_STORE_STRING )
+#endif
 #if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( mail_auth,              MAIL_AUTH,                STR, LCURL_STORE_STRING )
 #endif
@@ -134,7 +142,9 @@ OPT_ENTRY( dirlistonly,             DIRLISTONLY,             LNG, 0 )
 OPT_ENTRY( append,                  APPEND,                  LNG, 0 )
 OPT_ENTRY( ftp_use_eprt,            FTP_USE_EPRT,            LNG, 0 )
 OPT_ENTRY( ftp_use_epsv,            FTP_USE_EPSV,            LNG, 0 )
+#if LCURL_CURL_VER_GE(7,20,0)
 OPT_ENTRY( ftp_use_pret,            FTP_USE_PRET,            LNG, 0 )
+#endif
 OPT_ENTRY( ftp_create_missing_dirs, FTP_CREATE_MISSING_DIRS, LNG, 0 )
 OPT_ENTRY( ftp_response_timeout,    FTP_RESPONSE_TIMEOUT,    LNG, 0 )
 OPT_ENTRY( ftp_alternative_to_user, FTP_ALTERNATIVE_TO_USER, STR, LCURL_STORE_STRING )
@@ -175,7 +185,9 @@ OPT_ENTRY( connecttimeout_ms,       CONNECTTIMEOUT_MS,       LNG, 0 )
 OPT_ENTRY( ipresolve,               IPRESOLVE,               LNG, 0 )
 OPT_ENTRY( connect_only,            CONNECT_ONLY,            LNG, 0 )
 OPT_ENTRY( use_ssl,                 USE_SSL,                 LNG, 0 )
+#if LCURL_CURL_VER_GE(7,21,3)
 OPT_ENTRY( resolve,                 RESOLVE,                 LST, 0 )
+#endif
 #if LCURL_CURL_VER_GE(7,33,0)
 OPT_ENTRY( dns_interface,           DNS_INTERFACE,           STR, LCURL_STORE_STRING )
 OPT_ENTRY( dns_local_ip4,           DNS_LOCAL_IP4,           STR, LCURL_STORE_STRING )

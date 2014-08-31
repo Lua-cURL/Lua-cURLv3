@@ -50,7 +50,11 @@ ERR_ENTRY ( OBSOLETE44               )
 ERR_ENTRY ( INTERFACE_FAILED         )
 ERR_ENTRY ( OBSOLETE46               )
 ERR_ENTRY ( TOO_MANY_REDIRECTS       )
+#if LCURL_CURL_VER_GE(7,21,5)
 ERR_ENTRY ( UNKNOWN_OPTION           )
+#else
+ERR_ENTRY ( UNKNOWN_TELNET_OPTION    ) /* User specified an unknown option */
+#endif
 ERR_ENTRY ( TELNET_OPTION_SYNTAX     )
 ERR_ENTRY ( OBSOLETE50               )
 ERR_ENTRY ( PEER_FAILED_VERIFICATION )

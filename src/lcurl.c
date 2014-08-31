@@ -74,8 +74,12 @@ static int lcurl_version_info(lua_State *L){
     lua_pushliteral(L, "SSPI");         lua_pushboolean(L, data->features & CURL_VERSION_SSPI        ); lua_rawset(L, -3);
     lua_pushliteral(L, "CONV");         lua_pushboolean(L, data->features & CURL_VERSION_CONV        ); lua_rawset(L, -3);
     lua_pushliteral(L, "CURLDEBUG");    lua_pushboolean(L, data->features & CURL_VERSION_CURLDEBUG   ); lua_rawset(L, -3);
+#if LCURL_CURL_VER_GE(7,21,4)
     lua_pushliteral(L, "TLSAUTH_SRP");  lua_pushboolean(L, data->features & CURL_VERSION_TLSAUTH_SRP ); lua_rawset(L, -3);
+#endif
+#if LCURL_CURL_VER_GE(7,22,0)
     lua_pushliteral(L, "NTLM_WB");      lua_pushboolean(L, data->features & CURL_VERSION_NTLM_WB     ); lua_rawset(L, -3);
+#endif
 #ifdef CURL_VERSION_HTTP2
     lua_pushliteral(L, "HTTP2");        lua_pushboolean(L, data->features & CURL_VERSION_HTTP2       ); lua_rawset(L, -3);
 #endif

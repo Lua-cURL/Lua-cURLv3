@@ -2,6 +2,7 @@
 #define _LCHTTPPOST_H_
 
 #include "lcurl.h"
+#include <stdlib.h>
 
 typedef struct lcurl_hpost_tag{
   struct curl_httppost *post;

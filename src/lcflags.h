@@ -96,20 +96,48 @@ FLG_ENTRY(PROTO_LDAPS                     )
 FLG_ENTRY(PROTO_DICT                      )
 FLG_ENTRY(PROTO_FILE                      )
 FLG_ENTRY(PROTO_TFTP                      )
+#ifdef CURLPROTO_IMAP
 FLG_ENTRY(PROTO_IMAP                      )
+#endif
+#ifdef CURLPROTO_IMAPS
 FLG_ENTRY(PROTO_IMAPS                     )
+#endif
+#ifdef CURLPROTO_POP3
 FLG_ENTRY(PROTO_POP3                      )
+#endif
+#ifdef CURLPROTO_POP3S
 FLG_ENTRY(PROTO_POP3S                     )
+#endif
+#ifdef CURLPROTO_SMTP
 FLG_ENTRY(PROTO_SMTP                      )
+#endif
+#ifdef CURLPROTO_SMTPS
 FLG_ENTRY(PROTO_SMTPS                     )
+#endif
+#ifdef CURLPROTO_RTSP
 FLG_ENTRY(PROTO_RTSP                      )
+#endif
+#ifdef CURLPROTO_RTMP
 FLG_ENTRY(PROTO_RTMP                      )
+#endif
+#ifdef CURLPROTO_RTMPT
 FLG_ENTRY(PROTO_RTMPT                     )
+#endif
+#ifdef CURLPROTO_RTMPE
 FLG_ENTRY(PROTO_RTMPE                     )
+#endif
+#ifdef CURLPROTO_RTMPTE
 FLG_ENTRY(PROTO_RTMPTE                    )
+#endif
+#ifdef CURLPROTO_RTMPS
 FLG_ENTRY(PROTO_RTMPS                     )
+#endif
+#ifdef CURLPROTO_RTMPTS
 FLG_ENTRY(PROTO_RTMPTS                    )
+#endif
+#ifdef CURLPROTO_GOPHER
 FLG_ENTRY(PROTO_GOPHER                    )
+#endif
 FLG_ENTRY(PROTO_ALL                       )
 
 FLG_ENTRY(PROXY_HTTP                      ) /* added in 7.10.0 */

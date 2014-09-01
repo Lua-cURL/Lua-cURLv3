@@ -1,11 +1,11 @@
-#if !defined(_WINDOWS) && !defined(_WIN32)
+#if defined(_WINDOWS) || defined(_WIN32)
 #  define LCURL_WINDOWS
 #endif
 
 #ifdef LCURL_WINDOWS
-#  include <sys/select.h>
-#else
 #  include <winsock2.h>
+#else
+#  include <sys/select.h>
 #endif
 
 #include "lcurl.h"

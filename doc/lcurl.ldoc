@@ -228,7 +228,7 @@ function getinfo() end
 --
 -- A callback accepting one or two parameters.
 -- The first is the writer context if any, and the second is a string with the data to be written.
--- Function must return `true` or full data length or nothing to continue operation.
+-- Function must return `true` (any non number true value) or full data length or nothing to continue operation.
 -- Otherwise the transfer will be aborted with an error.
 --
 -- @tparam function writer
@@ -250,7 +250,7 @@ function setopt_writefunction() end
 --
 -- A callback accepting one or two parameters.
 -- The first is the writer context if any, and the second is a string with the data to be written.
--- Function must return `true` or full data length or nothing to continue operation.
+-- Function must return `true` (any non number true value) or full data length or nothing to continue operation.
 -- Otherwise the transfer will be aborted with an error.
 --
 -- @tparam function writer

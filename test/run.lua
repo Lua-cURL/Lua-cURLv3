@@ -12,3 +12,4 @@ print("------------------------------------")
 print("")
 
 require "test_safe"
+require "test_easy"

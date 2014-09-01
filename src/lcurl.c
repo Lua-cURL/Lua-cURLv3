@@ -50,6 +50,20 @@ static int lcurl_version(lua_State *L){
   return 1;
 }
 
+static int push_upper(lua_State *L, const char *str){
+  char buffer[128];
+  size_t i, n = strlen(str);
+  char *ptr = (n < sizeof(buffer))?&buffer[0]:malloc(n + 1);
+  if (!ptr) return 1;
+  for(i = 0; i < n; ++i){
+    if( (str[i] > 96 ) && (str[i] < 123) ) ptr[i] = str[i] - 'a' + 'A';
+    else ptr[i] = str[i];
+  }
+  lua_pushlstring(L, ptr, n);
+  if(ptr != &buffer[0]) free(ptr);
+  return 0;
+}
+
 static int lcurl_version_info(lua_State *L){
   const char * const*p;
   curl_version_info_data *data = curl_version_info(CURLVERSION_NOW);
@@ -92,7 +106,7 @@ static int lcurl_version_info(lua_State *L){
   /* protocols is terminated by an entry with a NULL protoname */
   lua_newtable(L);
   for(p = data->protocols; *p; ++p){
-    lua_pushstring(L, *p); lua_pushboolean(L, 1); lua_rawset(L, -3);
+    push_upper(L, *p); lua_pushboolean(L, 1); lua_rawset(L, -3);
   }
   lua_setfield(L, -2, "protocols");
 

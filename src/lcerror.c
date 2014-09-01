@@ -156,6 +156,12 @@ static int lcurl_err_equal(lua_State *L){
   return 1;
 }
 
+static int lcurl_err_category(lua_State *L){
+  lcurl_error_t *err = lcurl_geterror(L);
+  lua_pushinteger(L, err->tp);
+  return 1;
+}
+
 //}
 
 //{
@@ -199,6 +205,8 @@ static const struct luaL_Reg lcurl_err_methods[] = {
   {"msg",             lcurl_err_msg              },
   {"name",            lcurl_err_mnemo            },
   {"mnemo",           lcurl_err_mnemo            },
+  {"cat",             lcurl_err_category         },
+  {"category",        lcurl_err_category         },
   {"__tostring",      lcurl_err_tostring         },
   {"__eq",            lcurl_err_equal            },
 
@@ -226,6 +234,15 @@ static const lcurl_const_t lcurl_error_codes[] = {
   {NULL, 0}
 };
 
+static const lcurl_const_t lcurl_error_category[] = {
+  {"ERROR_CURL",  LCURL_ERROR_CURL},
+  {"ERROR_EASY",  LCURL_ERROR_EASY},
+  {"ERROR_MULTI", LCURL_ERROR_MULTI},
+  {"ERROR_SHARE", LCURL_ERROR_SHARE},
+  {"ERROR_FORM",  LCURL_ERROR_FORM},
+
+  {NULL, 0}
+};
 
 void lcurl_error_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_ERROR, lcurl_err_methods, nup))
@@ -233,4 +250,5 @@ void lcurl_error_initlib(lua_State *L, int nup){
   lua_pop(L, 1);
 
   lcurl_util_set_const(L, lcurl_error_codes);
+  lcurl_util_set_const(L, lcurl_error_category);
 }

@@ -121,6 +121,17 @@ end
 -- @type error
 --
 do
+
+--- Get the error category.
+-- 
+-- @treturn number number of error category (curl.ERROR_XXX constants)
+-- 
+-- @usage
+-- if err:category() == curl.ERROR_EASY then
+-- -- proceed easy error
+-- end
+function category       ()end
+
 --- Get the number value of error.
 -- 
 -- @treturn number number of error (curl.E_XXX constants)

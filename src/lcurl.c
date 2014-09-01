@@ -161,12 +161,6 @@ static const lcurl_const_t lcurl_flags[] = {
 #include "lcflags.h"
 #undef FLG_ENTRY
 
-  "ERROR_CURL",  LCURL_ERROR_CURL,
-  "ERROR_EASY",  LCURL_ERROR_EASY,
-  "ERROR_MULTI", LCURL_ERROR_MULTI,
-  "ERROR_SHARE", LCURL_ERROR_SHARE,
-  "ERROR_FORM",  LCURL_ERROR_FORM,
-
   {NULL, 0}
 };
 

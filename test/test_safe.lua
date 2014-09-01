@@ -65,4 +65,24 @@ end
 
 end
 
+local _ENV = TEST_CASE'error_object' do
+
+local curl = require "lcurl"
+
+function test()
+  local e1 = curl.error(curl.ERROR_EASY, 0) -- ok
+  assert_equal(curl.ERROR_EASY, e1:category())
+  assert_equal(curl.E_OK,       e1:no())
+  assert_equal("OK",            e1:name())
+
+  local e2 = curl.error(curl.ERROR_MULTI, 0) -- ok
+  local e3 = curl.error(curl.ERROR_MULTI, 0) -- ok
+  assert_equal(0, e1:no())
+  assert_equal(0, e2:no())
+  assert(e1 ~= e2)
+  assert(e3 == e2)
+end
+
+end
+
 if not HAS_RUNNER then lunit.run() end

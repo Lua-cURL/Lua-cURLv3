@@ -24,6 +24,10 @@ int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * 
 
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx);
 
+void lcurl_storage_preserve_iv(lua_State *L, int storage, int i, int v);
+
+void lcurl_storage_remove_i(lua_State *L, int storage, int i);
+
 int lcurl_storage_free(lua_State *L, int storage);
 
 struct curl_slist* lcurl_util_array_to_slist(lua_State *L, int t);
@@ -40,4 +44,9 @@ int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c);
 
 int lcurl_util_new_weak_table(lua_State*L, const char *mode);
 
+int lcurl_util_pcall_method(lua_State *L, const char *name, int nargs, int nresults, int errfunc);
+
+int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
+                              int error_mode, int error_type, int error_code
+                              );
 #endif

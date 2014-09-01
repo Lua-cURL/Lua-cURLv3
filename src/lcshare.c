@@ -11,10 +11,20 @@ static const char *LCURL_SHARE = LCURL_SHARE_NAME;
 
 //{
 int lcurl_share_create(lua_State *L, int error_mode){
-  lcurl_share_t *p = lutil_newudatap(L, lcurl_share_t, LCURL_SHARE);
+  lcurl_share_t *p;
+
+  lua_settop(L, 1);
+
+  p = lutil_newudatap(L, lcurl_share_t, LCURL_SHARE);
   p->curl = curl_share_init();
   p->err_mode = error_mode;
   if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_SHARE, CURLSHE_NOMEM);
+
+  if(lua_type(L, 1) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_SHARE, CURLSHE_BAD_OPTION);
+    if(ret) return ret;
+    assert(lua_gettop(L) == 2);
+  }
 
   return 1;
 }
@@ -70,7 +80,17 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
 
 static int lcurl_share_setopt(lua_State *L){
   lcurl_share_t *p = lcurl_getshare(L);
-  int opt = luaL_checklong(L, 2);
+  int opt;
+  
+  luaL_checkany(L, 2);
+  if(lua_type(L, 2) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 2, 1, 0, p->err_mode, LCURL_ERROR_SHARE, CURLSHE_BAD_OPTION);
+    if(ret) return ret;
+    lua_settop(L, 1);
+    return 1;
+  }
+
+  opt = luaL_checklong(L, 2);
   lua_remove(L, 2);
 
 #define OPT_ENTRY(l, N, T, S) case CURLSHOPT_##N: return lcurl_share_set_##N(L);

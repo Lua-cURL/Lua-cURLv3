@@ -2,6 +2,9 @@
 #include "lcutils.h"
 #include "lcerror.h"
 
+#define LCURL_STORAGE_SLIST 1
+#define LCURL_STORAGE_KV    2
+
 int lcurl_storage_init(lua_State *L){
   lua_newtable(L);
   return luaL_ref(L, LCURL_LUA_REGISTRY);
@@ -15,38 +18,65 @@ void lcurl_storage_preserve_value(lua_State *L, int storage, int i){
   lua_pop(L, 1);
 }
 
-int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * list){
-  int r;
-  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
+static void lcurl_storage_ensure_t(lua_State *L, int t){
+  lua_rawgeti(L, -1, t);
   if(!lua_istable(L, -1)){
     lua_pop(L, 1);
     lua_newtable(L);
     lua_pushvalue(L, -1);
-    lua_rawseti(L, -3, 1);
+    lua_rawseti(L, -3, t);
   }
+}
+
+int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * list){
+  int r;
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lcurl_storage_ensure_t(L, LCURL_STORAGE_SLIST);
   lua_pushlightuserdata(L, list);
   r = luaL_ref(L, -2);
   lua_pop(L, 2);
   return r;
 }
 
+void lcurl_storage_preserve_iv(lua_State *L, int storage, int i, int v){
+  v = lua_absindex(L, v);
+
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lcurl_storage_ensure_t(L, LCURL_STORAGE_KV);
+  lua_pushvalue(L, v);
+  lua_rawseti(L, -2, i);
+  lua_pop(L, 2);
+}
+
+void lcurl_storage_remove_i(lua_State *L, int storage, int i){
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lua_rawgeti(L, -1, LCURL_STORAGE_KV);
+  if(lua_istable(L, -1)){
+    lua_pushnil(L);
+    lua_rawseti(L, -3, i);
+  }
+  lua_pop(L, 2);
+}
+
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx){
   struct curl_slist* list;
   assert(idx != LUA_NOREF);
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
-  lua_rawgeti(L, -1, idx);
-  list = lua_touserdata(L, -1);
-  assert(list);
-  luaL_unref(L, -2, idx);
-  lua_pop(L, 3);
+  lua_rawgeti(L, -1, LCURL_STORAGE_SLIST); // list storage
+  if(lua_istable(L, -1)){
+    lua_rawgeti(L, -1, idx);
+    list = lua_touserdata(L, -1);
+    assert(list);
+    luaL_unref(L, -2, idx);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 2);
   return list;
 }
 
 int lcurl_storage_free(lua_State *L, int storage){
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
+  lua_rawgeti(L, -1, LCURL_STORAGE_SLIST); // list storage
   if(lua_istable(L, -1)){
     lua_pushnil(L);
     while(lua_next(L, -2) != 0){
@@ -125,4 +155,78 @@ int lcurl_util_new_weak_table(lua_State*L, const char *mode){
   lua_setmetatable(L,-2);
   assert((top+1) == lua_gettop(L));
   return 1;
+}
+
+int lcurl_util_pcall_method(lua_State *L, const char *name, int nargs, int nresults, int errfunc){
+  int obj_index = -nargs - 1;
+  lua_getfield(L, obj_index, name);
+  lua_insert(L, obj_index - 1);
+  return lua_pcall(L, nargs + 1, nresults, errfunc);
+}
+
+static void lcurl_utils_pcall_close(lua_State *L, int obj){
+  int top = lua_gettop(L);
+  lua_pushvalue(L, obj);
+  lcurl_util_pcall_method(L, "close", 0, 0, 0);
+  lua_settop(L, top);
+}
+
+int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
+  int error_mode, int error_type, int error_code
+){
+  int top = lua_gettop(L);
+  opt = lua_absindex(L, opt);
+  obj = lua_absindex(L, obj);
+
+  lua_pushnil(L);
+  while(lua_next(L, opt) != 0){
+    int n;
+    assert(lua_gettop(L) == (top + 2));
+    
+    if(lua_type(L, -2) == LUA_TNUMBER){ /* [curl.OPT_URL] = "http://localhost" */
+      lua_pushvalue(L, -2);
+      lua_insert(L, -2);            /*Stack : opt, obj, k, k, v */
+      lua_pushliteral(L, "setopt"); /*Stack : opt, obj, k, k, v, "setopt" */
+      n = 2;
+    }
+    else if(lua_type(L, -2) == LUA_TSTRING){ /* url = "http://localhost" */
+      lua_pushliteral(L, "setopt_"); lua_pushvalue(L, -3); lua_concat(L, 2);
+      /*Stack : opt, obj, k, v, "setopt_XXX" */
+      n = 1;
+    }
+    else{
+      lua_pop(L, 1);
+      continue;
+    }
+    /*Stack : opt, obj, k,[ k,] v, `setoptXXX` */
+
+    lua_gettable(L, obj); /* get e["settop_XXX]*/
+
+    if(lua_isnil(L, -1)){ /* unknown option */
+      if(do_close) lcurl_utils_pcall_close(L, obj);
+      lua_settop(L, top);
+      return lcurl_fail_ex(L, error_mode, error_type, error_code);
+    }
+
+    lua_insert(L, -n-1);       /*Stack : opt, obj, k, setoptXXX, [ k,] v       */
+    lua_pushvalue(L, obj);     /*Stack : opt, obj, k, setoptXXX, [ k,] v, obj  */
+    lua_insert(L, -n-1);       /*Stack : opt, obj, k, setoptXXX,  obj, [ k,] v */
+
+    if(lua_pcall(L, n+1, 2, 0)){
+      if(do_close) lcurl_utils_pcall_close(L, obj);
+      return lua_error(L);
+    }
+
+    if(lua_isnil(L, -2)){
+      if(do_close) lcurl_utils_pcall_close(L, obj);
+      lua_settop(L, top);
+      return 2;
+    }
+
+    /*Stack : opt, obj, k, ok, nil*/
+    lua_pop(L, 2);
+    assert(lua_gettop(L) == (top+1));
+  }
+  assert(lua_gettop(L) == top);
+  return 0;
 }

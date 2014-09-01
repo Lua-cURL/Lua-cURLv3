@@ -9,16 +9,26 @@ function form() end
 
 --- Create Easy object
 --
+-- @tparam[opt] table options
 -- @treturn[1] easy new curl easy object
+--
+-- @usage
+-- c = curl.easy{
+--   url = 'http://example.com',
+--   [curl.OPT_VERBOSE] = true,
+-- }
+--
 function easy() end
 
 --- Create Multi object
 --
+-- @tparam[opt] table options
 -- @treturn[1] multi new curl multi object
 function multi() end
 
 --- Create Share object
 --
+-- @tparam[opt] table options
 -- @treturn[1] share new curl share object
 function share() end
 
@@ -187,7 +197,7 @@ function close() end
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_XXX` constant or options table
 -- @param ... value
 -- @treturn easy self
 --
@@ -197,6 +207,10 @@ function close() end
 --    function(t, n) return table.remove(t) end,
 --    {"1111", "2222"}
 -- )
+--c:setopt{
+--   url = 'http://example.com',
+--   [curl.OPT_VERBOSE] = true,
+-- }
 function setopt() end
 
 --- Get information.
@@ -214,7 +228,7 @@ function getinfo() end
 --
 -- A callback accepting one or two parameters.
 -- The first is the writer context if any, and the second is a string with the data to be written.
--- Function must return `true` or full data length or nothing to continue operation.
+-- Function must return `true` (any non number true value) or full data length or nothing to continue operation.
 -- Otherwise the transfer will be aborted with an error.
 --
 -- @tparam function writer
@@ -236,7 +250,7 @@ function setopt_writefunction() end
 --
 -- A callback accepting one or two parameters.
 -- The first is the writer context if any, and the second is a string with the data to be written.
--- Function must return `true` or full data length or nothing to continue operation.
+-- Function must return `true` (any non number true value) or full data length or nothing to continue operation.
 -- Otherwise the transfer will be aborted with an error.
 --
 -- @tparam function writer
@@ -367,12 +381,13 @@ function info_read() end
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_MULTI_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_MULTI_XXX` constant
 -- @param ... value
 -- @treturn multi self
 --
 -- @usage
 -- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
+-- c:setopt{maxconnects = 10}
 function setopt() end
 
 --- Set timer callback.
@@ -418,12 +433,13 @@ do
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_SHARE_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_SHARE_XXX` constant
 -- @param ... value
 -- @treturn share self
 --
 -- @usage
 -- c:setopt(curl.OPT_SHARE_SHARE, curl.LOCK_DATA_COOKIE)
+-- c:setopt{share =  curl.LOCK_DATA_COOKIE}
 function setopt() end
 
 --- End share session.

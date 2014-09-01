@@ -11,12 +11,24 @@ static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
 #define LCURL_EASY_NAME LCURL_PREFIX" Easy"
 static const char *LCURL_EASY = LCURL_EASY_NAME;
 
+#if LCURL_CURL_VER_GE(7,21,5)
+#  define LCURL_E_UNKNOWN_OPTION CURLE_UNKNOWN_OPTION
+#else
+#  define LCURL_E_UNKNOWN_OPTION CURLE_UNKNOWN_TELNET_OPTION
+#endif
+
 //{
 
 int lcurl_easy_create(lua_State *L, int error_mode){
-  lcurl_easy_t *p = lutil_newudatap(L, lcurl_easy_t, LCURL_EASY);
+  lcurl_easy_t *p;
   int i;
+
+  lua_settop(L, 1); /* options */
+
+  p = lutil_newudatap(L, lcurl_easy_t, LCURL_EASY);
+
   p->curl = curl_easy_init();
+
   p->err_mode    = error_mode;
   if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_FAILED_INIT);
   p->L           = L;
@@ -29,6 +41,13 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   for(i = 0; i < LCURL_LIST_COUNT; ++i){
     p->lists[i] = LUA_NOREF;
   }
+
+  if(lua_type(L, 1) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
+    if(ret) return ret;
+    assert(lua_gettop(L) == 2);
+  }
+
   return 1;
 }
 
@@ -182,7 +201,7 @@ static int lcurl_opt_set_string_(lua_State *L, int opt, int store){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  if(store)lcurl_storage_preserve_value(L, p->storage, 2);
+  if(store)lcurl_storage_preserve_iv(L, p->storage, opt, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -245,7 +264,7 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_POSTFIELDS, 2);
   code = curl_easy_setopt(p->curl, CURLOPT_POSTFIELDSIZE, (long)len);
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
@@ -266,7 +285,7 @@ static int lcurl_easy_set_HTTPPOST(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_HTTPPOST, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -280,7 +299,7 @@ static int lcurl_easy_set_SHARE(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_SHARE, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -459,10 +478,12 @@ static int lcurl_write_callback_(lua_State*L,
 
   if(lua_gettop(L) > top){
     if(lua_isnil(L, top + 1)) return 0;
-    if(lua_isboolean(L, top + 1)){
+    if(lua_isnumber(L, top + 1)){
+      ret = (size_t)lua_tonumber(L, top + 1);
+    }
+    else{
       if(!lua_toboolean(L, top + 1)) ret = 0;
     }
-    else ret = (size_t)lua_tonumber(L, top + 1);
   }
 
   lua_settop(L, top);
@@ -642,7 +663,17 @@ static int lcurl_easy_set_PROGRESSFUNCTION(lua_State *L){
 
 static int lcurl_easy_setopt(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  int opt = luaL_checklong(L, 2);
+  long opt;
+
+  luaL_checkany(L, 2);
+  if(lua_type(L, 2) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 2, 1, 0, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
+    if(ret) return ret;
+    lua_settop(L, 1);
+    return 1;
+  }
+
+  opt = luaL_checklong(L, 2);
   lua_remove(L, 2);
 
 #define OPT_ENTRY(l, N, T, S) case CURLOPT_##N: return lcurl_easy_set_##N(L);
@@ -658,13 +689,7 @@ static int lcurl_easy_setopt(lua_State *L){
   }
 #undef OPT_ENTRY
 
-  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, 
-#if LCURL_CURL_VER_GE(7,21,5)
-  CURLE_UNKNOWN_OPTION
-#else
-  CURLE_UNKNOWN_TELNET_OPTION
-#endif
-  );
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
 }
 
 static int lcurl_easy_getinfo(lua_State *L){
@@ -678,13 +703,7 @@ static int lcurl_easy_getinfo(lua_State *L){
   }
 #undef OPT_ENTRY
 
-  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, 
-#if LCURL_CURL_VER_GE(7,21,5)
-  CURLE_UNKNOWN_OPTION
-#else
-  CURLE_UNKNOWN_TELNET_OPTION
-#endif
-  );
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
 }
 
 //}

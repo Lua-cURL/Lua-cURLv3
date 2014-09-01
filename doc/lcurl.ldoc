@@ -343,6 +343,9 @@ function perfom() end
 
 --- Read multi stack informationals.
 --
+-- Note. If curl_multi_remove_handle fail then there no error occure but handle jast stay in multi handle.
+--
+-- @tparam[opt] remove remove easy handle if it done.
 -- @treturn[1] number 0 there no informationals
 -- @treturn[2] easy handle
 -- @treturn[2] boolean true

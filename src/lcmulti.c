@@ -101,6 +101,8 @@ static int lcurl_multi_info_read(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   int msgs_in_queue = 0;
   CURLMsg *msg = curl_multi_info_read(p->curl, &msgs_in_queue);
+  int remove = lua_toboolean(L, 2);
+
   lcurl_easy_t *e;
   if(!msg){
     lua_pushnumber(L, msgs_in_queue);
@@ -111,6 +113,13 @@ static int lcurl_multi_info_read(lua_State *L){
     lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
     lua_rawgetp(L, -1, msg->easy_handle);
     e = lcurl_geteasy_at(L, -1);
+    if(remove){
+      //! @fixme We ignore any errors
+      if(CURLM_OK == curl_multi_remove_handle(p->curl, e->curl)){
+        lua_pushnil(L);
+        lua_rawsetp(L, -3, e->curl);
+      }
+    }
     if(msg->data.result == CURLE_OK){
       lua_pushboolean(L, 1);
       return 2;

@@ -88,7 +88,8 @@ static int lcurl_multi_remove_handle(lua_State *L){
 static int lcurl_multi_perform(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   int running_handles = 0;
-  CURLMcode code = curl_multi_perform(p->curl, &running_handles);
+  CURLMcode code;
+  while((code = curl_multi_perform(p->curl, &running_handles)) == CURLM_CALL_MULTI_PERFORM);
   if(code != CURLM_OK){
     lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }

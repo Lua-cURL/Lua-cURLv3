@@ -45,4 +45,26 @@ end
 
 end
 
+local _ENV = TEST_CASE'escape' do
+
+local c
+
+function teardown()
+  if c then c:close() end
+  f, c = nil
+end
+
+function test()
+  local e = "This%2Bis%2Ba%2Bsimple%2B%2526%2Bshort%2Btest."
+  local d = "This+is+a+simple+%26+short+test."
+  c = assert(curl.easy())
+  assert_equal(e, c:escape(d))
+  assert_equal(d, c:unescape(e))
+end
+
+end
+
+
+
+
 if not HAS_RUNNER then lunit.run() end

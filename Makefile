@@ -3,8 +3,6 @@ T=lcurl
 #default installtion prefix
 PREFIX=/usr/local
 
-LUA_VERSION = $(shell pkg-config luajit --print-provides)
-
 #try to use luajit
 LUA_VERSION = $(shell pkg-config luajit --print-provides)
 ifeq ($(LUA_VERSION),)

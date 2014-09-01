@@ -3,9 +3,9 @@
 -- Usage:
 --
 -- local e = cURL.easy{
---   url    = 'http://example.com',
---   write  = io.stdout;
---   header = function(msg) io.stderr:write(msg) end;
+--   url            = 'http://example.com',
+--   writefunction  = io.stdout;
+--   headerfunction = function(msg) io.stderr:write(msg) end;
 -- }
 -- e:perform()
 --
@@ -14,16 +14,8 @@ local curl = require "lcurl.safe"
 
 local easy = {} do
 
-local LCURL_ERROR_EASY = 1
-local CURLE_UNKNOWN_OPTION = 48
-
-local RENAME_OPT = {
-  read   = "readfunction";
-  write  = "writefunction";
-  header = "headerfunction";
-}
-
-local postfields_storage = setmetatable({}, {__mode = "k"})
+local LCURL_ERROR_EASY = curl.ERROR_EASY
+local CURLE_UNKNOWN_OPTION = curl.E_UNKNOWN_OPTION
 
 easy.__index = function(self, k)
   if k:sub(1, 4) == 'set_' then
@@ -43,7 +35,6 @@ easy.__index = function(self, k)
 end
 
 local function setopt(handle, k, v, ...)
-  k = RENAME_OPT[k] or k
   local fn = handle["setopt_" .. k]
   if not fn then
     return nil, curl.error(LCURL_ERROR_EASY,  CURLE_UNKNOWN_OPTION)
@@ -71,7 +62,7 @@ function easy:new(opt)
  
   return o
 end
- 
+
 function easy:handle()
   return self._handle
 end
@@ -93,33 +84,21 @@ function easy:set(k, v, ...)
   if not ok then return nil, err end
   return self
 end
- 
+
 function easy:perform(opt)
+  if opt then
+    local ok, err = self:set(opt)
+    if not ok then return nil, err end
+  end
+
   local e = self:handle()
 
-  local oerror = opt.error or function(err) return nil, err end
-
-  if opt.read then
-    local ok, err = e:setopt_readfunction(opt.read)
-    if not ok then return oerror(err) end
-  end
-
-  if opt.write then
-    local ok, err = e:setopt_writefunction(opt.write)
-    if not ok then return oerror(err) end
-  end
-
-  if opt.header then
-    local ok, err = e:setopt_headerfunction(opt.header)
-    if not ok then return oerror(err) end
-  end
-
   local ok, err = e:perform()
-  if ok then return oerror(err) end
+  if ok then return nil, err end
 
   return self 
 end
- 
+
 function easy:post(data)
   local post = curl.form()
   local ok, err
@@ -150,7 +129,7 @@ function easy:post(data)
 
   return self
 end
- 
+
 function easy:get(k, ...)
   assert(type(k) == "string")
   local handle = self:handle()
@@ -158,7 +137,7 @@ function easy:get(k, ...)
   if not fn then return nil, "Unknown info: " .. k end
   return fn(handle, ...)
 end
- 
+
 end
 
 local cURL = {}

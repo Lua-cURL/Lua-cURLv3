@@ -5,9 +5,18 @@ PREFIX=/usr/local
 
 LUA_VERSION = $(shell pkg-config luajit --print-provides)
 
+#try to use luajit
+LUA_VERSION = $(shell pkg-config luajit --print-provides)
 ifeq ($(LUA_VERSION),)
+#try to use lua5.1  
+LUA_VERSION = $(shell pkg-config lua --print-provides)
+ifeq ($(LUA_VERSION,)
 LUA_CFLAGS=$(shell pkg-config lua --cflags)
 LUA_LIBS=$(shell pkg-config lua --libs)
+else
+LUA_CFLAGS=-I$(PREFIX)/include/lua5.2
+LUA_LIBS=-L$(PREFIX)/lib -llua5.2
+endif
 else
 LUA_CFLAGS=$(shell pkg-config luajit --cflags)
 LUA_LIBS=$(shell pkg-config luajit --libs)

@@ -201,7 +201,7 @@ static int lcurl_opt_set_string_(lua_State *L, int opt, int store){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  if(store)lcurl_storage_preserve_value(L, p->storage, 2);
+  if(store)lcurl_storage_preserve_iv(L, p->storage, opt, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -264,7 +264,7 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_POSTFIELDS, 2);
   code = curl_easy_setopt(p->curl, CURLOPT_POSTFIELDSIZE, (long)len);
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
@@ -285,7 +285,7 @@ static int lcurl_easy_set_HTTPPOST(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_HTTPPOST, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -299,7 +299,7 @@ static int lcurl_easy_set_SHARE(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_preserve_value(L, p->storage, 2);
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_SHARE, 2);
 
   lua_settop(L, 1);
   return 1;

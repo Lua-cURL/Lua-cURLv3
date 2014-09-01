@@ -8,6 +8,15 @@ local scurl      = require "lcurl.safe"
 local url        = "http://example.com"
 local fname      = "./test.download"
 
+local function weak_ptr(val)
+  return setmetatable({value = val},{__mode = 'v'})
+end
+
+local function gc_collect()
+  collectgarbage("collect")
+  collectgarbage("collect")
+end
+
 local _ENV = TEST_CASE'write_callback' do
 
 local c, f
@@ -64,6 +73,33 @@ end
 
 end
 
+local _ENV = TEST_CASE'setopt_form' do
+
+local c
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+function test()
+  local pfrom, e
+  do
+    local form = curl.form()
+    e = curl.easy{httppost = form}
+    pfrom = weak_ptr(form)
+  end
+
+  gc_collect()
+  assert(pfrom.value)
+
+  e:setopt_httppost(curl.form())
+
+  gc_collect()
+  assert(not pfrom.value)
+end
+
+end
 
 
 

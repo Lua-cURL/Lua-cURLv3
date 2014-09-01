@@ -2,6 +2,9 @@
 #include "lcutils.h"
 #include "lcerror.h"
 
+#define LCURL_STORAGE_SLIST 1
+#define LCURL_STORAGE_KV    2
+
 int lcurl_storage_init(lua_State *L){
   lua_newtable(L);
   return luaL_ref(L, LCURL_LUA_REGISTRY);
@@ -15,32 +18,59 @@ void lcurl_storage_preserve_value(lua_State *L, int storage, int i){
   lua_pop(L, 1);
 }
 
-int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * list){
-  int r;
-  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
+static void lcurl_storage_ensure_t(lua_State *L, int t){
+  lua_rawgeti(L, -1, t);
   if(!lua_istable(L, -1)){
     lua_pop(L, 1);
     lua_newtable(L);
     lua_pushvalue(L, -1);
-    lua_rawseti(L, -3, 1);
+    lua_rawseti(L, -3, LCURL_STORAGE_SLIST);
   }
+}
+
+int lcurl_storage_preserve_slist(lua_State *L, int storage, struct curl_slist * list){
+  int r;
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lcurl_storage_ensure_t(L, LCURL_STORAGE_SLIST);
   lua_pushlightuserdata(L, list);
   r = luaL_ref(L, -2);
   lua_pop(L, 2);
   return r;
 }
 
+void lcurl_storage_preserve_iv(lua_State *L, int storage, int i, int v){
+  v = lua_absindex(L, v);
+
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lcurl_storage_ensure_t(L, LCURL_STORAGE_KV);
+  lua_pushvalue(L, v);
+  lua_rawseti(L, -2, i);
+  lua_pop(L, 2);
+}
+
+void lcurl_storage_remove_i(lua_State *L, int storage, int i){
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lua_rawgeti(L, -1, LCURL_STORAGE_KV);
+  if(lua_istable(L, -1)){
+    lua_pushnil(L);
+    lua_rawseti(L, -3, i);
+  }
+  lua_pop(L, 2);
+}
+
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx){
   struct curl_slist* list;
   assert(idx != LUA_NOREF);
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
-  lua_rawgeti(L, -1, idx);
-  list = lua_touserdata(L, -1);
-  assert(list);
-  luaL_unref(L, -2, idx);
-  lua_pop(L, 3);
+  lua_rawgeti(L, -1, LCURL_STORAGE_SLIST); // list storage
+  if(lua_istable(L, -1)){
+    lua_rawgeti(L, -1, idx);
+    list = lua_touserdata(L, -1);
+    assert(list);
+    luaL_unref(L, -2, idx);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 2);
   return list;
 }
 

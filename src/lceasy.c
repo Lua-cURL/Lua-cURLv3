@@ -19,74 +19,6 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
 
 //{
 
-static void lcurl_easy_pcall_close(lua_State *L, int obj){
-  int top = lua_gettop(L);
-  lua_pushvalue(L, obj);
-  lcurl_util_pcall_method(L, "close", 0, 0, 0);
-  lua_settop(L, top);
-}
-
-static int lcurl_easy_apply_options(lua_State *L, lcurl_easy_t *p, int opt, int obj, int do_close){
-  int top = lua_gettop(L);
-  opt = lua_absindex(L, opt);
-  obj = lua_absindex(L, obj);
-
-  lua_pushnil(L);
-  while(lua_next(L, opt) != 0){
-    int n;
-    assert(lua_gettop(L) == (top + 2));
-    
-    if(lua_type(L, -2) == LUA_TNUMBER){ /* [curl.OPT_URL] = "http://localhost" */
-      lua_pushvalue(L, -2);
-      lua_insert(L, -2);            /*Stack : opt, obj, k, k, v */
-      lua_pushliteral(L, "setopt"); /*Stack : opt, obj, k, k, v, "setopt" */
-      n = 2;
-    }
-    else if(lua_type(L, -2) == LUA_TSTRING){ /* url = "http://localhost" */
-      lua_pushliteral(L, "setopt_"); lua_pushvalue(L, -3); lua_concat(L, 2);
-      /*Stack : opt, obj, k, v, "setopt_XXX" */
-      n = 1;
-    }
-    else{
-      lua_pop(L, 1);
-      continue;
-    }
-    /*Stack : opt, obj, k,[ k,] v, `setoptXXX` */
-
-    lua_gettable(L, obj); /* get e["settop_XXX]*/
-
-    if(lua_isnil(L, -1)){ /* unknown option */
-      if(do_close) lcurl_easy_pcall_close(L, obj);
-      lua_settop(L, top);
-      return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
-    }
-
-    lua_insert(L, -n-1);       /*Stack : opt, obj, k, setoptXXX, [ k,] v       */
-    lua_pushvalue(L, obj);     /*Stack : opt, obj, k, setoptXXX, [ k,] v, obj  */
-    lua_insert(L, -n-1);       /*Stack : opt, obj, k, setoptXXX,  obj, [ k,] v */
-
-    if(lua_pcall(L, n+1, 2, 0)){
-      if(do_close) lcurl_easy_pcall_close(L, obj);
-      return lua_error(L);
-    }
-
-    if(lua_isnil(L, -2)){
-      if(do_close) lcurl_easy_pcall_close(L, obj);
-      lua_settop(L, top);
-      return 2;
-    }
-
-    /*Stack : opt, obj, k, ok, nil*/
-    lua_pop(L, 2);
-    assert(lua_gettop(L) == (top+1));
-  }
-  assert(lua_gettop(L) == top);
-  return 0;
-}
-
-
-
-
 int lcurl_easy_create(lua_State *L, int error_mode){
   lcurl_easy_t *p;
   int i;
@@ -111,7 +43,7 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   }
 
   if(lua_type(L, 1) == LUA_TTABLE){
-    int ret = lcurl_easy_apply_options(L, p, 1, 2, 1);
+    int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
     if(ret) return ret;
     assert(lua_gettop(L) == 2);
   }
@@ -733,7 +665,7 @@ static int lcurl_easy_setopt(lua_State *L){
 
   luaL_checkany(L, 2);
   if(lua_type(L, 2) == LUA_TTABLE){
-    int ret = lcurl_easy_apply_options(L, p, 2, 1, 0);
+    int ret = lcurl_utils_apply_options(L, 2, 1, 0, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
     if(ret) return ret;
     lua_settop(L, 1);
     return 1;

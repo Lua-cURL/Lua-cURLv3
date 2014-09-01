@@ -21,15 +21,27 @@ static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
 static const char *LCURL_MULTI = LCURL_MULTI_NAME;
 
 //{
+
 int lcurl_multi_create(lua_State *L, int error_mode){
-  lcurl_multi_t *p = lutil_newudatap(L, lcurl_multi_t, LCURL_MULTI);
+  lcurl_multi_t *p;
+  
+  lua_settop(L, 1);
+
+  p = lutil_newudatap(L, lcurl_multi_t, LCURL_MULTI);
   p->curl = curl_multi_init();
+  p->err_mode = error_mode;
   if(!p->curl) return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_INTERNAL_ERROR);
   p->L = L;
-  p->err_mode = error_mode;
   lcurl_util_new_weak_table(L, "v");
   p->h_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
+
+  if(lua_type(L, 1) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
+    if(ret) return ret;
+    assert(lua_gettop(L) == 2);
+  }
+
   return 1;
 }
 
@@ -393,7 +405,18 @@ static int lcurl_multi_set_TIMERFUNCTION(lua_State *L){
 
 static int lcurl_multi_setopt(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
-  int opt = luaL_checklong(L, 2);
+  int opt;
+  
+  luaL_checkany(L, 2);
+
+  if(lua_type(L, 2) == LUA_TTABLE){
+    int ret = lcurl_utils_apply_options(L, 2, 1, 0, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
+    if(ret) return ret;
+    lua_settop(L, 1);
+    return 1;
+  }
+
+  opt = luaL_checklong(L, 2);
   lua_remove(L, 2);
 
 #define OPT_ENTRY(l, N, T, S) case CURLMOPT_##N: return lcurl_multi_set_##N(L);

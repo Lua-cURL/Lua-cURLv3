@@ -104,7 +104,7 @@ function teardown()
   c = nil
 end
 
-function test_error()
+function test_easy_error()
   c = assert(curl.easy())
   c:close()
   c = assert(curl.easy{
@@ -126,7 +126,7 @@ function test_error()
   end)
 end
 
-function test_safe()
+function test_easy_safe()
   c = assert(scurl.easy())
   c:close()
   c = assert(scurl.easy{
@@ -145,6 +145,97 @@ function test_safe()
   assert_error(function()
       c = scurl.easy{
         url = 123,
+    }
+  end)
+end
+
+function test_multi_error()
+  c = assert(curl.multi())
+  c:close()
+  c = assert(curl.multi{
+    maxconnects = 10;
+    [curl.OPT_MULTI_PIPELINING] = true,
+  })
+  c:close()
+  
+  assert_error(function()
+      c = curl.multi{
+        url_111 = "http://example.com",
+    }
+  end)
+  
+  assert_error(function()
+      c = curl.multi{
+        maxconnects = "hello",
+    }
+  end)
+end
+
+function test_multi_safe()
+  c = assert(scurl.multi())
+  c:close()
+  c = assert(scurl.multi{
+    maxconnects = 10;
+    [curl.OPT_MULTI_PIPELINING] = true,
+  })
+  c:close()
+  
+  assert_pass(function()
+      c = scurl.multi{
+        url_111 = "http://example.com",
+    }
+  end)
+  assert_nil(c)
+
+  assert_error(function()
+      c = scurl.multi{
+        maxconnects = "hello",
+    }
+  end)
+end
+
+function test_share_error()
+  assert(curl.LOCK_DATA_COOKIE)
+
+  c = assert(curl.share())
+  c:close()
+  c = assert(curl.share{
+    share = curl.LOCK_DATA_COOKIE;
+  })
+  c:close()
+  
+  assert_error(function()
+      c = curl.share{
+        url_111 = "http://example.com",
+    }
+  end)
+  
+  assert_error(function()
+      c = curl.share{
+        share = "hello";
+    }
+  end)
+end
+
+function test_share_safe()
+  assert(curl.LOCK_DATA_COOKIE)
+
+  c = assert(scurl.share())
+  c:close()
+  c = assert(curl.share{
+    share = scurl.LOCK_DATA_COOKIE;
+  })
+  c:close()
+  
+  assert_pass(function()
+      c = scurl.share{
+        url_111 = "http://example.com",
+    }
+  end)
+  
+  assert_error(function()
+      c = scurl.share{
+        share = "hello";
     }
   end)
 end

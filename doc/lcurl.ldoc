@@ -22,11 +22,13 @@ function easy() end
 
 --- Create Multi object
 --
+-- @tparam[opt] table options
 -- @treturn[1] multi new curl multi object
 function multi() end
 
 --- Create Share object
 --
+-- @tparam[opt] table options
 -- @treturn[1] share new curl share object
 function share() end
 
@@ -379,12 +381,13 @@ function info_read() end
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_MULTI_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_MULTI_XXX` constant
 -- @param ... value
 -- @treturn multi self
 --
 -- @usage
 -- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
+-- c:setopt{maxconnects = 10}
 function setopt() end
 
 --- Set timer callback.
@@ -430,12 +433,13 @@ do
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_SHARE_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_SHARE_XXX` constant
 -- @param ... value
 -- @treturn share self
 --
 -- @usage
 -- c:setopt(curl.OPT_SHARE_SHARE, curl.LOCK_DATA_COOKIE)
+-- c:setopt{share =  curl.LOCK_DATA_COOKIE}
 function setopt() end
 
 --- End share session.

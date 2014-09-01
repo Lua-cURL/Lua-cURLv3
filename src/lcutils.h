@@ -42,4 +42,7 @@ int lcurl_util_new_weak_table(lua_State*L, const char *mode);
 
 int lcurl_util_pcall_method(lua_State *L, const char *name, int nargs, int nresults, int errfunc);
 
+int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
+                              int error_mode, int error_type, int error_code
+                              );
 #endif

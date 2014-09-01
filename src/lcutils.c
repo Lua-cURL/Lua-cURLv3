@@ -24,7 +24,7 @@ static void lcurl_storage_ensure_t(lua_State *L, int t){
     lua_pop(L, 1);
     lua_newtable(L);
     lua_pushvalue(L, -1);
-    lua_rawseti(L, -3, LCURL_STORAGE_SLIST);
+    lua_rawseti(L, -3, t);
   }
 }
 
@@ -76,7 +76,7 @@ struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx
 
 int lcurl_storage_free(lua_State *L, int storage){
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
-  lua_rawgeti(L, -1, 1); // list storage
+  lua_rawgeti(L, -1, LCURL_STORAGE_SLIST); // list storage
   if(lua_istable(L, -1)){
     lua_pushnil(L);
     while(lua_next(L, -2) != 0){

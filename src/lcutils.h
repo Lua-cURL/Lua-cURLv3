@@ -40,4 +40,6 @@ int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c);
 
 int lcurl_util_new_weak_table(lua_State*L, const char *mode);
 
+int lcurl_util_pcall_method(lua_State *L, const char *name, int nargs, int nresults, int errfunc);
+
 #endif

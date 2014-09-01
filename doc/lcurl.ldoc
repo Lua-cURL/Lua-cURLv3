@@ -9,7 +9,15 @@ function form() end
 
 --- Create Easy object
 --
+-- @tparam[opt] table options
 -- @treturn[1] easy new curl easy object
+--
+-- @usage
+-- c = curl.easy{
+--   url = 'http://example.com',
+--   [curl.OPT_VERBOSE] = true,
+-- }
+--
 function easy() end
 
 --- Create Multi object
@@ -187,7 +195,7 @@ function close() end
 
 --- Set options.
 --
--- @tparam number opt one of `curl.OPT_XXX` constant
+-- @tparam number|table opt one of `curl.OPT_XXX` constant or options table
 -- @param ... value
 -- @treturn easy self
 --
@@ -197,6 +205,10 @@ function close() end
 --    function(t, n) return table.remove(t) end,
 --    {"1111", "2222"}
 -- )
+--c:setopt{
+--   url = 'http://example.com',
+--   [curl.OPT_VERBOSE] = true,
+-- }
 function setopt() end
 
 --- Get information.

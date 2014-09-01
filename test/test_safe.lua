@@ -30,10 +30,11 @@ end
 
 local _ENV = TEST_CASE'setopt' do
 
+local curl = require "lcurl.safe"
 local c
 
 function setup()
-  c = assert(require"lcurl.safe".easy())
+  c = assert(curl.easy())
 end
 
 function teardown()
@@ -63,6 +64,13 @@ function test_array()
   assert_equal(c, c:setopt_httpheader{"k:v"})
 end
 
+function test_multiple_options()
+  assert_error(function() c:setopt{verbose = "false"} end)
+  assert_error(function() c:setopt{verbose = "1"} end)
+  assert_equal(c, c:setopt{verbose = false})
+  assert_equal(c, c:setopt{[curl.OPT_VERBOSE] = false})
+end
+
 end
 
 local _ENV = TEST_CASE'error_object' do
@@ -81,6 +89,64 @@ function test()
   assert_equal(0, e2:no())
   assert(e1 ~= e2)
   assert(e3 == e2)
+end
+
+end
+
+local _ENV = TEST_CASE'ctor' do
+
+local scurl = require "lcurl.safe"
+local curl  = require "lcurl"
+local c
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+function test_error()
+  c = assert(curl.easy())
+  c:close()
+  c = assert(curl.easy{
+    url = "http://example.com",
+    [curl.OPT_VERBOSE] = true,
+  })
+  c:close()
+  
+  assert_error(function()
+      c = curl.easy{
+        url_111 = "http://example.com",
+    }
+  end)
+  
+  assert_error(function()
+      c = curl.easy{
+        url = 123,
+    }
+  end)
+end
+
+function test_safe()
+  c = assert(scurl.easy())
+  c:close()
+  c = assert(scurl.easy{
+    url = "http://example.com",
+    [curl.OPT_VERBOSE] = true,
+  })
+  c:close()
+  
+  assert_pass(function()
+      c = scurl.easy{
+        url_111 = "http://example.com",
+    }
+  end)
+  assert_nil(c)
+
+  assert_error(function()
+      c = scurl.easy{
+        url = 123,
+    }
+  end)
 end
 
 end

@@ -25,7 +25,8 @@ install = target('install', {
 })
 
 target('test', install, function()
-  run_test('run.lua')
+  run_test('test_easy.lua')
+  run_test('test_safe.lua')
 
   if not test_summary() then
     quit("test fail")

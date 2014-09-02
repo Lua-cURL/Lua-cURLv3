@@ -13,6 +13,7 @@ int lcurl_hpost_create(lua_State *L, int error_mode){
   p->post = p->last = 0;
   p->storage = lcurl_storage_init(L);
   p->err_mode = error_mode;
+  p->stream = 0;
 
   return 1;
 }
@@ -148,6 +149,93 @@ static int lcurl_hpost_add_file(lua_State *L){
 
   lcurl_storage_preserve_value(L, p->storage, 2);
   if(list) lcurl_storage_preserve_slist (L, p->storage, list);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static lcurl_hpost_stream_t *lcurl_hpost_stream_add(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  lcurl_hpost_stream_t *stream = malloc(sizeof(lcurl_hpost_stream_t));
+  if(!stream) return NULL;
+
+  stream->L = L;
+  stream->rbuffer.ref = LUA_NOREF;
+  stream->rd.cb_ref = stream->rd.ud_ref = LUA_NOREF;
+  stream->next = NULL;
+  if(!p->stream) p->stream = stream;
+  else{
+    while(ptr->next) ptr = ptr->next;
+    ptr->next = stream;
+  }
+  return stream;
+}
+
+static void lcurl_hpost_stream_free(lua_State *L, lcurl_hpost_stream_t *ptr){
+  if(ptr){
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rbuffer.ref);
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.cb_ref);
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.ud_ref);
+    free(ptr);
+  }
+}
+
+static void lcurl_hpost_stream_free_last(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  if(!ptr) return;
+  if(!ptr->next){
+    lcurl_hpost_stream_free(L, ptr);
+    p->stream = 0;
+  }
+
+  while(ptr->next->next) ptr = ptr->next;
+  lcurl_hpost_stream_free(L, ptr->next);
+  ptr->next = NULL;
+}
+
+static void lcurl_hpost_stream_free_all(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  while(ptr){
+    lcurl_hpost_stream_t *next = ptr->next;
+    lcurl_hpost_stream_free(L, ptr);
+    ptr = next;
+  }
+  p->stream = 0;
+}
+
+
+static int lcurl_hpost_add_stream(lua_State *L){
+  // add_stream(name, length, writer [, context])
+  lcurl_hpost_t *p = lcurl_gethpost(L);
+  size_t name_len; const char *name = luaL_checklstring(L, 2, &name_len);
+  size_t len = (size_t)luaL_checklong(L, 3);
+  CURLFORMcode code;
+  lcurl_callback_t rd = {LUA_NOREF, LUA_NOREF};
+  lcurl_hpost_stream_t *stream;
+
+  lcurl_set_callback(L, &rd, 4, "read");
+
+  luaL_argcheck(L, rd.cb_ref != LUA_NOREF, 4, "function expected");
+
+  stream = lcurl_hpost_stream_add(L, p);
+  if(!stream){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_FORM, CURL_FORMADD_MEMORY);
+  }
+
+  stream->rd = rd;
+
+  code = curl_formadd(&p->post, &p->last, 
+    CURLFORM_PTRNAME,   name,   CURLFORM_NAMELENGTH,     name_len,
+    CURLFORM_STREAM,    stream, CURLFORM_CONTENTSLENGTH, len,
+    CURLFORM_END
+  );
+
+  if(code != CURL_FORMADD_OK){
+    lcurl_hpost_stream_free_last(L, p);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_FORM, code);
+  }
+
+  lcurl_storage_preserve_value(L, p->storage, 2);
 
   lua_settop(L, 1);
   return 1;
@@ -364,6 +452,8 @@ static int lcurl_hpost_free(lua_State *L){
     p->storage = lcurl_storage_free(L, p->storage);
   }
 
+  lcurl_hpost_stream_free_all(L, p);
+
   return 0;
 }
 
@@ -373,6 +463,7 @@ static const struct luaL_Reg lcurl_hpost_methods[] = {
   {"add_content",          lcurl_hpost_add_content               },
   {"add_buffer",           lcurl_hpost_add_buffer                },
   {"add_file",             lcurl_hpost_add_file                  },
+  {"add_stream",           lcurl_hpost_add_stream                },
 
   {"add_files",            lcurl_hpost_add_files                 },
 

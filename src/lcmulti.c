@@ -297,63 +297,12 @@ static int lcurl_multi_set_callback(lua_State *L,
   const char *method, void *func
 )
 {
-  if(c->ud_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    c->ud_ref = LUA_NOREF;
-  }
+  lcurl_set_callback(L, c, 2, method);
 
-  if(c->cb_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
-    c->cb_ref = LUA_NOREF;
-  }
+  curl_multi_setopt(p->curl, OPT_CB, (c->cb_ref == LUA_NOREF)?0:func);
+  curl_multi_setopt(p->curl, OPT_UD, (c->cb_ref == LUA_NOREF)?0:p);
 
-  if(lua_gettop(L) >= 3){// function + context
-    lua_settop(L, 3);
-    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-
-    curl_multi_setopt(p->curl, OPT_UD, p);
-    curl_multi_setopt(p->curl, OPT_CB, func);
-
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_settop(L, 2);
-
-  if(lua_isnoneornil(L, 2)){
-    lua_pop(L, 1);
-    assert(1 == lua_gettop(L));
-
-    curl_multi_setopt(p->curl, OPT_UD, 0);
-    curl_multi_setopt(p->curl, OPT_CB, 0);
-
-    return 1;
-  }
-
-  if(lua_isfunction(L, 2)){
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-
-    curl_multi_setopt(p->curl, OPT_UD, p);
-    curl_multi_setopt(p->curl, OPT_CB, func);
-    return 1;
-  }
-
-  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
-    lua_getfield(L, 2, method);
-    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    curl_multi_setopt(p->curl, OPT_UD, p);
-    curl_multi_setopt(p->curl, OPT_CB, func);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_pushliteral(L, "invalid object type");
-  return lua_error(L);
+  return 1;
 }
 
 //{Timer

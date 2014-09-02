@@ -2,13 +2,22 @@
 #define _LCHTTPPOST_H_
 
 #include "lcurl.h"
+#include "lcutils.h"
 #include <stdlib.h>
+
+typedef struct lcurl_hpost_stream_tag{
+  lua_State          *L;
+  lcurl_callback_t    rd;
+  lcurl_read_buffer_t rbuffer;
+  struct lcurl_hpost_stream_tag *next;
+}lcurl_hpost_stream_t;
 
 typedef struct lcurl_hpost_tag{
   struct curl_httppost *post;
   struct curl_httppost *last;
   int storage;
   int err_mode;
+  lcurl_hpost_stream_t *stream;
 }lcurl_hpost_t;
 
 int lcurl_hpost_create(lua_State *L, int error_mode);

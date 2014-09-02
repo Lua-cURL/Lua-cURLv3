@@ -22,11 +22,6 @@ enum {
 #undef LCURL_LNG_INDEX
 #undef OPT_ENTRY
 
-typedef struct lcurl_read_buffer_tag{
-  int ref;
-  int off;
-}lcurl_read_buffer_t;
-
 typedef struct lcurl_easy_tag{
   lua_State *L;
   CURL *curl;

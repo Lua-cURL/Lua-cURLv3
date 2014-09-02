@@ -277,6 +277,8 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
 #undef LCURL_LST_OPT
 #undef LCURL_LNG_OPT
 
+static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg);
+
 static int lcurl_easy_set_HTTPPOST(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   lcurl_hpost_t *post = lcurl_gethpost_at(L, 2);
@@ -286,6 +288,10 @@ static int lcurl_easy_set_HTTPPOST(lua_State *L){
   }
 
   lcurl_storage_preserve_iv(L, p->storage, CURLOPT_HTTPPOST, 2);
+
+  if(post->stream){
+    curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, lcurl_hpost_read_callback);
+  }
 
   lua_settop(L, 1);
   return 1;
@@ -400,63 +406,12 @@ static int lcurl_easy_set_callback(lua_State *L,
   const char *method, void *func
 )
 {
-  if(c->ud_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    c->ud_ref = LUA_NOREF;
-  }
+  lcurl_set_callback(L, c, 2, method);
 
-  if(c->cb_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
-    c->cb_ref = LUA_NOREF;
-  }
+  curl_easy_setopt(p->curl, OPT_CB, (c->cb_ref == LUA_NOREF)?0:func);
+  curl_easy_setopt(p->curl, OPT_UD, (c->cb_ref == LUA_NOREF)?0:p);
 
-  if(lua_gettop(L) >= 3){// function + context
-    lua_settop(L, 3);
-    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_settop(L, 2);
-
-  if(lua_isnoneornil(L, 2)){
-    lua_pop(L, 1);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, OPT_UD, 0);
-    curl_easy_setopt(p->curl, OPT_CB, 0);
-
-    return 1;
-  }
-
-  if(lua_isfunction(L, 2)){
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-    return 1;
-  }
-
-  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
-    lua_getfield(L, 2, method);
-    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_pushliteral(L, "invalid object type");
-  return lua_error(L);
+  return 1;
 }
 
 static int lcurl_write_callback_(lua_State*L, 
@@ -509,32 +464,32 @@ static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
 
 //{ Reader
 
-static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
-  lcurl_easy_t *p = arg;
-  lua_State *L = p->L;
-
+static int lcurl_read_callback(lua_State *L,
+  lcurl_callback_t *rd, lcurl_read_buffer_t *rbuffer,
+  char *buffer, size_t size, size_t nitems
+){
   const char *data; size_t data_size;
 
   size_t ret = size * nitems;
   int n, top = lua_gettop(L);
 
-  if(p->rbuffer.ref != LUA_NOREF){
-    lua_rawgeti(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
+  if(rbuffer->ref != LUA_NOREF){
+    lua_rawgeti(L, LCURL_LUA_REGISTRY, rbuffer->ref);
     data = luaL_checklstring(L, -1, &data_size);
     lua_pop(L, 1);
 
-    data = data + p->rbuffer.off;
-    data_size -= p->rbuffer.off;
+    data = data + rbuffer->off;
+    data_size -= rbuffer->off;
 
     if(data_size > ret){
       data_size = ret;
       memcpy(buffer, data, data_size);
-      p->rbuffer.off += data_size;
+      rbuffer->off += data_size;
     }
     else{
       memcpy(buffer, data, data_size);
-      luaL_unref(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
-      p->rbuffer.ref = LUA_NOREF;
+      luaL_unref(L, LCURL_LUA_REGISTRY, rbuffer->ref);
+      rbuffer->ref = LUA_NOREF;
     }
 
     lua_settop(L, top);
@@ -542,9 +497,9 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
   }
 
   // buffer is clean
-  assert(p->rbuffer.ref == LUA_NOREF);
+  assert(rbuffer->ref == LUA_NOREF);
 
-  n = lcurl_util_push_cb(L, &p->rd);
+  n = lcurl_util_push_cb(L, rd);
   lua_pushnumber(L, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)) return CURL_READFUNC_ABORT;
 
@@ -557,13 +512,23 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
 
   if(data_size > ret){
     data_size = ret;
-    p->rbuffer.ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    p->rbuffer.off = data_size;
+    rbuffer->ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    rbuffer->off = data_size;
   }
   memcpy(buffer, data, data_size);
 
   lua_settop(L, top);
   return data_size;
+}
+
+static int lcurl_easy_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+  lcurl_easy_t *p = arg;
+  return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
+}
+
+static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+  lcurl_hpost_stream_t *p = arg;
+  return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
 }
 
 static int lcurl_easy_set_READFUNCTION(lua_State *L){

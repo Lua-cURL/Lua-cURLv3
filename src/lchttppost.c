@@ -203,22 +203,57 @@ static void lcurl_hpost_stream_free_all(lua_State *L, lcurl_hpost_t *p){
   p->stream = 0;
 }
 
-
 static int lcurl_hpost_add_stream(lua_State *L){
-  // add_stream(name, length, writer [, context])
+  // add_stream(name, [filename, [type,]] [headers,] size, reader [,context])
   lcurl_hpost_t *p = lcurl_gethpost(L);
   size_t name_len; const char *name = luaL_checklstring(L, 2, &name_len);
-  size_t len = (size_t)luaL_checklong(L, 3);
+  struct curl_slist *list = NULL; int ilist = 0;
+  const char *type = 0, *fname = 0;
+  size_t len;
   CURLFORMcode code;
   lcurl_callback_t rd = {LUA_NOREF, LUA_NOREF};
   lcurl_hpost_stream_t *stream;
+  int n = 0, i = 3;
+  struct curl_forms forms[4];
 
-  lcurl_set_callback(L, &rd, 4, "read");
 
-  luaL_argcheck(L, rd.cb_ref != LUA_NOREF, 4, "function expected");
+  while(1){ // [filename, [type,]] [headers,]
+    if(lua_isnone(L, i)){
+      lua_pushliteral(L, "stream size required");
+      lua_error(L);
+    }
+    if(lua_type(L, i) == LUA_TNUMBER){
+      break;
+    }
+    if(lua_type(L, i) == LUA_TTABLE){
+      ilist = i++;
+      break;
+    }
+    else if(!fname) fname = luaL_checkstring(L, i);
+    else if(!type)  type  = luaL_checkstring(L, i);
+    else{
+      lua_pushliteral(L, "stream size required");
+      lua_error(L);
+    }
+    ++i;
+  }
+  len = luaL_checklong(L, i);
+
+  lcurl_set_callback(L, &rd, i + 1, "read");
+
+  luaL_argcheck(L, rd.cb_ref != LUA_NOREF, i + 1, "function expected");
+
+  if(ilist) list = lcurl_util_to_slist(L, ilist);
+
+  n = 0;
+  if(fname){ forms[n].option = CURLFORM_FILENAME;       forms[n++].value = fname;       }
+  if(type) { forms[n].option = CURLFORM_CONTENTTYPE;    forms[n++].value = type;        }
+  if(list) { forms[n].option = CURLFORM_CONTENTHEADER;  forms[n++].value = (char*)list; }
+  forms[n].option = CURLFORM_END;
 
   stream = lcurl_hpost_stream_add(L, p);
   if(!stream){
+    if(list) curl_slist_free_all(list);
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_FORM, CURL_FORMADD_MEMORY);
   }
 
@@ -227,6 +262,7 @@ static int lcurl_hpost_add_stream(lua_State *L){
   code = curl_formadd(&p->post, &p->last, 
     CURLFORM_PTRNAME,   name,   CURLFORM_NAMELENGTH,     name_len,
     CURLFORM_STREAM,    stream, CURLFORM_CONTENTSLENGTH, len,
+    CURLFORM_ARRAY,     forms,
     CURLFORM_END
   );
 
@@ -236,6 +272,7 @@ static int lcurl_hpost_add_stream(lua_State *L){
   }
 
   lcurl_storage_preserve_value(L, p->storage, 2);
+  if(list) lcurl_storage_preserve_slist (L, p->storage, list);
 
   lua_settop(L, 1);
   return 1;

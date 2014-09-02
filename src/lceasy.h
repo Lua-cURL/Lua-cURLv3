@@ -7,7 +7,7 @@
 #define LCURL_LST_INDEX(N) LCURL_##N##_LIST,
 #define LCURL_STR_INDEX(N)
 #define LCURL_LNG_INDEX(N)
-#define OPT_ENTRY(L, N, T, S) LCURL_##T##_INDEX(N)
+#define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_INDEX(N)
 
 enum {
   LCURL_LIST_DUMMY = -1,

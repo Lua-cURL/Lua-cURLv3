@@ -227,6 +227,16 @@ function close() end
 -- }
 function setopt() end
 
+--- Reset option to default value.
+--
+-- @tparam number opt one of `curl.OPT_XXX` constant or options table
+-- @treturn easy self
+--
+-- @usage
+-- c:unsetopt(curl.OPT_URL)
+-- c:unsetopt(curl.OPT_READFUNCTION)
+function unsetopt() end
+
 --- Get information.
 --
 -- @tparam number info one of `curl.INFO_XXX` constant

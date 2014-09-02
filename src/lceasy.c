@@ -535,7 +535,7 @@ static int lcurl_easy_set_READFUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   return lcurl_easy_set_callback(L, p, &p->rd, 
     CURLOPT_READFUNCTION, CURLOPT_READDATA,
-    "read", lcurl_read_callback
+    "read", lcurl_easy_read_callback
   );
 }
 

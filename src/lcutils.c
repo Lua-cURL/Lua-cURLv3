@@ -53,9 +53,19 @@ void lcurl_storage_remove_i(lua_State *L, int storage, int i){
   lua_rawgeti(L, -1, LCURL_STORAGE_KV);
   if(lua_istable(L, -1)){
     lua_pushnil(L);
-    lua_rawseti(L, -3, i);
+    lua_rawseti(L, -2, i);
   }
   lua_pop(L, 2);
+}
+
+void lcurl_storage_get_i(lua_State *L, int storage, int i){
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lua_rawgeti(L, -1, LCURL_STORAGE_KV);
+  if(lua_istable(L, -1)){
+    lua_rawgeti(L, -1, i);
+    lua_remove(L, -2);
+  }
+  lua_remove(L, -2);
 }
 
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx){
@@ -141,7 +151,7 @@ int lcurl_set_callback(lua_State *L, lcurl_callback_t *c, int i, const char *met
   i = lua_absindex(L, i);
 
   luaL_argcheck(L, !lua_isnoneornil(L, i), i, "no function present");
-  luaL_argcheck(L, (top < (i + 1)), i + 2, "no arguments expected");
+  luaL_argcheck(L, (top < (i + 2)), i + 2, "no arguments expected");
 
   // if(top > (i + 1)) lua_settop(L, i + 1); // this for force ignore other arguments
 

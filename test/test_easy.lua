@@ -52,6 +52,14 @@ function test_write_to_file_abort()
 
 end
 
+function test_reset_write_callback()
+  f = assert(io.open(fname, "w+b"))
+  c = assert(curl.easy{url = url})
+  assert_equal(c, c:setopt_writefunction(f))
+  assert_equal(c, c:setopt_writefunction(f.write, f))
+  assert_equal(c, c:setopt_writefunction(print))
+end
+
 end
 
 local _ENV = TEST_CASE'escape' do
@@ -99,8 +107,41 @@ function test()
   assert(not pfrom.value)
 end
 
+function test_unset()
+  local pfrom, e
+  do
+    local form = curl.form()
+    e = curl.easy{httppost = form}
+    pfrom = weak_ptr(form)
+  end
+
+  gc_collect()
+  assert(pfrom.value)
+
+  e:unsetopt_httppost()
+
+  gc_collect()
+  assert(not pfrom.value)
+end
+
+function test_reset()
+  local pfrom, e
+  do
+    local form = curl.form()
+    e = curl.easy{httppost = form}
+    pfrom = weak_ptr(form)
+  end
+
+  gc_collect()
+  assert(pfrom.value)
+
+  e:reset()
+
+  gc_collect()
+  assert(not pfrom.value)
 end
 
 
+end
 
 if not HAS_RUNNER then lunit.run() end

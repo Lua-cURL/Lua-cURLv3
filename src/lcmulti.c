@@ -15,8 +15,6 @@
 #include "lcutils.h"
 #include "lchttppost.h"
 
-static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
-
 #define LCURL_MULTI_NAME LCURL_PREFIX" Multi"
 static const char *LCURL_MULTI = LCURL_MULTI_NAME;
 

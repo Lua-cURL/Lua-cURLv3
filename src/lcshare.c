@@ -4,8 +4,6 @@
 #include "lcutils.h"
 #include "lchttppost.h"
 
-static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
-
 #define LCURL_SHARE_NAME LCURL_PREFIX" Share"
 static const char *LCURL_SHARE = LCURL_SHARE_NAME;
 

@@ -279,7 +279,7 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
 #undef LCURL_LST_OPT
 #undef LCURL_LNG_OPT
 
-static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg);
+static size_t lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg);
 
 static int lcurl_easy_set_HTTPPOST(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
@@ -393,10 +393,19 @@ static int lcurl_easy_unset_HTTPPOST(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
-
-  //! @fixme unset readdata/readfunction for 
-  // curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
+  lcurl_storage_get_i(L, p->storage, CURLOPT_HTTPPOST);
+  if(!lua_isnil(L, -1)){
+    lcurl_hpost_t *form = lcurl_gethpost_at(L, -1);
+    if(form->stream){
+      /* with stream we do not set CURLOPT_READDATA but 
+          we also unset it to be sure that there no way to
+          call default curl reader with our READDATA
+       */
+      curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
+      curl_easy_setopt(p->curl, CURLOPT_READDATA, 0);
+    }
+    lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
+  }
 
   lua_settop(L, 1);
   return 1;
@@ -592,7 +601,7 @@ static int lcurl_easy_set_callback(lua_State *L,
   return 1;
 }
 
-static int lcurl_write_callback_(lua_State*L, 
+static size_t lcurl_write_callback_(lua_State*L, 
   lcurl_easy_t *p, lcurl_callback_t *c,
   char *ptr, size_t size, size_t nmemb
 ){
@@ -625,7 +634,7 @@ static int lcurl_write_callback_(lua_State*L,
 
 //{ Writer
 
-static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+static size_t lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
   return lcurl_write_callback_(p->L, p, &p->wr, ptr, size, nmemb);
 }
@@ -642,7 +651,7 @@ static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
 
 //{ Reader
 
-static int lcurl_read_callback(lua_State *L,
+static size_t lcurl_read_callback(lua_State *L,
   lcurl_callback_t *rd, lcurl_read_buffer_t *rbuffer,
   char *buffer, size_t size, size_t nitems
 ){
@@ -699,12 +708,12 @@ static int lcurl_read_callback(lua_State *L,
   return data_size;
 }
 
-static int lcurl_easy_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+static size_t lcurl_easy_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
   lcurl_easy_t *p = arg;
   return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
 }
 
-static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+static size_t lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
   lcurl_hpost_stream_t *p = arg;
   return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
 }
@@ -721,7 +730,7 @@ static int lcurl_easy_set_READFUNCTION(lua_State *L){
 
 //{ Header
 
-static int lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+static size_t lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
   return lcurl_write_callback_(p->L, p, &p->hd, ptr, size, nmemb);
 }
@@ -791,9 +800,8 @@ static int lcurl_easy_set_PROGRESSFUNCTION(lua_State *L){
 
 #if LCURL_CURL_VER_GE(7,32,0)
   if(p->pr.cb_ref != LUA_NOREF){
-    CURLcode code;
-    code = curl_easy_setopt(p->curl, CURLOPT_XFERINFOFUNCTION, lcurl_xferinfo_callback);
-    code = curl_easy_setopt(p->curl, CURLOPT_XFERINFODATA, p);
+    curl_easy_setopt(p->curl, CURLOPT_XFERINFOFUNCTION, lcurl_xferinfo_callback);
+    curl_easy_setopt(p->curl, CURLOPT_XFERINFODATA, p);
   }
 #endif
 
@@ -835,7 +843,7 @@ static int lcurl_easy_setopt(lua_State *L){
   return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
 }
 
-static int lcurl_easy_unsetsetopt(lua_State *L){
+static int lcurl_easy_unsetopt(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   long opt;
 
@@ -905,6 +913,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   { "reset",    lcurl_easy_reset          },
   { "setopt",   lcurl_easy_setopt         },
   { "getinfo",  lcurl_easy_getinfo        },
+  { "unsetopt", lcurl_easy_unsetopt       },
   { "escape",   lcurl_easy_escape         },
   { "unescape", lcurl_easy_unescape       },
   { "perform",  lcurl_easy_perform        },

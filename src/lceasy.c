@@ -393,10 +393,19 @@ static int lcurl_easy_unset_HTTPPOST(lua_State *L){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
-
-  //! @fixme unset readdata/readfunction for 
-  // curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
+  lcurl_storage_get_i(L, p->storage, CURLOPT_HTTPPOST);
+  if(!lua_isnil(L, -1)){
+    lcurl_hpost_t *form = lcurl_gethpost_at(L, -1);
+    if(form->stream){
+      /* with stream we do not set CURLOPT_READDATA but 
+          we also unset it to be sure that there no way to
+          call default curl reader with our READDATA
+       */
+      curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
+      curl_easy_setopt(p->curl, CURLOPT_READDATA, 0);
+    }
+    lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
+  }
 
   lua_settop(L, 1);
   return 1;

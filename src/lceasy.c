@@ -592,7 +592,7 @@ static int lcurl_easy_set_callback(lua_State *L,
   return 1;
 }
 
-static int lcurl_write_callback_(lua_State*L, 
+static size_t lcurl_write_callback_(lua_State*L, 
   lcurl_easy_t *p, lcurl_callback_t *c,
   char *ptr, size_t size, size_t nmemb
 ){
@@ -625,7 +625,7 @@ static int lcurl_write_callback_(lua_State*L,
 
 //{ Writer
 
-static int lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+static size_t lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
   return lcurl_write_callback_(p->L, p, &p->wr, ptr, size, nmemb);
 }
@@ -721,7 +721,7 @@ static int lcurl_easy_set_READFUNCTION(lua_State *L){
 
 //{ Header
 
-static int lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
+static size_t lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
   return lcurl_write_callback_(p->L, p, &p->hd, ptr, size, nmemb);
 }

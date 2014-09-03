@@ -23,7 +23,8 @@ install:
 
 script: 
   - cd test
-  - lunit.sh run.lua
+  - lunit.sh test_easy.lua
+  - lunit.sh test_safe.lua
 
 after_success:
   - coveralls -b .. -r ..

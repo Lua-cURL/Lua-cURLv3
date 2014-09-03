@@ -172,6 +172,8 @@ static int lcurl_easy_reset(lua_State *L){
 
 //{ OPTIONS
 
+//{ set
+
 static int lcurl_opt_set_long_(lua_State *L, int opt){
   lcurl_easy_t *p = lcurl_geteasy(L);
   long val; CURLcode code;
@@ -245,7 +247,7 @@ static int lcurl_opt_set_slist_(lua_State *L, int opt, int list_no){
   return lcurl_opt_set_long_(L, CURLOPT_##N);\
 }
 
-#define OPT_ENTRY(L, N, T, S) LCURL_##T##_OPT(N, S)
+#define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_OPT(N, S)
 
 #include "lcopteasy.h"
 
@@ -277,6 +279,8 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
 #undef LCURL_LST_OPT
 #undef LCURL_LNG_OPT
 
+static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg);
+
 static int lcurl_easy_set_HTTPPOST(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   lcurl_hpost_t *post = lcurl_gethpost_at(L, 2);
@@ -286,6 +290,10 @@ static int lcurl_easy_set_HTTPPOST(lua_State *L){
   }
 
   lcurl_storage_preserve_iv(L, p->storage, CURLOPT_HTTPPOST, 2);
+
+  if(post->stream){
+    curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, lcurl_hpost_read_callback);
+  }
 
   lua_settop(L, 1);
   return 1;
@@ -304,6 +312,182 @@ static int lcurl_easy_set_SHARE(lua_State *L){
   lua_settop(L, 1);
   return 1;
 }
+//}
+
+//{ unset
+
+static int lcurl_opt_unset_long_(lua_State *L, int opt, long val){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code;
+
+  code = curl_easy_setopt(p->curl, opt, val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_opt_unset_string_(lua_State *L, int opt, const char *val){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code;
+
+  code = curl_easy_setopt(p->curl, opt, val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, opt);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_opt_unset_slist_(lua_State *L, int opt, int list_no){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code;
+  int ref = p->lists[list_no];
+
+  code = curl_easy_setopt(p->curl, opt, NULL);
+
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  if(ref != LUA_NOREF){
+    struct curl_slist *list = lcurl_storage_remove_slist(L, p->storage, ref);
+    curl_slist_free_all(list);
+    p->lists[list_no] = LUA_NOREF;
+  }
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#define LCURL_STR_OPT(N, S, D) static int lcurl_easy_unset_##N(lua_State *L){\
+  return lcurl_opt_unset_string_(L, CURLOPT_##N, (D)); \
+}
+
+#define LCURL_LST_OPT(N, S, D) static int lcurl_easy_unset_##N(lua_State *L){\
+  return lcurl_opt_unset_slist_(L, CURLOPT_##N, LCURL_##N##_LIST);\
+}
+
+#define LCURL_LNG_OPT(N, S, D) static int lcurl_easy_unset_##N(lua_State *L){\
+  return lcurl_opt_unset_long_(L, CURLOPT_##N, (D));\
+}
+
+#define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_OPT(N, S, D)
+
+#include "lcopteasy.h"
+
+#undef OPT_ENTRY
+
+#undef LCURL_STR_OPT
+#undef LCURL_LST_OPT
+#undef LCURL_LNG_OPT
+
+static int lcurl_easy_unset_HTTPPOST(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_HTTPPOST, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
+
+  //! @fixme unset readdata/readfunction for 
+  // curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, 0);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_SHARE(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_SHARE, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_SHARE);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_WRITEFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_WRITEFUNCTION, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  curl_easy_setopt(p->curl, CURLOPT_WRITEDATA, NULL);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_READFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  curl_easy_setopt(p->curl, CURLOPT_READDATA, NULL);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_HEADERFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_HEADERFUNCTION, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  curl_easy_setopt(p->curl, CURLOPT_HEADERDATA, NULL);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_PROGRESSFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_PROGRESSFUNCTION, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  curl_easy_setopt(p->curl, CURLOPT_PROGRESSDATA, NULL);
+
+#if LCURL_CURL_VER_GE(7,32,0)
+  curl_easy_setopt(p->curl, CURLOPT_XFERINFOFUNCTION, NULL);
+  curl_easy_setopt(p->curl, CURLOPT_XFERINFODATA, NULL);
+#endif
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_POSTFIELDS(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_POSTFIELDS, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  curl_easy_setopt(p->curl, CURLOPT_POSTFIELDSIZE, -1);
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_POSTFIELDS);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+//}
 
 //}
 
@@ -400,63 +584,12 @@ static int lcurl_easy_set_callback(lua_State *L,
   const char *method, void *func
 )
 {
-  if(c->ud_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
-    c->ud_ref = LUA_NOREF;
-  }
+  lcurl_set_callback(L, c, 2, method);
 
-  if(c->cb_ref != LUA_NOREF){
-    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
-    c->cb_ref = LUA_NOREF;
-  }
+  curl_easy_setopt(p->curl, OPT_CB, (c->cb_ref == LUA_NOREF)?0:func);
+  curl_easy_setopt(p->curl, OPT_UD, (c->cb_ref == LUA_NOREF)?0:p);
 
-  if(lua_gettop(L) >= 3){// function + context
-    lua_settop(L, 3);
-    luaL_argcheck(L, !lua_isnil(L, 2), 2, "no function present");
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_settop(L, 2);
-
-  if(lua_isnoneornil(L, 2)){
-    lua_pop(L, 1);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, OPT_UD, 0);
-    curl_easy_setopt(p->curl, OPT_CB, 0);
-
-    return 1;
-  }
-
-  if(lua_isfunction(L, 2)){
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    assert(1 == lua_gettop(L));
-
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-    return 1;
-  }
-
-  if(lua_isuserdata(L, 2) || lua_istable(L, 2)){
-    lua_getfield(L, 2, method);
-    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
-    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    curl_easy_setopt(p->curl, OPT_UD, p);
-    curl_easy_setopt(p->curl, OPT_CB, func);
-    assert(1 == lua_gettop(L));
-    return 1;
-  }
-
-  lua_pushliteral(L, "invalid object type");
-  return lua_error(L);
+  return 1;
 }
 
 static int lcurl_write_callback_(lua_State*L, 
@@ -509,32 +642,32 @@ static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
 
 //{ Reader
 
-static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
-  lcurl_easy_t *p = arg;
-  lua_State *L = p->L;
-
+static int lcurl_read_callback(lua_State *L,
+  lcurl_callback_t *rd, lcurl_read_buffer_t *rbuffer,
+  char *buffer, size_t size, size_t nitems
+){
   const char *data; size_t data_size;
 
   size_t ret = size * nitems;
   int n, top = lua_gettop(L);
 
-  if(p->rbuffer.ref != LUA_NOREF){
-    lua_rawgeti(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
+  if(rbuffer->ref != LUA_NOREF){
+    lua_rawgeti(L, LCURL_LUA_REGISTRY, rbuffer->ref);
     data = luaL_checklstring(L, -1, &data_size);
     lua_pop(L, 1);
 
-    data = data + p->rbuffer.off;
-    data_size -= p->rbuffer.off;
+    data = data + rbuffer->off;
+    data_size -= rbuffer->off;
 
     if(data_size > ret){
       data_size = ret;
       memcpy(buffer, data, data_size);
-      p->rbuffer.off += data_size;
+      rbuffer->off += data_size;
     }
     else{
       memcpy(buffer, data, data_size);
-      luaL_unref(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
-      p->rbuffer.ref = LUA_NOREF;
+      luaL_unref(L, LCURL_LUA_REGISTRY, rbuffer->ref);
+      rbuffer->ref = LUA_NOREF;
     }
 
     lua_settop(L, top);
@@ -542,9 +675,9 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
   }
 
   // buffer is clean
-  assert(p->rbuffer.ref == LUA_NOREF);
+  assert(rbuffer->ref == LUA_NOREF);
 
-  n = lcurl_util_push_cb(L, &p->rd);
+  n = lcurl_util_push_cb(L, rd);
   lua_pushnumber(L, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)) return CURL_READFUNC_ABORT;
 
@@ -557,8 +690,8 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
 
   if(data_size > ret){
     data_size = ret;
-    p->rbuffer.ref = luaL_ref(L, LCURL_LUA_REGISTRY);
-    p->rbuffer.off = data_size;
+    rbuffer->ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    rbuffer->off = data_size;
   }
   memcpy(buffer, data, data_size);
 
@@ -566,11 +699,21 @@ static int lcurl_read_callback(char *buffer, size_t size, size_t nitems, void *a
   return data_size;
 }
 
+static int lcurl_easy_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+  lcurl_easy_t *p = arg;
+  return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
+}
+
+static int lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
+  lcurl_hpost_stream_t *p = arg;
+  return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
+}
+
 static int lcurl_easy_set_READFUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   return lcurl_easy_set_callback(L, p, &p->rd, 
     CURLOPT_READFUNCTION, CURLOPT_READDATA,
-    "read", lcurl_read_callback
+    "read", lcurl_easy_read_callback
   );
 }
 
@@ -676,16 +819,39 @@ static int lcurl_easy_setopt(lua_State *L){
   opt = luaL_checklong(L, 2);
   lua_remove(L, 2);
 
-#define OPT_ENTRY(l, N, T, S) case CURLOPT_##N: return lcurl_easy_set_##N(L);
+#define OPT_ENTRY(l, N, T, S, D) case CURLOPT_##N: return lcurl_easy_set_##N(L);
   switch(opt){
     #include "lcopteasy.h"
-    OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
-    OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
-    OPT_ENTRY(share,             SHARE,            TTT, 0)
-    OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
-    OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
-    OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
-    OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0)
+    OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0, 0)
+    OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0, 0)
+    OPT_ENTRY(share,             SHARE,            TTT, 0, 0)
+    OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0, 0)
+    OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
+    OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
+    OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+  }
+#undef OPT_ENTRY
+
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
+}
+
+static int lcurl_easy_unsetsetopt(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  long opt;
+
+  opt = luaL_checklong(L, 2);
+  lua_remove(L, 2);
+
+#define OPT_ENTRY(l, N, T, S, D) case CURLOPT_##N: return lcurl_easy_unset_##N(L);
+  switch(opt){
+    #include "lcopteasy.h"
+    OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0, 0)
+    OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0, 0)
+    OPT_ENTRY(share,             SHARE,            TTT, 0, 0)
+    OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0, 0)
+    OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
+    OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
+    OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
   }
 #undef OPT_ENTRY
 
@@ -710,15 +876,26 @@ static int lcurl_easy_getinfo(lua_State *L){
 
 static const struct luaL_Reg lcurl_easy_methods[] = {
 
-#define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_easy_set_##N },
+#define OPT_ENTRY(L, N, T, S, D) { "setopt_"#L, lcurl_easy_set_##N },
   #include "lcopteasy.h"
-  OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
-  OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
-  OPT_ENTRY(share,             SHARE,            TTT, 0)
-  OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
-  OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
-  OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
-  OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0)
+  OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0, 0)
+  OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0, 0)
+  OPT_ENTRY(share,             SHARE,            TTT, 0, 0)
+  OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0, 0)
+  OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
+  OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
+  OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#undef OPT_ENTRY
+
+#define OPT_ENTRY(L, N, T, S, D) { "unsetopt_"#L, lcurl_easy_unset_##N },
+  #include "lcopteasy.h"
+  OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0, 0)
+  OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0, 0)
+  OPT_ENTRY(share,             SHARE,            TTT, 0, 0)
+  OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0, 0)
+  OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
+  OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
+  OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
 #undef OPT_ENTRY
 
 #define OPT_ENTRY(L, N, T, S) { "getinfo_"#L, lcurl_easy_get_##N },
@@ -739,16 +916,16 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 
 static const lcurl_const_t lcurl_easy_opt[] = {
 
-#define OPT_ENTRY(L, N, T, S) { "OPT_"#N, CURLOPT_##N },
+#define OPT_ENTRY(L, N, T, S, D) { "OPT_"#N, CURLOPT_##N },
 #define FLG_ENTRY(N) { #N, CURL_##N },
 #include "lcopteasy.h"
-  OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0)
-  OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0)
-  OPT_ENTRY(share,             SHARE,            TTT, 0)
-  OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0)
-  OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0)
-  OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0)
-  OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0)
+  OPT_ENTRY(postfields,        POSTFIELDS,       TTT, 0, 0)
+  OPT_ENTRY(httppost,          HTTPPOST,         TTT, 0, 0)
+  OPT_ENTRY(share,             SHARE,            TTT, 0, 0)
+  OPT_ENTRY(writefunction,     WRITEFUNCTION,    TTT, 0, 0)
+  OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
+  OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
+  OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
 #undef OPT_ENTRY
 #undef FLG_ENTRY
 

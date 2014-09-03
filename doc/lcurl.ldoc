@@ -84,6 +84,20 @@ function add_buffer() end
 -- @return[1] self
 function add_file() end
 
+--- Add new part to form.
+--
+-- @tparam string name provide the name of this part
+-- @tparam[opt] string filename provides the filename field in the content header.
+-- @tparam[opt] string type provides the content-type for this part
+-- @tparam[opt] table headers specifies extra headers for the form POST section
+-- @tparam number size stream size in bytes
+-- @tparam function/object reader
+-- @param[opt] context reader context
+-- @return[1] self
+--
+-- @see easy:setopt_readfunction
+function add_stream() end
+
 --- Serialize multipart/formdata HTTP POST chain.
 --
 -- @return[1] string serialized data
@@ -212,6 +226,16 @@ function close() end
 --   [curl.OPT_VERBOSE] = true,
 -- }
 function setopt() end
+
+--- Reset option to default value.
+--
+-- @tparam number opt one of `curl.OPT_XXX` constant or options table
+-- @treturn easy self
+--
+-- @usage
+-- c:unsetopt(curl.OPT_URL)
+-- c:unsetopt(curl.OPT_READFUNCTION)
+function unsetopt() end
 
 --- Get information.
 --

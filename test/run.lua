@@ -1,3 +1,5 @@
+lunit = require "lunit"
+
 local ok, curl = pcall(require, "lcurl")
 local version if ok then
   version = curl.version()

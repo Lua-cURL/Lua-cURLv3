@@ -16,6 +16,11 @@ typedef struct lcurl_callback_tag{
   int ud_ref;
 }lcurl_callback_t;
 
+typedef struct lcurl_read_buffer_tag{
+  int ref;
+  int off;
+}lcurl_read_buffer_t;
+
 int lcurl_storage_init(lua_State *L);
 
 void lcurl_storage_preserve_value(lua_State *L, int storage, int i);
@@ -39,6 +44,8 @@ void lcurl_util_slist_set(lua_State *L, int t, struct curl_slist* list);
 void lcurl_util_slist_to_table(lua_State *L, struct curl_slist* list);
 
 void lcurl_util_set_const(lua_State *L, const lcurl_const_t *reg);
+
+int lcurl_set_callback(lua_State *L, lcurl_callback_t *c, int i, const char *method);
 
 int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c);
 

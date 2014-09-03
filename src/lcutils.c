@@ -136,6 +136,60 @@ void lcurl_util_set_const(lua_State *L, const lcurl_const_t *reg){
   }
 }
 
+int lcurl_set_callback(lua_State *L, lcurl_callback_t *c, int i, const char *method){
+  int top = lua_gettop(L);
+  i = lua_absindex(L, i);
+
+  luaL_argcheck(L, !lua_isnoneornil(L, i), i, "no function present");
+  luaL_argcheck(L, (top < (i + 1)), i + 2, "no arguments expected");
+
+  // if(top > (i + 1)) lua_settop(L, i + 1); // this for force ignore other arguments
+
+  assert((top == i)||(top == (i + 1)));
+
+  if(c->ud_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
+    c->ud_ref = LUA_NOREF;
+  }
+
+  if(c->cb_ref != LUA_NOREF){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
+    c->cb_ref = LUA_NOREF;
+  }
+
+  if(lua_gettop(L) == (i + 1)){// function + context
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+
+    assert(top == (2 + lua_gettop(L)));
+    return 1;
+  }
+
+  assert(top == i);
+
+  if(lua_isfunction(L, i)){ // function
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+
+    assert(top == (1 + lua_gettop(L)));
+    return 1;
+  }
+
+  if(lua_isuserdata(L, i) || lua_istable(L, i)){ // object
+    lua_getfield(L, i, method);
+
+    luaL_argcheck(L, lua_isfunction(L, -1), 2, "method not found in object");
+
+    c->cb_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+    c->ud_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
+
+    assert(top == (1 + lua_gettop(L)));
+    return 1;
+  }
+
+  lua_pushliteral(L, "invalid object type");
+  return lua_error(L);
+}
+
 int lcurl_util_push_cb(lua_State *L, lcurl_callback_t *c){
   assert(c->cb_ref != LUA_NOREF);
   lua_rawgeti(L, LCURL_LUA_REGISTRY, c->cb_ref);

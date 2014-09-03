@@ -7,7 +7,7 @@
 #define LCURL_LST_INDEX(N) LCURL_##N##_LIST,
 #define LCURL_STR_INDEX(N)
 #define LCURL_LNG_INDEX(N)
-#define OPT_ENTRY(L, N, T, S) LCURL_##T##_INDEX(N)
+#define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_INDEX(N)
 
 enum {
   LCURL_LIST_DUMMY = -1,
@@ -21,11 +21,6 @@ enum {
 #undef LCURL_STR_INDEX
 #undef LCURL_LNG_INDEX
 #undef OPT_ENTRY
-
-typedef struct lcurl_read_buffer_tag{
-  int ref;
-  int off;
-}lcurl_read_buffer_t;
 
 typedef struct lcurl_easy_tag{
   lua_State *L;

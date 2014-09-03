@@ -7,6 +7,7 @@
 #include "curl/multi.h"
 
 #include <assert.h>
+#include <string.h>
 
 #define LCURL_PREFIX "LcURL"
 

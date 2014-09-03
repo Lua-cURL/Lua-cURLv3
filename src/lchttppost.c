@@ -6,7 +6,60 @@
 #define LCURL_HTTPPOST_NAME LCURL_PREFIX" HTTPPost"
 static const char *LCURL_HTTPPOST = LCURL_HTTPPOST_NAME;
 
-//{
+//{ stream
+
+static lcurl_hpost_stream_t *lcurl_hpost_stream_add(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  lcurl_hpost_stream_t *stream = malloc(sizeof(lcurl_hpost_stream_t));
+  if(!stream) return NULL;
+
+  stream->L = L;
+  stream->rbuffer.ref = LUA_NOREF;
+  stream->rd.cb_ref = stream->rd.ud_ref = LUA_NOREF;
+  stream->next = NULL;
+  if(!p->stream) p->stream = stream;
+  else{
+    while(ptr->next) ptr = ptr->next;
+    ptr->next = stream;
+  }
+  return stream;
+}
+
+static void lcurl_hpost_stream_free(lua_State *L, lcurl_hpost_stream_t *ptr){
+  if(ptr){
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rbuffer.ref);
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.cb_ref);
+    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.ud_ref);
+    free(ptr);
+  }
+}
+
+static void lcurl_hpost_stream_free_last(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  if(!ptr) return;
+  if(!ptr->next){
+    lcurl_hpost_stream_free(L, ptr);
+    p->stream = 0;
+  }
+
+  while(ptr->next->next) ptr = ptr->next;
+  lcurl_hpost_stream_free(L, ptr->next);
+  ptr->next = NULL;
+}
+
+static void lcurl_hpost_stream_free_all(lua_State *L, lcurl_hpost_t *p){
+  lcurl_hpost_stream_t *ptr = p->stream;
+  while(ptr){
+    lcurl_hpost_stream_t *next = ptr->next;
+    lcurl_hpost_stream_free(L, ptr);
+    ptr = next;
+  }
+  p->stream = 0;
+}
+
+//}
+
+//{ HTTPPost
 
 int lcurl_hpost_create(lua_State *L, int error_mode){
   lcurl_hpost_t *p = lutil_newudatap(L, lcurl_hpost_t, LCURL_HTTPPOST);
@@ -108,7 +161,7 @@ static int lcurl_hpost_add_file(lua_State *L){
   const char *path = luaL_checkstring(L, 3); 
   const char *type = 0, *fname = 0;
   struct curl_slist *list = NULL;
-  struct curl_forms forms[3];
+  struct curl_forms forms[4];
   CURLFORMcode code;
   int i = 0;
 
@@ -132,8 +185,9 @@ static int lcurl_hpost_add_file(lua_State *L){
     }
   }
 
-  if(type){ forms[i].option = CURLFORM_CONTENTTYPE;    forms[i++].value = type;        }
-  if(list){ forms[i].option = CURLFORM_CONTENTHEADER;  forms[i++].value = (char*)list; }
+  if(fname){ forms[i].option = CURLFORM_FILENAME;       forms[i++].value = fname;       }
+  if(type) { forms[i].option = CURLFORM_CONTENTTYPE;    forms[i++].value = type;        }
+  if(list) { forms[i].option = CURLFORM_CONTENTHEADER;  forms[i++].value = (char*)list; }
   forms[i].option = CURLFORM_END;
 
   code = curl_formadd(&p->post, &p->last, 
@@ -152,55 +206,6 @@ static int lcurl_hpost_add_file(lua_State *L){
 
   lua_settop(L, 1);
   return 1;
-}
-
-static lcurl_hpost_stream_t *lcurl_hpost_stream_add(lua_State *L, lcurl_hpost_t *p){
-  lcurl_hpost_stream_t *ptr = p->stream;
-  lcurl_hpost_stream_t *stream = malloc(sizeof(lcurl_hpost_stream_t));
-  if(!stream) return NULL;
-
-  stream->L = L;
-  stream->rbuffer.ref = LUA_NOREF;
-  stream->rd.cb_ref = stream->rd.ud_ref = LUA_NOREF;
-  stream->next = NULL;
-  if(!p->stream) p->stream = stream;
-  else{
-    while(ptr->next) ptr = ptr->next;
-    ptr->next = stream;
-  }
-  return stream;
-}
-
-static void lcurl_hpost_stream_free(lua_State *L, lcurl_hpost_stream_t *ptr){
-  if(ptr){
-    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rbuffer.ref);
-    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.cb_ref);
-    luaL_unref(L, LCURL_LUA_REGISTRY, ptr->rd.ud_ref);
-    free(ptr);
-  }
-}
-
-static void lcurl_hpost_stream_free_last(lua_State *L, lcurl_hpost_t *p){
-  lcurl_hpost_stream_t *ptr = p->stream;
-  if(!ptr) return;
-  if(!ptr->next){
-    lcurl_hpost_stream_free(L, ptr);
-    p->stream = 0;
-  }
-
-  while(ptr->next->next) ptr = ptr->next;
-  lcurl_hpost_stream_free(L, ptr->next);
-  ptr->next = NULL;
-}
-
-static void lcurl_hpost_stream_free_all(lua_State *L, lcurl_hpost_t *p){
-  lcurl_hpost_stream_t *ptr = p->stream;
-  while(ptr){
-    lcurl_hpost_stream_t *next = ptr->next;
-    lcurl_hpost_stream_free(L, ptr);
-    ptr = next;
-  }
-  p->stream = 0;
 }
 
 static int lcurl_hpost_add_stream(lua_State *L){
@@ -472,12 +477,6 @@ static int lcurl_hpost_get(lua_State *L){
   return 1;
 }
 
-static int lcurl_hpost_storage(lua_State *L){
-  lcurl_hpost_t *p = lcurl_gethpost(L);
-  lua_rawgeti(L, LCURL_LUA_REGISTRY, p->storage);
-  return 1;
-}
-
 static int lcurl_hpost_free(lua_State *L){
   lcurl_hpost_t *p = lcurl_gethpost(L);
   if(p->post){
@@ -504,7 +503,6 @@ static const struct luaL_Reg lcurl_hpost_methods[] = {
 
   {"add_files",            lcurl_hpost_add_files                 },
 
-  {"storage",              lcurl_hpost_storage                   },
   {"get",                  lcurl_hpost_get                       },
   {"free",                 lcurl_hpost_free                      },
   {"__gc",                 lcurl_hpost_free                      },

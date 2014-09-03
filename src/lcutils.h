@@ -33,6 +33,8 @@ void lcurl_storage_preserve_iv(lua_State *L, int storage, int i, int v);
 
 void lcurl_storage_remove_i(lua_State *L, int storage, int i);
 
+void lcurl_storage_get_i(lua_State *L, int storage, int i);
+
 int lcurl_storage_free(lua_State *L, int storage);
 
 struct curl_slist* lcurl_util_array_to_slist(lua_State *L, int t);

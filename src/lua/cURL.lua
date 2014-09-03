@@ -268,7 +268,7 @@ Share.__index = function(self, k)
 end
 
 function Share:new()
-  local h, err = curl.easy()
+  local h, err = curl.share()
   if not h then return nil, err end
 
   local o = setmetatable({

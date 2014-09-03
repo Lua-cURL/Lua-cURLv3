@@ -136,16 +136,16 @@ end
 --function helper for result
 --taken from luasocket page (MIT-License)
 local function build_w_cb(t)
-	return function(s,len)
+	return function(s)
 		table.insert(t, s)
-	return len,nil
+	return #s,nil
 	end
 end
 
 --function helper for headers
 --taken from luasocket page (MIT-License)
 local function h_build_w_cb(t)
-	return function(s,len)
+	return function(s)
 		--stores the received data in the table t
 		--prepare header data
 		name, value = s:match("(.-): (.+)")
@@ -158,7 +158,7 @@ local function h_build_w_cb(t)
 				t.codemessage = codemessage:gsub("[\n\r]", "")
 			end
 		end
-	return len,nil
+	return #s,nil
 	end
 end
 
@@ -264,8 +264,3 @@ end
 -- print(resp.body)
 -- table.foreach(resp.headers, print)
 --]]
-
-b = browser:new()
-resp = b:open("http://www.html-kit.com/tools/cookietester/")
-print(resp.body)
-table.foreach(resp.headers, print)

@@ -38,48 +38,40 @@ function test_write_to_file()
   assert_equal(c, c:perform())
 end
 
-function test_write_to_file_abort_01()
+function test_write_abort_01()
   c = assert(scurl.easy{
     url = url;
-    writefunction = function(str)
-      return #str - 1
-    end;
+    writefunction = function(str) return #str - 1 end;
   })
 
   local _, e = assert_nil(c:perform())
   assert_equal(curl.error(curl.ERROR_EASY, curl.E_WRITE_ERROR), e)
 end
 
-function test_write_to_file_abort_02()
+function test_write_abort_02()
   c = assert(scurl.easy{
     url = url;
-    writefunction = function(str)
-      return false
-    end;
+    writefunction = function(str) return false end;
   })
 
   local _, e = assert_nil(c:perform())
   assert_equal(curl.error(curl.ERROR_EASY, curl.E_WRITE_ERROR), e)
 end
 
-function test_write_to_file_abort_03()
+function test_write_abort_03()
   c = assert(scurl.easy{
     url = url;
-    writefunction = function(str)
-      return nil, "WRITEERROR"
-    end;
+    writefunction = function(str) return nil, "WRITEERROR" end;
   })
 
   local _, e = assert_nil(c:perform())
   assert_equal("WRITEERROR", e)
 end
 
-function test_write_to_file_abort_04()
+function test_write_abort_04()
   c = assert(scurl.easy{
     url = url;
-    writefunction = function(str)
-      return nil
-    end;
+    writefunction = function(str) return nil end;
   })
 
   local _, e = assert_nil(c:perform())
@@ -93,6 +85,34 @@ function test_reset_write_callback()
   assert_equal(c, c:setopt_writefunction(f.write, f))
   assert_equal(c, c:setopt_writefunction(print))
 end
+
+function test_write_pass_01()
+  c = assert(curl.easy{
+    url = url;
+    writefunction = function(s) return #s end
+  })
+
+  assert_equal(c, c:perform())
+end
+
+function test_write_pass_02()
+  c = assert(curl.easy{
+    url = url;
+    writefunction = function() return  end
+  })
+
+  assert_equal(c, c:perform())
+end
+
+function test_write_pass_03()
+  c = assert(curl.easy{
+    url = url;
+    writefunction = function() return true end
+  })
+
+  assert_equal(c, c:perform())
+end
+
 
 end
 

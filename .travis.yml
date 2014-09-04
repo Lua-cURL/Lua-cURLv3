@@ -25,6 +25,7 @@ script:
   - cd test
   - lunit.sh test_easy.lua
   - lunit.sh test_safe.lua
+  - lunit.sh test_form.lua
 
 after_success:
   - coveralls -b .. -r ..

@@ -118,7 +118,7 @@ static int lcurl_hpost_add_buffer(lua_State *L){
   const char *buff = luaL_checkstring(L, 3);
   size_t cont_len; const char *cont = luaL_checklstring(L, 4, &cont_len);
   const char *type = lua_tostring(L, 5);
-  struct curl_slist *list = lcurl_util_to_slist(L, type?6:5);
+  struct curl_slist *list = lcurl_util_to_slist(L, ((!type)&&(lua_isnone(L,6)))?5:6);
   struct curl_forms forms[3];
   CURLFORMcode code;
 

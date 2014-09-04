@@ -625,7 +625,10 @@ static size_t lcurl_write_callback_(lua_State*L,
   }
 
   if(lua_gettop(L) > top){
-    if(lua_isnil(L, top + 1)) return 0;
+    if(lua_isnil(L, top + 1)){
+      if(lua_gettop(L) == (top+1)) lua_settop(L, top);
+      return 0;
+    }
     if(lua_isnumber(L, top + 1)){
       ret = (size_t)lua_tonumber(L, top + 1);
     }

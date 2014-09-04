@@ -83,6 +83,7 @@ function Easy:setopt_readfunction(fn, ...)
 end
 
 function Easy:perform(opt)
+  opt = opt or {}
 
   local oerror = opt.errorfunction or function(err) return nil, err end
 

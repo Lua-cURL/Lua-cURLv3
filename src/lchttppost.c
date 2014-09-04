@@ -209,6 +209,8 @@ static int lcurl_hpost_add_file(lua_State *L){
 }
 
 static int lcurl_hpost_add_stream(lua_State *L){
+  static const char *EMPTY = "";
+
   // add_stream(name, [filename, [type,]] [headers,] size, reader [,context])
   lcurl_hpost_t *p = lcurl_gethpost(L);
   size_t name_len; const char *name = luaL_checklstring(L, 2, &name_len);
@@ -234,8 +236,14 @@ static int lcurl_hpost_add_stream(lua_State *L){
       ilist = i++;
       break;
     }
-    else if(!fname) fname = luaL_checkstring(L, i);
-    else if(!type)  type  = luaL_checkstring(L, i);
+    else if(!fname){
+      if(lua_isnil(L, i)) fname = EMPTY;
+      else fname = luaL_checkstring(L, i);
+    }
+    else if(!type){
+      if(lua_isnil(L, i)) type = EMPTY;
+      else type = luaL_checkstring(L, i);
+    }
     else{
       if(lua_isnil(L, i) && (!ilist)){
         ++i; // empty headers
@@ -253,6 +261,8 @@ static int lcurl_hpost_add_stream(lua_State *L){
   luaL_argcheck(L, rd.cb_ref != LUA_NOREF, i + 1, "function expected");
 
   if(ilist) list = lcurl_util_to_slist(L, ilist);
+  if(fname == EMPTY) fname = NULL;
+  if(type  == EMPTY) type  = NULL;
 
   n = 0;
   if(fname){ forms[n].option = CURLFORM_FILENAME;       forms[n++].value = fname;       }

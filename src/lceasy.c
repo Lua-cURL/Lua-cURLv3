@@ -593,9 +593,16 @@ static int lcurl_easy_set_callback(lua_State *L,
   const char *method, void *func
 )
 {
+  CURLcode code;
   lcurl_set_callback(L, c, 2, method);
 
-  curl_easy_setopt(p->curl, OPT_CB, (c->cb_ref == LUA_NOREF)?0:func);
+  code = curl_easy_setopt(p->curl, OPT_CB, (c->cb_ref == LUA_NOREF)?0:func);
+  if((code != CURLE_OK)&&(c->cb_ref != LUA_NOREF)){
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
+    luaL_unref(L, LCURL_LUA_REGISTRY, c->ud_ref);
+    c->cb_ref = c->ud_ref = LUA_NOREF;
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code); 
+  }
   curl_easy_setopt(p->curl, OPT_UD, (c->cb_ref == LUA_NOREF)?0:p);
 
   return 1;
@@ -605,7 +612,6 @@ static size_t lcurl_write_callback_(lua_State*L,
   lcurl_easy_t *p, lcurl_callback_t *c,
   char *ptr, size_t size, size_t nmemb
 ){
-
   size_t ret = size * nmemb;
   int    top = lua_gettop(L);
   int    n   = lcurl_util_push_cb(L, c);
@@ -946,6 +952,14 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 };
 
 void lcurl_easy_initlib(lua_State *L, int nup){
+
+  /* Hack. We ensure that lcurl_easy_t and lcurl_hpost_stream_t
+     compatiable for readfunction
+  */
+  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, L)       == offsetof(lcurl_hpost_stream_t, L));
+  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, rd)      == offsetof(lcurl_hpost_stream_t, rd));
+  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, rbuffer) == offsetof(lcurl_hpost_stream_t, rbuffer));
+
   if(!lutil_createmetap(L, LCURL_EASY, lcurl_easy_methods, nup))
     lua_pop(L, nup);
   lua_pop(L, 1);

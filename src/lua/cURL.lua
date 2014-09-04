@@ -52,29 +52,57 @@ end
 
 local perform      = wrap_function("perform")
 local setopt_share = wrap_function("setopt_share")
+local setopt_readfunction = wrap_function("setopt_readfunction")
+
+local NONE = {}
+
+function Easy:_call_readfunction(...)
+  if self._rd_ud == NONE then
+    return self._rd_fn(...)
+  end
+  return self._rd_fn(self._rd_ud, ...)
+end
+
+function Easy:setopt_readfunction(fn, ...)
+  assert(fn)
+
+  if select('#', ...) == 0 then
+    if type(fn) == "function" then
+      self._rd_fn = fn
+      self._rd_ud = NONE
+    else
+      self._rd_fn = assert(fn.read)
+      self._rd_ud = fn
+    end
+  else
+    self._rd_fn = fn
+    self._ud_fn = ...
+  end
+
+  return setopt_readfunction(self, fn, ...)
+end
 
 function Easy:perform(opt)
-  local e = self:handle()
 
   local oerror = opt.errorfunction or function(err) return nil, err end
 
   if opt.readfunction then
-    local ok, err = e:setopt_readfunction(opt.readfunction)
+    local ok, err = self:setopt_readfunction(opt.readfunction)
     if not ok then return oerror(err) end
   end
 
   if opt.writefunction then
-    local ok, err = e:setopt_writefunction(opt.writefunction)
+    local ok, err = self:setopt_writefunction(opt.writefunction)
     if not ok then return oerror(err) end
   end
 
   if opt.headerfunction then
-    local ok, err = e:setopt_headerfunction(opt.headerfunction)
+    local ok, err = self:setopt_headerfunction(opt.headerfunction)
     if not ok then return oerror(err) end
   end
 
   local ok, err = perform(self)
-  if ok then return oerror(err) end
+  if not ok then return oerror(err) end
 
   return self 
 end
@@ -89,13 +117,17 @@ function Easy:post(data)
     else
       assert(type(v) == "table")
       if v.stream_length then
-        form:free()
-        error("Stream does not support")
-      end
-      if v.data then
+        local len = assert(tonumber(v.stream_length))
+        assert(v.file)
+        if v.stream then
+          ok, err = form:add_stream(k, v.file, v.type, v.headers, len, v.stream)
+        else
+          ok, err = form:add_stream(k, v.file, v.type, v.headers, len, self._call_readfunction, self)
+        end
+      elseif v.data then
         ok, err = form:add_buffer(k, v.file, v.data, v.type, v.headers)
       else
-        ok, err = form:add_file(k, v.file, v.data, v.type, v.filename, v.headers)
+        ok, err = form:add_file(k, v.file, v.type, v.filename, v.headers)
       end
     end
     if not ok then break end
@@ -106,7 +138,7 @@ function Easy:post(data)
     return nil, err
   end
 
-  ok, err = e:setopt_httppost(form)
+  ok, err = self:setopt_httppost(form)
   if not ok then
     form:free()
     return nil, err

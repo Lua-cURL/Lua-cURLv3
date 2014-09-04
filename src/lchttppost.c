@@ -237,6 +237,10 @@ static int lcurl_hpost_add_stream(lua_State *L){
     else if(!fname) fname = luaL_checkstring(L, i);
     else if(!type)  type  = luaL_checkstring(L, i);
     else{
+      if(lua_isnil(L, i) && (!ilist)){
+        ++i; // empty headers
+        break;
+      }
       lua_pushliteral(L, "stream size required");
       lua_error(L);
     }

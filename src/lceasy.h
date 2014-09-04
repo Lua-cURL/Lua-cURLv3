@@ -24,16 +24,16 @@ enum {
 
 typedef struct lcurl_easy_tag{
   lua_State *L;
+  lcurl_callback_t rd;
+  lcurl_read_buffer_t rbuffer;
+
   CURL *curl;
   int storage;
   int lists[LCURL_LIST_COUNT];
   int err_mode;
   lcurl_callback_t wr;
-  lcurl_callback_t rd;
   lcurl_callback_t hd;
   lcurl_callback_t pr;
-  lcurl_read_buffer_t rbuffer;
-  
 }lcurl_easy_t;
 
 int lcurl_easy_create(lua_State *L, int error_mode);

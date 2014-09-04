@@ -57,6 +57,12 @@ function test_04()
   assert_match('Content%-Type: text/plain\r\n', data)
 end
 
+function test_error()
+  assert_error(function() post:add_content()        end)
+  assert_error(function() post:add_stream(nil)      end)
+  assert_error(function() post:add_stream('name01') end)
+end
+
 end
 
 local _ENV = TEST_CASE'add_buffer' do
@@ -120,6 +126,15 @@ function test_05()
   assert_match('filename="file05"', data)
   assert_match('Content%-Type: application/octet%-stream\r\n', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_error()
+  assert_error(function() post:add_buffer()         end)
+  assert_error(function() post:add_buffer(nil)      end)
+  assert_error(function() post:add_buffer('name01') end)
+  assert_error(function() post:add_buffer('name02', 'file02') end)
+  assert_error(function() post:add_buffer('name03', 'file03', nil) end)
+  assert_error(function() post:add_buffer('name04', nil, 'value04') end)
 end
 
 end
@@ -206,6 +221,12 @@ function test_09()
   assert_equal(post, post:add_stream('name09', nil, nil, nil, stream()))
   local data = assert_string(post:get())
   assert_match('name="name09"', data)
+end
+
+function test_error()
+  assert_error(function() post:add_stream('name01', dummy) end)
+  assert_error(function() post:add_stream('name02', 10)    end)
+  assert_error(function() post:add_stream('name03', "10", dummy)    end)
 end
 
 end

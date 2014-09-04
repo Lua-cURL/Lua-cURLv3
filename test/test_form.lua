@@ -229,6 +229,15 @@ function test_error()
   assert_error(function() post:add_stream('name03', "10", dummy)    end)
 end
 
+function test_add_several()
+  assert_equal(post, post:add_stream('name01', stream()))
+  assert_equal(post, post:add_stream('name02', 'file02', stream()))
+  local data = assert_string(post:get())
+  assert_match('name="name01"', data)
+  assert_match('name="name02"', data)
+  assert_match('filename="file02"', data)
+end
+
 end
 
 local _ENV = TEST_CASE'add_file' do
@@ -348,6 +357,117 @@ function test_error()
   assert_error(function()
     assert_equal(post, post:add_file('nameXX', 'text/plain', form_path))
     post:get()
+  end)
+end
+
+end
+
+local _ENV = TEST_CASE'get' do
+
+local post
+
+function setup()
+  post = curl.form()
+end
+
+function teardown()
+  if post then post:free() end
+  post = nil
+end
+
+local function check_form(data)
+  assert_match("\r\n\r\nvalueXX\r\n", data)
+  assert_match('name="nameXX"', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_writer_01()
+  local t = {}
+  local function writer(str, ...)
+    assert_equal(0, select("#", ...))
+    t[#t+1] = str
+  end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:get(writer))
+  check_form(table.concat(t))
+end
+
+function test_writer_02()
+  local t = {}
+  local function writer(str, ...)
+    assert_equal(0, select("#", ...))
+    t[#t+1] = str
+    return true
+  end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:get(writer))
+  check_form(table.concat(t))
+end
+
+function test_writer_03()
+  local t = {}
+  local function writer(str, ...)
+    assert_equal(0, select("#", ...))
+    t[#t+1] = str
+    return #str
+  end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:get(writer))
+  check_form(table.concat(t))
+end
+
+function test_writer_context()
+  local t = {}
+  local function writer(T, str, ...)
+    assert_equal(t, T)
+    assert_equal(0, select("#", ...))
+    T[#T+1] = str
+  end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:get(writer, t))
+  local data = table.concat(t)
+  assert_match("\r\n\r\nvalueXX\r\n", data)
+  assert_match('name="nameXX"', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_abort_01()
+  local err = {}
+  local function writer() return nil, err end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  local _, e = assert_nil(post:get(writer))
+  assert_equal(err, e)
+end
+
+function test_abort_02()
+  local function writer() return 0 end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  local _, e = assert_nil(post:get(writer))
+  assert_nil(e)
+end
+
+function test_abort_03()
+  local function writer() return nil end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  local _, e = assert_nil(post:get(writer))
+  assert_nil(e)
+end
+
+function test_abort_04()
+  local function writer() return false end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  local _, e = assert_nil(post:get(writer))
+  assert_nil(e)
+end
+
+function test_error()
+  local err = {}
+  local function writer() error("WRITEERROR") end
+  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_error_match("WRITEERROR", function()
+    post:get(writer)
   end)
 end
 

@@ -231,4 +231,126 @@ end
 
 end
 
+local _ENV = TEST_CASE'add_file' do
+
+local post
+
+local form_file  = "file.form"
+local form_path  = "./" .. form_file
+local form_data  = "some values"
+
+local function mkfile(P, data)
+  local f, e = io.open(P, "w+b")
+  if not f then return nil, err end
+  if data then assert(f:write(data)) end
+  f:close()
+  return P
+end
+
+local function check_form(data)
+  assert_match('name="nameXX"', data)
+  assert_match("\r\n\r\n" .. form_data .."\r\n", data)
+end
+
+function setup()
+  post = curl.form()
+  assert(mkfile(form_path, form_data))
+end
+
+function teardown()
+  if post then post:free() end
+  post = nil
+  os.remove(form_file)
+end
+
+function test_01()
+  assert_equal(post, post:add_file('nameXX', form_path))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+end
+
+function test_02()
+  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain'))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_03()
+  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', 'renamedfile'))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. 'renamedfile' .. '"', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_04()
+  assert_equal(post, post:add_file('nameXX', form_path, nil, 'renamedfile'))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. 'renamedfile' .. '"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+end
+
+function test_05()
+  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', 'renamedfile', {"Content-Encoding: gzip"}))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. 'renamedfile' .. '"', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_05()
+  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', {"Content-Encoding: gzip"}))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_06()
+  assert_equal(post, post:add_file('nameXX', form_path, {"Content-Encoding: gzip"}))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_07()
+  assert_equal(post, post:add_file('nameXX', form_path, nil, {"Content-Encoding: gzip"}))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_08()
+  assert_equal(post, post:add_file('nameXX', form_path, nil, nil, {"Content-Encoding: gzip"}))
+  local data = assert_string(post:get())
+  check_form(data)
+  assert_match('filename="' .. form_file .. '"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_error()
+  assert_error(function()
+    assert_equal(post, post:add_file('nameXX', 'text/plain', form_path))
+    post:get()
+  end)
+end
+
+end
+
 if not HAS_RUNNER then lunit.run() end

@@ -4,11 +4,12 @@
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
 
 ## Documentation
-[API](http://moteus.github.com/lcurl)
+[API](http://moteus.github.com/lcurl)<br/>
+Also library provide `lcurl.cURL` compatibility module for [Lua-cURL](http://msva.github.io/lua-curl) binding.
 
 ## Why one more curl binding
 
-Existing [lua-curl](http://msva.github.io/lua-curl) binding has several problems:
+Existing [Lua-cURL](http://msva.github.io/lua-curl) binding has several problems:
 
 * it can not return error codes but just raise Lua errors
 * it raise Lua error from callback that may result resource leak in libcurl

@@ -69,7 +69,7 @@ void lcurl_storage_get_i(lua_State *L, int storage, int i){
 }
 
 struct curl_slist* lcurl_storage_remove_slist(lua_State *L, int storage, int idx){
-  struct curl_slist* list;
+  struct curl_slist* list = NULL;
   assert(idx != LUA_NOREF);
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
   lua_rawgeti(L, -1, LCURL_STORAGE_SLIST); // list storage

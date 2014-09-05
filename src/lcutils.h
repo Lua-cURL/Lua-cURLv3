@@ -10,7 +10,7 @@
 
 typedef struct lcurl_const_tag{
   const char *name;
-  int value;
+  long  value;
 }lcurl_const_t;
 
 typedef struct lcurl_callback_tag{

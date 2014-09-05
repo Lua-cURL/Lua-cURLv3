@@ -334,6 +334,7 @@ function setopt_readfunction() end
 --
 -- !!! NOTE !!! This is differents form libcurl API. In libcurl returning a non-zero 
 -- value from this callback will cause libcurl to abort the transfer and return.
+-- This done to be consisted with writefunction that should return `true` to continue.
 --
 -- @tparam function progress
 -- @param[opt] context progress context

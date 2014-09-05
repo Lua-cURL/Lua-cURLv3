@@ -5,7 +5,7 @@ local curl = require "lcurl"
 -- i.e. 1 means that CURLPAUSE_CONT will be performed immediately after pause.)
 local WAIT_COUNT   = 32
 
-local RESOURCE_URL = "http://www.gutenberg.org/files/1257/old/1musk10.zip"
+local RESOURCE_URL = "http://www.rfc-editor.org/rfc/rfc2543.txt"
 
 local State = {
   PAUSE   = 0, -- write function should return CURL_WRITEFUNC_PAUSE
@@ -37,7 +37,7 @@ local function WriteFunction(str)
   end
 
   if state == State.WRITE then
-    state = State.WRITE
+    state = State.WRITTEN
   end
 
   datasize = datasize  + #str
@@ -58,7 +58,6 @@ local function perform(multi, easy)
 
     if state == State.WRITTEN then
       state = State.PAUSE
-      break
     end
 
     if 0 == handles then

@@ -775,11 +775,14 @@ static int lcurl_xferinfo_callback(void *arg, curl_off_t dltotal, curl_off_t dln
     assert(lua_gettop(L) >= top);
     lua_pushlightuserdata(L, (void*)LCURL_ERROR_TAG);
     lua_insert(L, top+1);
-    return 0;
+    return 1;
   }
 
   if(lua_gettop(L) > top){
-    if(lua_isnil(L, top + 1)) return 1;
+    if(lua_isnil(L, top + 1)){
+      if(lua_gettop(L) == (top+1)) lua_settop(L, top);
+      return 1;
+    }
     if(lua_isboolean(L, top + 1))
       ret = lua_toboolean(L, top + 1)?0:1;
     else ret = (size_t)lua_tonumber(L, top + 1);

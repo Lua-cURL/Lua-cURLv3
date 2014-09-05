@@ -785,7 +785,10 @@ static int lcurl_xferinfo_callback(void *arg, curl_off_t dltotal, curl_off_t dln
     }
     if(lua_isboolean(L, top + 1))
       ret = lua_toboolean(L, top + 1)?0:1;
-    else ret = (size_t)lua_tonumber(L, top + 1);
+    else{
+      ret = (size_t)lua_tonumber(L, top + 1);
+      if(ret == 0) ret = 1; else ret = 0;
+    }
   }
 
   lua_settop(L, top);

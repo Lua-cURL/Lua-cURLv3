@@ -116,6 +116,115 @@ end
 
 end
 
+local _ENV = TEST_CASE'progress_callback' do
+
+local c
+
+local function pass() end
+
+function teardown()
+  if f then f:close() end
+  os.remove(fname)
+  if c then c:close() end
+  f, c = nil
+end
+
+function test_abort_01()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return false end
+  })
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_02()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return 0 end
+  })
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_03()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return nil end
+  })
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_04()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return nil, "PROGRESSERROR" end
+  })
+
+  local _, e = assert_nil(c:perform())
+  assert_equal("PROGRESSERROR", e)
+end
+
+function test_abort_05()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() error( "PROGRESSERROR" )end
+  })
+
+  assert_error_match("PROGRESSERROR", function()
+    c:perform()
+  end)
+end
+
+function test_pass_01()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() end
+  })
+
+  assert_equal(c, c:perform())
+end
+
+function test_pass_02()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return true end
+  })
+
+  assert_equal(c, c:perform())
+end
+
+function test_pass_03()
+  c  = assert(scurl.easy{
+    url              = url,
+    writefunction    = pass,
+    noprogress       = false,
+    progressfunction = function() return 1 end
+  })
+
+  assert_equal(c, c:perform())
+end
+
+end
+
 local _ENV = TEST_CASE'escape' do
 
 local c

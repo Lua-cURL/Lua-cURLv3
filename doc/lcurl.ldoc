@@ -329,8 +329,11 @@ function setopt_readfunction() end
 -- the third is the number of bytes downloaded so far,
 -- the fourth is the total number of bytes expected to be uploaded
 -- in this transfer, and the fifth is the number of bytes uploaded so far.
--- Function must return `true` or or nothing to continue operation.
--- Otherwise the transfer will be aborted with an error.
+-- Function must return `true` or `1` or nothing to continue operation.
+-- Otherwise the transfer will be aborted with an error `ABORTED_BY_CALLBACK`.<br/>
+--
+-- !!! NOTE !!! This is differents form libcurl API. In libcurl returning a non-zero 
+-- value from this callback will cause libcurl to abort the transfer and return.
 --
 -- @tparam function progress
 -- @param[opt] context progress context

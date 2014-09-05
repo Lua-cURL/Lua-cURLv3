@@ -50,8 +50,8 @@ function Easy:handle()
   return self._handle
 end
 
-local perform      = wrap_function("perform")
-local setopt_share = wrap_function("setopt_share")
+local perform             = wrap_function("perform")
+local setopt_share        = wrap_function("setopt_share")
 local setopt_readfunction = wrap_function("setopt_readfunction")
 
 local NONE = {}
@@ -224,8 +224,12 @@ local function make_iterator(self)
   local buffers = {_ = {}} do
 
   function buffers:append(e, ...)
-    local b = self._[e] or {}
-    self._[e] = b
+    if not self._[e] then
+      self._[e] = {
+        -- {"response", e:getinfo_response_code()}
+      }
+    end
+    local b = self._[e]
     b[#b + 1] = {...}
   end
 
@@ -260,6 +264,9 @@ local function make_iterator(self)
         while true do
           local e, ok, err = assert(self:info_read())
           if e == 0 then break end
+          for _, a in ipairs(self._easy) do
+            if e == a:handle() then e = a break end
+          end
           if ok then buffers:append(e, "done", ok)
           else buffers:append(e, "error", err) end
         end

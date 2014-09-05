@@ -28,6 +28,7 @@ target('test', install, function()
   run_test('test_easy.lua')
   run_test('test_safe.lua')
   run_test('test_form.lua')
+  run_test('test_pause02.c.lua')
 
   if not test_summary() then
     quit("test fail")

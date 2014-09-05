@@ -877,7 +877,7 @@ static int lcurl_easy_unsetopt(lua_State *L){
 
 static int lcurl_easy_getinfo(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  int opt = luaL_checklong(L, 2);
+  long opt = luaL_checklong(L, 2);
   lua_remove(L, 2);
 
 #define OPT_ENTRY(l, N, T, S) case CURLINFO_##N: return lcurl_easy_get_##N(L);
@@ -887,6 +887,17 @@ static int lcurl_easy_getinfo(lua_State *L){
 #undef OPT_ENTRY
 
   return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, LCURL_E_UNKNOWN_OPTION);
+}
+
+static int lcurl_easy_pause(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  int mask = luaL_checkint(L, 2);
+  CURLcode code = curl_easy_pause(p->curl, mask);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  lua_settop(L, 1);
+  return 1;
 }
 
 //}
@@ -919,6 +930,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
 
+  { "pause",    lcurl_easy_pause          },
   { "reset",    lcurl_easy_reset          },
   { "setopt",   lcurl_easy_setopt         },
   { "getinfo",  lcurl_easy_getinfo        },

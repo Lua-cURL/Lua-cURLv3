@@ -205,6 +205,12 @@ function unescape() end
 -- @treturn easy self
 function reset() end
 
+--- Pause and unpause a connection.
+--
+-- @tparam number mask set of bits that sets the new state of the connection (one of PAUSE_XXX constant)
+-- @treturn easy self
+function pause() end
+
 --- End easy session
 -- 
 function close() end

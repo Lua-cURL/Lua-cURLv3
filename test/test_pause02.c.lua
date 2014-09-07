@@ -5,7 +5,8 @@ local curl = require "lcurl"
 -- i.e. 1 means that CURLPAUSE_CONT will be performed immediately after pause.)
 local WAIT_COUNT   = 32
 
-local RESOURCE_URL = "http://www.rfc-editor.org/rfc/rfc2543.txt"
+local SIZE         = 100 * 1024
+local RESOURCE_URL = "http://httpbin.org/bytes/" .. SIZE
 
 local State = {
   PAUSE   = 0, -- write function should return CURL_WRITEFUNC_PAUSE

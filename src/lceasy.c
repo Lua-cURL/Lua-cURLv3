@@ -87,7 +87,6 @@ static int lcurl_easy_cleanup(lua_State *L){
   p->rbuffer.ref = LUA_NOREF;
 
   for(i = 0; i < LCURL_LIST_COUNT; ++i){
-    luaL_unref(L, LCURL_LUA_REGISTRY, p->lists[i]);
     p->lists[i] = LUA_NOREF;
   }
 
@@ -696,7 +695,7 @@ static size_t lcurl_read_callback(lua_State *L,
   assert(rbuffer->ref == LUA_NOREF);
 
   n = lcurl_util_push_cb(L, rd);
-  lua_pushnumber(L, ret);
+  lua_pushinteger(L, ret);
   if(lua_pcall(L, n, LUA_MULTRET, 0)) return CURL_READFUNC_ABORT;
 
   if(lua_isnoneornil(L, top + 1)){
@@ -786,7 +785,7 @@ static int lcurl_xferinfo_callback(void *arg, curl_off_t dltotal, curl_off_t dln
     if(lua_isboolean(L, top + 1))
       ret = lua_toboolean(L, top + 1)?0:1;
     else{
-      ret = (size_t)lua_tonumber(L, top + 1);
+      ret = lua_tointeger(L, top + 1);
       if(ret == 0) ret = 1; else ret = 0;
     }
   }

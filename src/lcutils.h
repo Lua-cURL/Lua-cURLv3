@@ -19,8 +19,8 @@ typedef struct lcurl_callback_tag{
 }lcurl_callback_t;
 
 typedef struct lcurl_read_buffer_tag{
-  int ref;
-  int off;
+  int    ref;
+  size_t off;
 }lcurl_read_buffer_t;
 
 int lcurl_storage_init(lua_State *L);

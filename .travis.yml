@@ -17,6 +17,7 @@ before_install:
   - bash .travis/setup_lua.sh
   - sudo luarocks install lunitx
   - sudo pip install cpp-coveralls
+  - sudo luarocks install dkjson
 
 install:
   - sudo luarocks make rockspecs/lcurl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"

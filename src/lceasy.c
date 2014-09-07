@@ -696,15 +696,38 @@ static size_t lcurl_read_callback(lua_State *L,
 
   n = lcurl_util_push_cb(L, rd);
   lua_pushinteger(L, ret);
-  if(lua_pcall(L, n, LUA_MULTRET, 0)) return CURL_READFUNC_ABORT;
-
-  if(lua_isnoneornil(L, top + 1)){
-    if(lua_gettop(L) <= (top + 1))return 0;
+  if(lua_pcall(L, n, LUA_MULTRET, 0)){
+    assert(lua_gettop(L) >= top);
+    lua_pushlightuserdata(L, (void*)LCURL_ERROR_TAG);
+    lua_insert(L, top+1);
     return CURL_READFUNC_ABORT;
   }
-  data = lua_tolstring(L, -1, &data_size);
-  if(!data) return CURL_READFUNC_ABORT;
 
+  if(lua_gettop(L) == top){
+    return CURL_READFUNC_ABORT;
+  }
+
+  assert(lua_gettop(L) >= top);
+
+  if(lua_type(L, top + 1) != LUA_TSTRING){
+    if(lua_isnil(L, top + 1)){
+      if(lua_gettop(L) == (top+1)) lua_settop(L, top);
+    }
+    else{
+      if(lua_type(L, top + 1) == LUA_TNUMBER){
+        size_t ret = lua_tonumber(L, top + 1);
+        if(ret == (size_t)CURL_READFUNC_PAUSE){
+          lua_settop(L, top);
+          return CURL_READFUNC_PAUSE;
+        }
+      }
+      lua_settop(L, top);
+    }
+    return CURL_READFUNC_ABORT;
+  }
+
+  data = lua_tolstring(L, top + 1, &data_size);
+  assert(data);
   if(data_size > ret){
     data_size = ret;
     rbuffer->ref = luaL_ref(L, LCURL_LUA_REGISTRY);

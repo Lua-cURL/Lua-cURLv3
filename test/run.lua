@@ -15,3 +15,4 @@ print("")
 
 require "test_safe"
 require "test_easy"
+require "test_form"

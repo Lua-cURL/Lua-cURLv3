@@ -9,6 +9,12 @@ local json       = require "dkjson"
 local url        = "http://example.com"
 local fname      = "./test.download"
 
+print("------------------------------------")
+print("Lua  version: " .. (_G.jit and _G.jit.version or _G._VERSION))
+print("cURL version: " .. curl.version())
+print("------------------------------------")
+print("")
+
 local function weak_ptr(val)
   return setmetatable({value = val},{__mode = 'v'})
 end
@@ -328,7 +334,7 @@ end
 
 end
 
-local _ENV = TEST_CASE'reader_callback'   if ENABLE then
+local _ENV = TEST_CASE'read_callback'     if ENABLE then
 
 local url = "http://httpbin.org/post"
 
@@ -376,7 +382,7 @@ function test()
 end
 
 function test_abort_01()
-  assert_equal(f, f:add_stream('SSSSS', 128, function() end))
+  assert_equal(f, f:add_stream('SSSSS', 128 * 1024, function() end))
   assert_equal(c, c:setopt_httppost(f))
 
   local _, e = assert_nil(c:perform())
@@ -407,7 +413,7 @@ function test_abort_04()
   assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
 end
 
-function test_abort_04()
+function test_abort_05()
   assert_equal(f, f:add_stream('SSSSS', 128, function() error("READERROR") end))
   assert_equal(c, c:setopt_httppost(f))
 

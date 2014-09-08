@@ -555,6 +555,15 @@ function test_abort_06()
 end
 
 function test_pause()
+
+-- Note.
+-- OS   version        : Linux Mint 17 (x86_64)
+-- cURL version        : libcurl/7.35.0 OpenSSL/1.0.1f zlib/1.2.8 libidn/1.28 librtmp/2.3
+-- version_info("host"): x86_64-pc-linux-gnu
+--
+-- c:perform() returns curl.E_READ_ERROR after readfunction return curl.READFUNC_PAUSE
+--
+
   local counter = 0
   assert_equal(c, c:setopt_readfunction(function() 
     if counter == 0 then

@@ -382,6 +382,7 @@ function setup()
   f = assert(scurl.form())
   c = assert(scurl.easy{
     url           = url,
+    timeout       = 60,
   })
   assert_equal(c, c:setopt_writefunction(table.insert, t))
 end
@@ -439,6 +440,23 @@ function test_abort_05()
   assert_equal(c, c:setopt_httppost(f))
 
   assert_error_match("READERROR", function() c:perform() end)
+end
+
+function test_abort_06()
+  assert_equal(f, f:add_stream('SSSSS', 128, function() return false end))
+  assert_equal(c, c:setopt_httppost(f))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_pass_01()
+  assert_equal(c, c:setopt_timeout(10))
+  assert_equal(f, f:add_stream('SSSSS', 128, function() return nil end))
+  assert_equal(c, c:setopt_httppost(f))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_OPERATION_TIMEDOUT), e)
 end
 
 function test_pause()
@@ -529,6 +547,13 @@ function test_abort_05()
   assert_error_match("READERROR", function() c:perform() end)
 end
 
+function test_abort_06()
+  assert_equal(c, c:setopt_readfunction(function() return false end))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
 function test_pause()
   local counter = 0
   assert_equal(c, c:setopt_readfunction(function() 
@@ -574,6 +599,15 @@ function test_readbuffer()
   local data = read_file(fname)
   assert_equal(N, #data)
   assert_equal(("s"):rep(N), data)
+end
+
+function test_pass_01()
+  assert_equal(c, c:setopt_readfunction(function() return nil end))
+
+  assert_equal(c, c:perform())
+  c:close()
+  local data = read_file(fname)
+  assert_equal(0, #data)
 end
 
 end

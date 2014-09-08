@@ -711,7 +711,10 @@ static size_t lcurl_read_callback(lua_State *L,
 
   if(lua_type(L, top + 1) != LUA_TSTRING){
     if(lua_isnil(L, top + 1)){
-      if(lua_gettop(L) == (top+1)) lua_settop(L, top);
+      if(lua_gettop(L) == (top+1)){// only nil -> EOF
+        lua_settop(L, top);
+        return 0;
+      }
     }
     else{
       if(lua_type(L, top + 1) == LUA_TNUMBER){

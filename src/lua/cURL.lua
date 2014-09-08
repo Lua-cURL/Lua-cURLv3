@@ -221,15 +221,19 @@ local remove_handle = wrap_function("remove_handle")
 local function make_iterator(self)
   local curl = require "lcurl.safe"
 
-  local buffers = {_ = {}} do
+  local buffers = {resp = {}, _ = {}} do
 
   function buffers:append(e, ...)
-    if not self._[e] then
-      self._[e] = {
-        -- {"response", e:getinfo_response_code()}
-      }
-    end
+    local resp = assert(e:getinfo_response_code())
+    if not self._[e] then self._[e] = {} end
+
     local b = self._[e]
+
+    if self.resp[e] ~= resp then
+      b[#b + 1] = {"response", resp}
+      self.resp[e] = resp
+    end
+
     b[#b + 1] = {...}
   end
 

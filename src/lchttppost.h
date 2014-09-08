@@ -1,3 +1,13 @@
+/******************************************************************************
+* Author: Alexey Melnichuk <mimir@newmail.ru>
+*
+* Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+*
+* Licensed according to the included 'LICENSE' document
+*
+* This file is part of lua-lcurl library.
+******************************************************************************/
+
 #ifndef _LCHTTPPOST_H_
 #define _LCHTTPPOST_H_
 

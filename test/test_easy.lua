@@ -8,7 +8,10 @@ local scurl      = require "lcurl.safe"
 local json       = require "dkjson"
 local path       = require "path"
 local upath      = require "path".new('/')
-local url        = "http://example.com"
+
+local SIZE       = 128
+local url        = "http://httpbin.org/bytes/" .. SIZE
+
 local fname      = "./test.download"
 
 print("------------------------------------")

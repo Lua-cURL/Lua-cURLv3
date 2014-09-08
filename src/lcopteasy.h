@@ -228,7 +228,7 @@ OPT_ENTRY( sslkey,                  SSLKEY,                  STR, LCURL_STORE_ST
 OPT_ENTRY( sslkeytype,              SSLKEYTYPE,              STR, LCURL_STORE_STRING, "PEM"               )
 OPT_ENTRY( sslversion,              SSLVERSION,              LNG, 0,                  CURL_SSLVERSION_DEFAULT )
 OPT_ENTRY( ssl_cipher_list,         SSL_CIPHER_LIST,         STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
-#if LCURL_CURL_VER_GE(7,33,0)
+#if LCURL_CURL_VER_GE(7,36,0)
 OPT_ENTRY( ssl_enable_alpn,         SSL_ENABLE_ALPN,         LNG, 0,                  1 )
 OPT_ENTRY( ssl_enable_npn,          SSL_ENABLE_NPN,          LNG, 0,                  1 )
 #endif

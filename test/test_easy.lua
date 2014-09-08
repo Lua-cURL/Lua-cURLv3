@@ -6,6 +6,8 @@ local skip       = lunit.skip or function() end
 local curl       = require "lcurl"
 local scurl      = require "lcurl.safe"
 local json       = require "dkjson"
+local path       = require "path"
+local upath      = require "path".new('/')
 local url        = "http://example.com"
 local fname      = "./test.download"
 
@@ -24,9 +26,38 @@ local function gc_collect()
   collectgarbage("collect")
 end
 
+local function cver(min, maj, pat)
+  return min * 2^16 + maj * 2^8 + pat
+end
+
+local function is_curl_ge(min, maj, pat)
+  assert(0x070908 == cver(7,9,8))
+  return curl.version_info('version_num') >= cver(min, maj, pat)
+end
+
+local function read_file(n)
+  local f, e = io.open(n, "r")
+  if not f then return nil, e end
+  local d, e = f:read("*all")
+  f:close()
+  return d, e
+end
+
+local function get_bin_by(str,n)
+  local pos = 1 - n
+  return function()
+    pos = pos + n
+    return (str:sub(pos,pos+n-1))
+  end
+end
+
+local function strem(ch, n, m)
+  return n, get_bin_by( (ch):rep(n), m)
+end
+
 local ENABLE = true
 
-local _ENV = TEST_CASE'write_callback'    if ENABLE then
+local _ENV = TEST_CASE'write_callback'       if ENABLE then
 
 local c, f
 
@@ -127,7 +158,7 @@ end
 
 end
 
-local _ENV = TEST_CASE'progress_callback' if ENABLE then
+local _ENV = TEST_CASE'progress_callback'    if ENABLE then
 
 local c
 
@@ -236,7 +267,7 @@ end
 
 end
 
-local _ENV = TEST_CASE'header_callback'   if ENABLE then
+local _ENV = TEST_CASE'header_callback'      if ENABLE then
 
 local c, f
 local function dummy() end
@@ -334,23 +365,13 @@ end
 
 end
 
-local _ENV = TEST_CASE'read_callback'     if ENABLE then
+local _ENV = TEST_CASE'read_stream_callback' if ENABLE and is_curl_ge(7,30,0) then
+
+-- tested on WinXP(x32)/Win8(x64) libcurl/7.37.1 / libcurl/7.30.0
 
 local url = "http://httpbin.org/post"
 
 local c, f, t
-
-local function get_bin_by(str,n)
-  local pos = 1 - n
-  return function()
-    pos = pos + n
-    return (str:sub(pos,pos+n-1))
-  end
-end
-
-local function strem(ch, n, m)
-  return n, get_bin_by( (ch):rep(n), m)
-end
 
 local function json_data()
   return json.decode(table.concat(t))
@@ -453,7 +474,111 @@ end
 
 end
 
-local _ENV = TEST_CASE'escape'            if ENABLE then
+local _ENV = TEST_CASE'read_callback'        if ENABLE then
+
+local uname = upath:normolize(path.fullpath(fname))
+
+local url   = "FILE://" .. uname
+
+local c
+
+function setup()
+  c = assert(scurl.easy{
+    url           = url,
+    upload        = true,
+  })
+end
+
+function teardown()
+  os.remove(fname)
+  if c then c:close() end
+  c = nil
+end
+
+function test_abort_01()
+  assert_equal(c, c:setopt_readfunction(function() end))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_02()
+  assert_equal(c, c:setopt_readfunction(function() return nil, "READERROR" end))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal("READERROR", e)
+end
+
+function test_abort_03()
+  assert_equal(c, c:setopt_readfunction(function() return 1 end))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_04()
+  assert_equal(c, c:setopt_readfunction(function() return true end))
+
+  local _, e = assert_nil(c:perform())
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+end
+
+function test_abort_05()
+  assert_equal(c, c:setopt_readfunction(function() error("READERROR") end))
+
+  assert_error_match("READERROR", function() c:perform() end)
+end
+
+function test_pause()
+  local counter = 0
+  assert_equal(c, c:setopt_readfunction(function() 
+    if counter == 0 then
+      counter = counter + 1
+      return curl.READFUNC_PAUSE
+    end
+    if counter == 1 then
+      counter = counter + 1
+      return ('X'):rep(128)
+    end
+    return ''
+  end))
+
+  assert_equal(c, c:setopt_progressfunction(function()
+    if counter == 1 then
+      c:pause(curl.PAUSE_CONT)
+    end
+  end))
+
+  assert_equal(c, c:setopt_noprogress(false))
+
+  assert_equal(c, c:perform())
+
+  assert_equal(0, c:getinfo_response_code())
+end
+
+function test_readbuffer()
+  local flag = false
+  local N
+  assert_equal(c, c:setopt_readfunction(function(n)
+    if not flag then
+      flag = true
+      N = math.floor(n*2 + n/3)
+      assert(N > n)
+      return ("s"):rep(N)
+    end
+    return ''
+  end))
+
+  assert_equal(c, c:perform())
+  c:close()
+  local data = read_file(fname)
+  assert_equal(N, #data)
+  assert_equal(("s"):rep(N), data)
+end
+
+end
+
+local _ENV = TEST_CASE'escape'               if ENABLE then
 
 local c
 
@@ -472,7 +597,7 @@ end
 
 end
 
-local _ENV = TEST_CASE'setopt_form'       if ENABLE then
+local _ENV = TEST_CASE'setopt_form'          if ENABLE then
 
 local c
 

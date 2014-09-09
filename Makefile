@@ -1,65 +1,69 @@
 T=lcurl
 
-#default installtion prefix
-PREFIX=/usr/local
+UNAME            ?= $(shell uname)
+DESTDIR          ?= /
+PKG_CONFIG       ?= pkg-config
+INSTALL          ?= install
+RM               ?= rm
+LUA_IMPL         ?= lua
+LUA_BIN          ?= $(LUA_IMPL)
+CC               ?= $(MAC_ENV) gcc
 
-UNAME=$(shell uname)
 
-ifeq ($(UNAME),Linux)		###########################Linux
-#try to use luajit     
-LUA_VERSION = $(shell pkg-config luajit --print-provides)
-ifeq ($(LUA_VERSION),)		###########################Lua
-LUA_CFLAGS=-I$(PREFIX)/include
-LUA_LIBS=-L$(PREFIX)/lib 
-else                   		###########################Luajit
-LUA_CFLAGS=$(shell pkg-config luajit --cflags)
-LUA_LIBS=$(shell pkg-config luajit --libs)
+LUA_VERSION       = $(shell $(PKG_CONFIG) --print-provides $(LUA_IMPL))
+ifeq ($(LUA_VERSION),)
+LUA_CMOD         ?= /usr/lib/lua/5.1
+LUA_LMOD         ?= /usr/share/lua/5.1
+LIBDIR           ?= /usr/lib
+LUA_INC          ?= /usr/include
+CURL_LIBS         = -L/usr/lib -lcurl
+else
+LUA_CMOD         ?= $(shell $(PKG_CONFIG) --variable INSTALL_CMOD $(LUA_IMPL))
+LUA_LMOD         ?= $(shell $(PKG_CONFIG) --variable INSTALL_LMOD $(LUA_IMPL))
+LIBDIR           ?= $(shell $(PKG_CONFIG) --variable libdir $(LUA_IMPL))
+LUA_INC          ?= $(shell $(PKG_CONFIG) --variable includedir $(LUA_IMPL))
+LUA_LIBS          = $(shell $(PKG_CONFIG) --libs $(LUA_IMPL))
+CURL_LIBS         = $(shell $(PKG_CONFIG) --libs libcurl)
 endif
 
-CURL_CFLAGS=$(shell pkg-config libcurl --cflags)
-CURL_LIBS=$(shell pkg-config libcurl --libs)
-
-CC= gcc -g -fPIC -shared
-LIB_OPTION= -lrt -ldl
-
-else			  	#####other platform
-
-LUA_CFLAGS=-I$(PREFIX)/include
-LUA_LIBS=-llua5.1
-CURL_CFLAGS=-I$(PREFIX)/include
-CURL_LIBS=-L$(PREFIX)/lib -lcurl
-
-CC= gcc -g -shared  $(CFLAGS)
-
+ifeq ($(UNAME), Linux)
+OS_FLAGS         ?= -shared
+endif
+ifeq ($(UNAME), Darwin)
+OS_FLAGS         ?= -bundle -undefined dynamic_lookup
+MAC_ENV          ?= env MACOSX_DEPLOYMENT_TARGET='10.3'
 endif
 
-
-
-# System's libraries directory (where binary libraries are installed)
-LUA_LIBDIR= $(PREFIX)/lib/lua/5.1
-
-# OS dependent
-
-#LIB_OPTION= -bundle -undefined dynamic_lookup #for MacOS X
-LIBNAME= $T.so.$V
-
-# Compilation directives
-WARN_MOST= -Wall -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings -pedantic
+ifeq ($(DEV),)
 WARN= -Wall -Wno-unused-value
-CFLAGS= $(WARN) -DPTHREADS $(LUA_CFLAGS) $(CURL_CFLAGS) 
-CC+= $(CFLAGS)
-SRCS=$(shell echo src/*.c)
+else
+WARN= -Wall -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings -pedantic
+endif
 
-all: $T.so
+INCLUDES          = -I$(LUA_INC)
+DEFINES           =
+LIBS              = -lrt -ldl $(CURL_LIBS)
 
-$T.so: $(SRCS)
-	MACOSX_DEPLOYMENT_TARGET="10.3"; export MACOSX_DEPLOYMENT_TARGET; $(CC) $(CFLAGS)  -o $T.so $(SRCS)  $(CURL_LIBS) $(LUA_LIBS) $(LIB_OPTION)
+COMMONFLAGS       = -O2 -g -pipe -fPIC $(OS_FLAGS)
+LF                = $(LIBS) $(LDFLAGS)
+CF                = $(INCLUDES) $(DEFINES) $(COMMONFLAGS) $(WARN) -DPTHREADS $(CFLAGS)
+
+SCR               = src/lua/*.lua
+SRCS              = src/*.c
+
+BIN               = $(T).so
+
+
+
+all: $(BIN)
+
+$(BIN): $(SRCS)
+	$(CC) $(CF) -o $@ $^ $(LF)
 
 install: all
-	mkdir -p $(LUA_LIBDIR)
-	cp $T.so $(LUA_LIBDIR)
+	$(INSTALL) -d $(DESTDIR)$(LUA_CMOD) $(DESTDIR)$(LUA_LMOD)
+	$(INSTALL) $(BIN) $(DESTDIR)$(LUA_CMOD)
+	$(INSTALL) $(SCR) $(DESTDIR)$(LUA_LMOD)
 
 clean:
-	rm -f $T.so $(OBJS) 
-
-
+	rm -f $(BIN)

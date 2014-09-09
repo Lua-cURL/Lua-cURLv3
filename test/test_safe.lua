@@ -242,4 +242,37 @@ end
 
 end
 
+local _ENV = TEST_CASE'objects_have_same_metatables' do
+
+local scurl = require "lcurl.safe"
+local curl  = require "lcurl"
+local e1, e2, m
+
+function teardown()
+  if m  then m:close()  end
+  if e1 then e1:close() end
+  if e2 then e2:close() end
+  e1, e2, m = nil
+end
+
+function test_1()
+  e1 = assert(scurl.easy())
+  e2 = assert(curl.easy())
+  m  = assert(scurl.multi())
+
+  assert_equal(m, m:add_handle(e1))
+  assert_equal(m, m:add_handle(e2))
+end
+
+function test_2()
+  e1 = assert(scurl.easy())
+  e2 = assert(curl.easy())
+  m  = assert(curl.multi())
+
+  assert_equal(m, m:add_handle(e1))
+  assert_equal(m, m:add_handle(e2))
+end
+
+end
+
 if not HAS_RUNNER then lunit.run() end

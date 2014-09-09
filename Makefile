@@ -1,3 +1,5 @@
+include .config
+
 T=lcurl
 
 UNAME            ?= $(shell uname)

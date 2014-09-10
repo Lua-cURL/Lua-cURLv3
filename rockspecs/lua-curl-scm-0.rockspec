@@ -1,20 +1,20 @@
-package = "lcurl"
+package = "Lua-cURL"
 version = "scm-0"
 source = {
-  url = "https://github.com/moteus/lua-lcurl/archive/master.zip",
-  dir = "lua-lcurl-master",
+  url = "https://github.com/Lua-cURL/Lua-cURLv3/archive/master.zip",
+  dir = "Lua-cURLv3-master",
 }
 
 description = {
   summary = "Lua binding to libcurl",
   detailed = [[
   ]],
-  homepage = "https://github.com/moteus/lua-lcurl",
-  license = "MIT/X11"
+  homepage = "https://github.com/Lua-cURL",
+  license  = "MIT/X11"
 }
 
 dependencies = {
-  "lua >= 5.1"
+  "lua >= 5.1, < 5.3"
 }
 
 external_dependencies = {
@@ -57,15 +57,15 @@ build = {
   },
 
   modules = {
+    cURL  = "src/lua/cURL.lua",
     lcurl = {
       sources = {
         "src/l52util.c",    "src/lceasy.c", "src/lcerror.c",
         "src/lchttppost.c", "src/lcurl.c",  "src/lcutils.c",
-        "src/lcmulti.c", "src/lcshare.c",
+        "src/lcmulti.c",    "src/lcshare.c",
       },
       incdirs   = { "$(CURL_INCDIR)" },
       libdirs   = { "$(CURL_LIBDIR)" }
     },
-    ["lcurl.cURL"] = "src/lua/cURL.lua",
   }
 }

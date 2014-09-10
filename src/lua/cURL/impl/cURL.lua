@@ -30,6 +30,69 @@ local function wrap_setopt_flags(k, flags)
   end
 end
 
+local function make_iterator(self, perform)
+  local curl = require "lcurl.safe"
+
+  local buffers = {resp = {}, _ = {}} do
+
+  function buffers:append(e, ...)
+    local resp = assert(e:getinfo_response_code())
+    if not self._[e] then self._[e] = {} end
+
+    local b = self._[e]
+
+    if self.resp[e] ~= resp then
+      b[#b + 1] = {"response", resp}
+      self.resp[e] = resp
+    end
+
+    b[#b + 1] = {...}
+  end
+
+  function buffers:next()
+    for e, t in pairs(self._) do
+      local m = table.remove(t, 1)
+      if m then return e, m end
+    end
+  end
+
+  end
+
+  local remain = #self._easy
+  for _, e in ipairs(self._easy) do
+    e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
+    e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
+  end
+
+  assert(perform(self))
+
+  return function()
+    while true do
+      local e, t = buffers:next()
+      if t then return t[2], t[1], e end
+      if remain == 0 then break end
+
+      self:wait()
+
+      local n, err = assert(perform(self))
+
+      if n <= remain then
+        while true do
+          local e, ok, err = assert(self:info_read())
+          if e == 0 then break end
+          for _, a in ipairs(self._easy) do
+            if e == a:handle() then e = a break end
+          end
+          if ok then buffers:append(e, "done", ok)
+          else buffers:append(e, "error", err) end
+        end
+        remain = n
+      end
+
+    end
+  end
+end
+
 local function class(ctor)
   local C = {}
   C.__index = function(self, k)
@@ -42,13 +105,15 @@ local function class(ctor)
     return fn
   end
 
-  function C:new()
+  function C:new(...)
     local h, err = ctor()
     if not h then return nil, err end
 
     local o = setmetatable({
       _handle = h
     }, self)
+
+    if self.__init then return self.__init(o, ...) end
 
     return o
   end
@@ -207,74 +272,17 @@ local perform       = wrap_function("perform")
 local add_handle    = wrap_function("add_handle")
 local remove_handle = wrap_function("remove_handle")
 
-local function make_iterator(self)
-  local curl = require "lcurl.safe"
-
-  local buffers = {resp = {}, _ = {}} do
-
-  function buffers:append(e, ...)
-    local resp = assert(e:getinfo_response_code())
-    if not self._[e] then self._[e] = {} end
-
-    local b = self._[e]
-
-    if self.resp[e] ~= resp then
-      b[#b + 1] = {"response", resp}
-      self.resp[e] = resp
-    end
-
-    b[#b + 1] = {...}
-  end
-
-  function buffers:next()
-    for e, t in pairs(self._) do
-      local m = table.remove(t, 1)
-      if m then return e, m end
-    end
-  end
-
-  end
-
-  local remain = #self._easy
-  for _, e in ipairs(self._easy) do
-    e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
-    e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
-  end
-
-  assert(perform(self))
-
-  return function()
-    while true do
-      local e, t = buffers:next()
-      if t then return t[2], t[1], e end
-      if remain == 0 then break end
-
-      self:wait()
-
-      local n, err = assert(perform(self))
-
-      if n <= remain then
-        while true do
-          local e, ok, err = assert(self:info_read())
-          if e == 0 then break end
-          for _, a in ipairs(self._easy) do
-            if e == a:handle() then e = a break end
-          end
-          if ok then buffers:append(e, "done", ok)
-          else buffers:append(e, "error", err) end
-        end
-        remain = n
-      end
-
-    end
-  end
+function Multi:__init()
+  self._easy = {}
+  return self
 end
 
 function Multi:perform()
-  return make_iterator(self)
+  return make_iterator(self, perform)
 end
 
 function Multi:add_handle(e)
+  self._easy = self._easy or {}
   self._easy[#self._easy + 1] = e
   return add_handle(self, e:handle())
 end
@@ -311,8 +319,61 @@ function cURL.share_init() return Share:new() end
 end
 
 local function Load_cURLv3(cURL, curl)
-  setmetatable(cURL, {__index = curl})
-  -- @todo implement new API
+
+-------------------------------------------
+local Easy = class(curl.easy) do
+
+function Easy:__init(opt)
+  if opt then return self:setopt(opt) end
+  return self
+end
+
+local perform = wrap_function("perform")
+function Easy:perform(opt)
+  if opt then
+    local ok, err = self:setopt(opt)
+    if not ok then return nil, err end
+  end
+
+  return perform(self)
+end
+
+end
+-------------------------------------------
+
+-------------------------------------------
+local Multi = class(curl.multi) do
+
+function Multi:__init()
+  self._easy = {}
+  return self
+end
+
+function Multi:iperform()
+  return make_iterator(self, self.perform)
+end
+
+local add_handle = wrap_function("add_handle")
+function Multi:add_handle(e)
+  self._easy[#self._easy + 1] = e
+  return add_handle(self, e:handle())
+end
+
+local remove_handle = wrap_function("remove_handle")
+function Multi:remove_handle(e)
+  self._easy[#self._easy + 1] = e
+  return remove_handle(self, e:handle())
+end
+
+end
+-------------------------------------------
+
+setmetatable(cURL, {__index = curl})
+
+function cURL.easy(...)  return Easy:new(...)  end
+
+function cURL.multi(...) return Multi:new(...) end
+
 end
 
 return function(curl)

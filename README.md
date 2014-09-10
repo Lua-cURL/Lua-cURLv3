@@ -39,7 +39,7 @@ Lua-cURLv2 binding has several problems:
 ## Installation
 
 ```
-luarocks install lcurl --server=https://rocks.moonscript.org/dev
+luarocks install lua-curl --server=https://rocks.moonscript.org/dev
 ```
 
 ## Usage

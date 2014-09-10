@@ -4,7 +4,7 @@
 -- RCS ID: $Id: browser.lua,v 0.1 2011/03/11 23:55:20 kai Exp $
 -----------------------------------------------------------------------------
 
-local cURL   = require("lcurl.cURL")
+local cURL   = require("cURL")
 local string = require("string")
 local table  = require("table")
 local base   = _G

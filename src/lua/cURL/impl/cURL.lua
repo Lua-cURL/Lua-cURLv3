@@ -83,7 +83,9 @@ local function make_iterator(self, perform)
           for _, a in ipairs(self._easy) do
             if e == a:handle() then e = a break end
           end
-          if ok then buffers:append(e, "done", ok)
+          if ok then
+            ok = e:getinfo_response_code() or ok
+            buffers:append(e, "done", ok)
           else buffers:append(e, "error", err) end
         end
         remain = n

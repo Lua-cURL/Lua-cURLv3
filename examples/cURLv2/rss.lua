@@ -1,6 +1,6 @@
 -- use LuaExpat and Lua-CuRL together for On-The-Fly XML parsing
 local lxp = require("lxp")
-local cURL = require("lcurl.cURL")
+local cURL = require("cURL")
 
 tags  = {}
 items = {}
@@ -14,12 +14,13 @@ function callback.StartElement(parser, tagname)
    end
 end
 
-function callback.CharacterData(parser, str) 
+function callback.CharacterData(parser, str)
    if (tags[#tags -1] == "item") then
       --we are parsing a item, get rid of trailing whitespace
       items[#items][tags[#tags]] = string.gsub(str, "%s*$", "")
    end
 end
+
 function callback.EndElement(parser, tagname)
    --assuming well formed xml
    tags[#tags] = nil

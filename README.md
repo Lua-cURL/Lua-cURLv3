@@ -3,13 +3,28 @@
 [![Coverage Status](https://coveralls.io/repos/Lua-cURL/Lua-cURLv3/badge.png?branch=master)](https://coveralls.io/r/Lua-cURL/Lua-cURLv3?branch=master)
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
 
+##Status
+
+This module include three layer
+
+1. `lcurl` module provide low level pure C binding to libcurl.<br/>
+Almost ready and needs tests. I have no plans to change this API.
+
+2. `cURL` module provide compatibility for Lua-cURLv2 API.<br/>
+Almost ready and needs tests.
+
+3. `cURL` module provide new high level API.<br/>
+In fact for now it provide `lcurl` API directly and needed to redesign.<br/>
+
+
 ## Documentation
-[API](http://moteus.github.com/lcurl)<br/>
-Also library provide `lcurl.cURL` compatibility module for [Lua-cURL](http://lua-curl.github.io/Lua-cURL) binding.
+[lcurl API](http://moteus.github.com/lcurl)<br/>
+[Lua-cURLv2 API](http://lua-curl.github.io/Lua-cURL)<br/>
+Lua-cURLv3 API - TODO
 
-## Why one more curl binding
+## 
 
-Existing [Lua-cURL](http://lua-curl.github.io/Lua-cURL) binding has several problems:
+Lua-cURLv2 binding has several problems:
 
 * it can not return error codes but just raise Lua errors
 * it raise Lua error from callback that may result resource leak in libcurl
@@ -17,7 +32,7 @@ Existing [Lua-cURL](http://lua-curl.github.io/Lua-cURL) binding has several prob
 * it has memory leak when send multipart/formdata
 * it does not save string for curl options that may result crush in libcurl
 * there no way to get result for operations in multi interface (e.g. if one of easy operation fail you can not get result code/error message)
-* you can not use multi interface for upload operation
+* you can not use multi interface for upload operation (?)
 * you can not use your own callback function to perform operation with multi interface
 * you can not pass your context to callback functions
 

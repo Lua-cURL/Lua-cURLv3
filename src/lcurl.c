@@ -90,6 +90,9 @@ static int lcurl_version_info(lua_State *L){
     lua_pushliteral(L, "LIBZ");         lua_pushboolean(L, data->features & CURL_VERSION_LIBZ        ); lua_rawset(L, -3);
     lua_pushliteral(L, "NTLM");         lua_pushboolean(L, data->features & CURL_VERSION_NTLM        ); lua_rawset(L, -3);
     lua_pushliteral(L, "GSSNEGOTIATE"); lua_pushboolean(L, data->features & CURL_VERSION_GSSNEGOTIATE); lua_rawset(L, -3);
+#if LCURL_CURL_VER_GE(7,38,0)
+    lua_pushliteral(L, "GSSAPI");       lua_pushboolean(L, data->features & CURL_VERSION_GSSAPI      ); lua_rawset(L, -3);
+#endif
     lua_pushliteral(L, "DEBUG");        lua_pushboolean(L, data->features & CURL_VERSION_DEBUG       ); lua_rawset(L, -3);
     lua_pushliteral(L, "ASYNCHDNS");    lua_pushboolean(L, data->features & CURL_VERSION_ASYNCHDNS   ); lua_rawset(L, -3);
     lua_pushliteral(L, "SPNEGO");       lua_pushboolean(L, data->features & CURL_VERSION_SPNEGO      ); lua_rawset(L, -3);

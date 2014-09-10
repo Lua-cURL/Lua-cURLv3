@@ -108,3 +108,6 @@ ERR_ENTRY ( CHUNK_FAILED             )
 #if LCURL_CURL_VER_GE(7,30,0)
 ERR_ENTRY ( NO_CONNECTION_AVAILABLE  )
 #endif
+#if LCURL_CURL_VER_GE(7,38,0)
+ERR_ENTRY ( HTTP2                    )
+#endif

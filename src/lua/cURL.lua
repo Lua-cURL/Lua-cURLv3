@@ -32,33 +32,38 @@ local function wrap_setopt_flags(k, flags)
   end
 end
 
--------------------------------------------
-local Easy = {} do
+local function class(ctor)
+  local C = {}
+  C.__index = function(self, k)
+    local fn = C[k]
 
-Easy.__index = function(self, k)
-  local fn = Easy[k]
- 
-  if not fn and self._handle[k] then
-    fn = wrap_function(k)
-    self[k] = fn
+    if not fn and self._handle[k] then
+      fn = wrap_function(k)
+      self[k] = fn
+    end
+    return fn
   end
-  return fn
+
+  function C:new()
+    local h, err = ctor()
+    if not h then return nil, err end
+
+    local o = setmetatable({
+      _handle = h
+    }, self)
+
+    return o
+  end
+
+  function C:handle()
+    return self._handle
+  end
+
+  return C
 end
 
-function Easy:new()
-  local h, err = curl.easy()
-  if not h then return nil, err end
-
-  local o = setmetatable({
-    _handle = h
-  }, self)
-
-  return o
-end
-
-function Easy:handle()
-  return self._handle
-end
+-------------------------------------------
+local Easy = class(curl.easy) do
 
 local perform             = wrap_function("perform")
 local setopt_share        = wrap_function("setopt_share")
@@ -172,57 +177,31 @@ Easy.setopt_proxytype = wrap_setopt_flags("proxytype", {
 })
 
 Easy.setopt_httpauth  = wrap_setopt_flags("httpauth", {
-  ["NONE"                                  ] = curl.AUTH_NONE;
-  ["BASIC"                                 ] = curl.AUTH_BASIC;
-  ["DIGEST"                                ] = curl.AUTH_DIGEST;
-  ["GSSNEGOTIATE"                          ] = curl.AUTH_GSSNEGOTIATE;
-  ["NTLM"                                  ] = curl.AUTH_NTLM;
-  ["DIGEST_IE"                             ] = curl.AUTH_DIGEST_IE;
-  ["NTLM_WB"                               ] = curl.AUTH_NTLM_WB;
-  ["ONLY"                                  ] = curl.AUTH_ONLY;
-  ["ANY"                                   ] = curl.AUTH_ANY;
-  ["ANYSAFE"                               ] = curl.AUTH_ANYSAFE;
-  ["SSH_ANY"                               ] = curl.SSH_AUTH_ANY;
-  ["SSH_NONE"                              ] = curl.SSH_AUTH_NONE;
-  ["SSH_PUBLICKEY"                         ] = curl.SSH_AUTH_PUBLICKEY;
-  ["SSH_PASSWORD"                          ] = curl.SSH_AUTH_PASSWORD;
-  ["SSH_HOST"                              ] = curl.SSH_AUTH_HOST;
-  ["SSH_KEYBOARD"                          ] = curl.SSH_AUTH_KEYBOARD;
-  ["SSH_AGENT"                             ] = curl.SSH_AUTH_AGENT;
-  ["SSH_DEFAULT"                           ] = curl.SSH_AUTH_DEFAULT;
+  ["NONE"            ] = curl.AUTH_NONE;
+  ["BASIC"           ] = curl.AUTH_BASIC;
+  ["DIGEST"          ] = curl.AUTH_DIGEST;
+  ["GSSNEGOTIATE"    ] = curl.AUTH_GSSNEGOTIATE;
+  ["NTLM"            ] = curl.AUTH_NTLM;
+  ["DIGEST_IE"       ] = curl.AUTH_DIGEST_IE;
+  ["NTLM_WB"         ] = curl.AUTH_NTLM_WB;
+  ["ONLY"            ] = curl.AUTH_ONLY;
+  ["ANY"             ] = curl.AUTH_ANY;
+  ["ANYSAFE"         ] = curl.AUTH_ANYSAFE;
+  ["SSH_ANY"         ] = curl.SSH_AUTH_ANY;
+  ["SSH_NONE"        ] = curl.SSH_AUTH_NONE;
+  ["SSH_PUBLICKEY"   ] = curl.SSH_AUTH_PUBLICKEY;
+  ["SSH_PASSWORD"    ] = curl.SSH_AUTH_PASSWORD;
+  ["SSH_HOST"        ] = curl.SSH_AUTH_HOST;
+  ["SSH_KEYBOARD"    ] = curl.SSH_AUTH_KEYBOARD;
+  ["SSH_AGENT"       ] = curl.SSH_AUTH_AGENT;
+  ["SSH_DEFAULT"     ] = curl.SSH_AUTH_DEFAULT;
 })
 
 end
 -------------------------------------------
 
 -------------------------------------------
-local Multi = {} do
-
-Multi.__index = function(self, k)
-  local fn = Multi[k]
- 
-  if not fn and self._handle[k] then
-    fn = wrap_function(k)
-    self[k] = fn
-  end
-  return fn
-end
-
-function Multi:new()
-  local h, err = curl.multi()
-  if not h then return nil, err end
-
-  local o = setmetatable({
-    _handle = h;
-    _easy   = {};
-  }, self)
-
-  return o
-end
-
-function Multi:handle()
-  return self._handle
-end
+local Multi = class(curl.multi) do
 
 local perform       = wrap_function("perform")
 local add_handle    = wrap_function("add_handle")
@@ -309,32 +288,7 @@ end
 -------------------------------------------
 
 -------------------------------------------
-local Share = {} do
-
-Share.__index = function(self, k)
-  local fn = Share[k]
- 
-  if not fn and self._handle[k] then
-    fn = wrap_function(k)
-    self[k] = fn
-  end
-  return fn
-end
-
-function Share:new()
-  local h, err = curl.share()
-  if not h then return nil, err end
-
-  local o = setmetatable({
-    _handle = h
-  }, self)
-
-  return o
-end
-
-function Share:handle()
-  return self._handle
-end
+local Share = class(curl.share) do
 
 Share.setopt_share = wrap_setopt_flags("share", {
   [ "COOKIE"      ] = curl.LOCK_DATA_COOKIE;

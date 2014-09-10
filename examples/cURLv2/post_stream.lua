@@ -1,4 +1,4 @@
-local cURL = require("lcurl.cURL")
+local cURL = require("cURL")
 
 -- returns size and reader
 local function make_stream(ch, n, m)

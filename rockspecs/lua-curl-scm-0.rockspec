@@ -57,7 +57,10 @@ build = {
   },
 
   modules = {
-    cURL  = "src/lua/cURL.lua",
+    ["cURL"           ] = "src/lua/cURL.lua",
+    ["cURL.safe"      ] = "src/lua/cURL/safe.lua",
+    ["cURL.impl.cURL" ] = "src/lua/cURL/impl/cURL.lua",
+
     lcurl = {
       sources = {
         "src/l52util.c",    "src/lceasy.c", "src/lcerror.c",
@@ -69,3 +72,5 @@ build = {
     },
   }
 }
+
+

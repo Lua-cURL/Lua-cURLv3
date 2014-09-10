@@ -248,6 +248,7 @@ Easy.setopt_httpauth  = wrap_setopt_flags("httpauth", {
   ["BASIC"           ] = curl.AUTH_BASIC;
   ["DIGEST"          ] = curl.AUTH_DIGEST;
   ["GSSNEGOTIATE"    ] = curl.AUTH_GSSNEGOTIATE;
+  ["NEGOTIATE"       ] = curl.AUTH_NEGOTIATE;
   ["NTLM"            ] = curl.AUTH_NTLM;
   ["DIGEST_IE"       ] = curl.AUTH_DIGEST_IE;
   ["NTLM_WB"         ] = curl.AUTH_NTLM_WB;

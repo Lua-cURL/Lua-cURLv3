@@ -16,7 +16,8 @@
 #define LCURL_MAKE_VERSION(MIN, MAJ, PAT) ((MIN<<16) + (MAJ<<8) + PAT)
 #define LCURL_CURL_VER_GE(MIN, MAJ, PAT) (LIBCURL_VERSION_NUM >= LCURL_MAKE_VERSION(MIN, MAJ, PAT))
 
-#define LCURL_STATIC_ASSERT(A) {(int(*)[(A)?1:0])0;}
+//! @fixme on mingw32 (gcc 4.8.1) this does not work
+#define LCURL_STATIC_ASSERT(A) {(void)(int(*)[(A)?1:0])0;}
 
 typedef struct lcurl_const_tag{
   const char *name;

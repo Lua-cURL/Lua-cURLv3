@@ -3,9 +3,9 @@ local curl = require "lcurl"
 -- How many times curl_multi_perform should be called before hitting of CURLPAUSE_CONT.
 -- (including curl_multi_perform that causes WriteFunction to pause writes,
 -- i.e. 1 means that CURLPAUSE_CONT will be performed immediately after pause.)
-local WAIT_COUNT   = 32
+local WAIT_COUNT   = 15
 
-local SIZE         = 100 * 1024
+local SIZE         = 10 * 1024
 local RESOURCE_URL = "http://httpbin.org/bytes/" .. SIZE
 
 local State = {

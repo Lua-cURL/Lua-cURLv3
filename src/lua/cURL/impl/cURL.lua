@@ -58,10 +58,12 @@ local function make_iterator(self, perform)
 
   end
 
-  local remain = #self._easy
-  for _, e in ipairs(self._easy) do
-    e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
-    e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
+  local remain = self._easy.n
+  for h, e in pairs(self._easy) do
+    if h ~= 'n' then 
+      e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
+      e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
+    end
   end
 
   assert(perform(self))
@@ -78,11 +80,9 @@ local function make_iterator(self, perform)
 
       if n <= remain then
         while true do
-          local e, ok, err = assert(self:info_read())
-          if e == 0 then break end
-          for _, a in ipairs(self._easy) do
-            if e == a:handle() then e = a break end
-          end
+          local h, ok, err = assert(self:info_read())
+          if h == 0 then break end
+          local e = assert(self._easy[h])
           if ok then
             ok = e:getinfo_response_code() or ok
             buffers:append(e, "done", ok)
@@ -90,7 +90,6 @@ local function make_iterator(self, perform)
         end
         remain = n
       end
-
     end
   end
 end
@@ -276,7 +275,7 @@ local add_handle    = wrap_function("add_handle")
 local remove_handle = wrap_function("remove_handle")
 
 function Multi:__init()
-  self._easy = {}
+  self._easy = {n = 0}
   return self
 end
 
@@ -285,14 +284,26 @@ function Multi:perform()
 end
 
 function Multi:add_handle(e)
-  self._easy = self._easy or {}
-  self._easy[#self._easy + 1] = e
-  return add_handle(self, e:handle())
+  assert(self._easy.n >= 0)
+
+  local h = e:handle()
+  if self._easy[h] then return self end
+
+  local ok, err = add_handle(self, h)
+  if not ok then return nil, err end
+  self._easy[h], self._easy.n = e, self._easy.n + 1
+  return self
 end
 
 function Multi:remove_handle(e)
-  self._easy[#self._easy + 1] = e
-  return remove_handle(self, e:handle())
+  local h = e:handle()
+
+  if self._easy[h] then
+    self._easy[h], self._easy.n = nil, self._easy.n - 1
+  end
+  assert(self._easy.n >= 0)
+
+  return remove_handle(self, h)
 end
 
 end
@@ -348,7 +359,7 @@ end
 local Multi = class(curl.multi) do
 
 function Multi:__init()
-  self._easy = {}
+  self._easy = {n = 0}
   return self
 end
 
@@ -356,17 +367,30 @@ function Multi:iperform()
   return make_iterator(self, self.perform)
 end
 
-local add_handle = wrap_function("add_handle")
 function Multi:add_handle(e)
-  self._easy[#self._easy + 1] = e
-  return add_handle(self, e:handle())
+  assert(self._easy.n >= 0)
+
+  local h = e:handle()
+  if self._easy[h] then return self end
+
+  local ok, err = add_handle(self, h)
+  if not ok then return nil, err end
+  self._easy[h], self._easy.n = e, self._easy.n + 1
+  return self
 end
 
-local remove_handle = wrap_function("remove_handle")
 function Multi:remove_handle(e)
-  self._easy[#self._easy + 1] = e
-  return remove_handle(self, e:handle())
+  local h = e:handle()
+
+  if self._easy[h] then
+    self._easy[h], self._easy.n = nil, self._easy.n - 1
+  end
+  assert(self._easy.n >= 0)
+
+  return remove_handle(self, h)
 end
+
+--! @fixme Multi:info_read(true) should also remove easy handle from self._easy
 
 end
 -------------------------------------------

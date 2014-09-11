@@ -26,6 +26,7 @@ install:
 
 script: 
   - cd test
+  - lua -e "print(require 'cURL.utils'.find_ca_bundle())"
   - lunit.sh test_easy.lua
   - lunit.sh test_safe.lua
   - lunit.sh test_form.lua

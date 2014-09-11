@@ -410,8 +410,8 @@ static int lcurl_easy_unset_HTTPPOST(lua_State *L){
           we also unset it to be sure that there no way to
           call default curl reader with our READDATA
        */
-      curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, (void*)0);
-      curl_easy_setopt(p->curl, CURLOPT_READDATA, 0);
+      curl_easy_setopt(p->curl, CURLOPT_READFUNCTION, NULL);
+      curl_easy_setopt(p->curl, CURLOPT_READDATA, NULL);
     }
     lcurl_storage_remove_i(L, p->storage, CURLOPT_HTTPPOST);
   }

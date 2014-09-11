@@ -393,7 +393,16 @@ function Multi:remove_handle(e)
   return remove_handle(self, h)
 end
 
---! @fixme Multi:info_read(true) should also remove easy handle from self._easy
+function Multi:info_read(...)
+  local h, ok, err = self:handle():info_read(...)
+  if not h then return nil, ok end
+  if h == 0 then return h end
+
+  if ... and self._easy[h] then
+    self._easy[h], self._easy.n = nil, self._easy.n - 1
+  end
+  return h, ok, err
+end
 
 end
 -------------------------------------------

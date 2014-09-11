@@ -358,6 +358,9 @@ end
 -------------------------------------------
 local Multi = class(curl.multi) do
 
+local add_handle    = wrap_function("add_handle")
+local remove_handle = wrap_function("remove_handle")
+
 function Multi:__init()
   self._easy = {n = 0}
   return self

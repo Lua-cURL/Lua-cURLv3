@@ -67,6 +67,7 @@ install: all
 	$(INSTALL) $(BIN) $(DESTDIR)$(LUA_CMOD)
 	$(INSTALL) src/lua/cURL.lua $(DESTDIR)$(LUA_LMOD)
 	$(INSTALL) src/lua/cURL/safe.lua $(DESTDIR)$(LUA_LMOD)/cURL
+	$(INSTALL) src/lua/cURL/utils.lua $(DESTDIR)$(LUA_LMOD)/cURL
 	$(INSTALL) src/lua/cURL/impl/cURL.lua $(DESTDIR)$(LUA_LMOD)/cURL/impl
 
 clean:

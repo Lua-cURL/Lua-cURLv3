@@ -35,7 +35,7 @@ local function find_ca_bundle(name)
   end
 
   if env.SSL_CERT_DIR and path.isdir(env.SSL_CERT_DIR) then
-    return false, env.SSL_CERT_DIR
+    return nil, env.SSL_CERT_DIR
   end
 
   if env.SSL_CERT_FILE and path.isfile(env.SSL_CERT_FILE) then

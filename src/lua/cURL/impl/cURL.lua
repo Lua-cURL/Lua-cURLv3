@@ -12,6 +12,12 @@
 -- Implementation of Lua-cURL http://msva.github.io/lua-curl
 --
 
+local function clone(t, o)
+  o = o or {}
+  for k,v in pairs(t) do o[k]=v end
+  return o
+end
+
 local function wrap_function(k)
   return function(self, ...)
     local ok, err = self._handle[k](self._handle, ...)
@@ -92,6 +98,80 @@ local function make_iterator(self, perform)
       end
     end
   end
+end
+
+
+-- name = <string>/<stream>/<file>/<buffer>
+--
+-- <stream> = {
+--   stream  = function/object
+--   length  = ?number
+--   name    = ?string
+--   type    = ?string
+--   headers = ?table
+-- }
+--
+-- <file> = {
+--   file    = string
+--   type    = ?string
+--   name    = ?string
+--   headers = ?table
+-- }
+--
+-- <buffer> = {
+--   data    = string
+--   name    = string
+--   type    = ?string
+--   headers = ?table
+-- }
+--
+local function form_add_element(form, name, value)
+  local vt = type(value)
+  if vt == "string" then return form:add_content(name, value) end
+
+  assert(type(name) == "string")
+  assert(vt == "table")
+  assert((value.name == nil)   or (type(value.name) == 'string'))
+  assert((value.type == nil)   or (type(value.type) == 'string'))
+  assert((value.headrs == nil) or (type(value.type) == 'string'))
+
+  if value.stream then
+    local vst = type(value.stream)
+
+    if vst == 'function' then
+      assert(type(value.length) == 'number')
+      local length = value.length
+      return form:add_stream(name, value.name, value.type, value.headers, length, value.stream)
+    end
+
+    if (vst == 'table') or (vst == 'userdata') then
+      local length = value.length or assert(value.stream:length())
+      assert(type(length) == 'number')
+      return form:add_stream(name, value.name, value.type, value.headers, length, value.stream)
+    end
+
+    error("Unsupported stream type: " .. vst)
+  end
+
+  if value.file then
+    assert(type(value.file) == 'string')
+    return form:add_file(name, value.file, value.type, value.filename, value.headers)
+  end
+
+  if value.data then
+    assert(type(value.data) == 'string')
+    assert(type(value.name) == 'string')
+    return form:add_buffer(name, value.name, value.data, value.type, value.headers)
+  end
+end
+
+local function form_add(form, data)
+  for k, v in pairs(data) do
+    local ok, err = form_add_element(form, k, v)
+    if not ok then return nil, err end
+  end
+
+  return form
 end
 
 local function class(ctor)
@@ -335,6 +415,21 @@ end
 local function Load_cURLv3(cURL, curl)
 
 -------------------------------------------
+local Form = class(curl.form) do
+
+function Form:__init(opt)
+  if opt then return self:add(opt) end
+  return self
+end
+
+function Form:add(data)
+  return form_add(self, data)
+end
+
+end
+-------------------------------------------
+
+-------------------------------------------
 local Easy = class(curl.easy) do
 
 function Easy:__init(opt)
@@ -350,6 +445,33 @@ function Easy:perform(opt)
   end
 
   return perform(self)
+end
+
+local setopt_httppost = wrap_function("setopt_httppost")
+function Easy:setopt_httppost(form)
+  return setopt_httppost(self, form:handle())
+end
+
+local setopt = wrap_function("setopt")
+function Easy:setopt(k, v)
+  if type(k) == 'table' then
+    local t = k
+
+    local hpost = t.httppost or t[curl.OPT_HTTPPOST]
+    if hpost and hpost._handle then
+      t = clone(t)
+      if t.httppost           then t.httppost           = hpost:handle() end
+      if t[curl.OPT_HTTPPOST] then t[curl.OPT_HTTPPOST] = hpost:handle() end
+    end
+
+    return setopt(self, t)
+  end
+
+  if k == curl.OPT_HTTPPOST then
+    return self:setopt_httppost(v)
+  end
+
+  return setopt(self, k, v)
 end
 
 end
@@ -408,6 +530,8 @@ end
 -------------------------------------------
 
 setmetatable(cURL, {__index = curl})
+
+function cURL.form(...)  return Form:new(...)  end
 
 function cURL.easy(...)  return Easy:new(...)  end
 

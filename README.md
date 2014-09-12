@@ -18,9 +18,9 @@ In fact for now it provide `lcurl` API directly and needed to redesign.<br/>
 
 
 ## Documentation
-[lcurl API](http://lua-curl.github.io/lcurl)<br/>
+[lcurl API](http://lua-curl.github.io/lcurl/modules/lcurl.html)<br/>
 [Lua-cURLv2 API](http://lua-curl.github.io)<br/>
-Lua-cURLv3 API - TODO
+[Lua-cURLv3 API](http://lua-curl.github.io/lcurl/modules/cURL.html)
 
 ## 
 

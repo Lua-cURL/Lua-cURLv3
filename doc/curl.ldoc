@@ -1,0 +1,138 @@
+--- 
+-- Provide same functions as `lcurl` module with some additions.
+-- Here are the only functions that have been added or changed.
+--
+-- @module cURL
+do
+
+--- Create HTTP multipart/formdata object.
+--
+-- @tparam FORM_DESCRIPTION form description
+-- @treturn[1] Form new curl HTTP Post object context
+--
+-- @see FORM_DESCRIPTION
+function form() end
+
+end
+
+do
+
+--- Form description table.
+--
+-- @table FORM_DESCRIPTION
+-- @tfield string|form_stream|form_file|form_buffer content_name
+--
+-- @usage
+-- post_form = cURL.form{
+-- 
+--   -- file form filesystem
+--   name01 = {
+--     file = "post_form.lua",
+--     type = "text/plain",
+--     name = "post.lua",
+--   },
+-- 
+--   -- file form string
+--   name02 = {
+--     data = "<html><bold>bold</bold></html>",
+--     name = "dummy.html",
+--     type = "text/html",
+--   },
+-- 
+--   -- file form stream object
+--   name03 = {
+--     stream  = Stream:new('8', 25),
+--     name    = "stream1.txt",
+--     type    = "text/plain",
+--     headers = {
+--       "X-Test-Char : 8",
+--       "X-Test-length : 25",
+--     }
+--   },
+-- 
+--   -- file form stream function
+--   name04 = {
+--     stream  = stream,
+--     length  = length,
+--     name    = "stream2.txt",
+--     type    = "text/plain",
+--   },
+-- 
+-- }
+
+--- Table describe stream part in form.
+--
+-- @table form_stream
+-- @tfield function|table|userdata stream stream function is same as in readfunction.
+--        Also stream object may provide `length` method.
+-- @tfield[opt=stream:length()] number length
+-- @tfield[opt] string name file name
+-- @tfield[opt] string type mime type (e.g. 'text/plain')
+-- @tfield[opt] table headers array of headers 
+--
+
+--- Table describe file part in form.
+--
+-- @table form_file
+-- @tfield string file path to file in local FS (e.g. 'path/to/some/file.txt')
+-- @tfield[opt=basename(file)] string name file name
+-- @tfield[opt] string type mime type (e.g. 'text/plain')
+-- @tfield[opt] table headers array of headers 
+--
+
+--- Table describe buffer part in form.
+--
+-- @table form_buffer
+-- @tfield string data file content
+-- @tfield string name file name
+-- @tfield[opt] string type mime type (e.g. 'text/plain')
+-- @tfield[opt] table headers array of headers 
+--
+
+end
+
+--- HTTP multipart/formdata object
+-- @type httpform
+--
+do
+
+--- Add new part to form.
+--
+-- @tparam FORM_DESCRIPTION form description
+-- @treturn[1] httpform self
+--
+-- @see FORM_DESCRIPTION
+function add() end
+
+end
+
+--- Easy curl object
+-- @type easy
+--
+do
+
+--- Perform a file transfer
+-- 
+-- @tparam[opt] table options
+-- @treturn[1] easy self
+-- @usage
+--  e:perfom{writefunction = assert(io.open("fname.txt", "w+b"))}
+function perfom() end
+
+end
+
+--- Muli curl object
+-- @type multi
+--
+do
+
+--- Iterator that returns the next data, type and corresponding easy handle.
+-- 
+-- <br/>Returned data types: `response`, `header`, `data`, `error`, `done`.
+-- <br/>Note. response data may appeare several times (e.g. if you proceed http request 
+--  with digest auth you should get 401 and 200 responses).
+--
+-- @treturn Iterator iterator for generic for
+function iperfom() end
+
+end

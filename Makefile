@@ -50,7 +50,7 @@ COMMONFLAGS       = -O2 -g -pipe -fPIC $(OS_FLAGS)
 LF                = $(LIBS) $(LDFLAGS)
 CF                = $(INCLUDES) $(DEFINES) $(COMMONFLAGS) $(WARN) -DPTHREADS $(CFLAGS)
 
-SCR               = src/lua/*.lua
+SCR               = src/lua/*.lua src/lua/cURL/*.lua src/lua/cURL/impl/*.lua
 SRCS              = src/*.c
 
 BIN               = $(T).so
@@ -63,9 +63,11 @@ $(BIN): $(SRCS)
 	$(CC) $(CF) -o $@ $^ $(LF)
 
 install: all
-	$(INSTALL) -d $(DESTDIR)$(LUA_CMOD) $(DESTDIR)$(LUA_LMOD)
+	$(INSTALL) -d $(DESTDIR)$(LUA_CMOD) $(DESTDIR)$(LUA_LMOD)/cURL/impl
 	$(INSTALL) $(BIN) $(DESTDIR)$(LUA_CMOD)
-	$(INSTALL) $(SCR) $(DESTDIR)$(LUA_LMOD)
+	$(INSTALL) src/lua/cURL.lua $(DESTDIR)$(LUA_LMOD)
+	$(INSTALL) src/lua/cURL/safe.lua $(DESTDIR)$(LUA_LMOD)/cURL
+	$(INSTALL) src/lua/cURL/impl/cURL.lua $(DESTDIR)$(LUA_LMOD)/cURL/impl
 
 clean:
 	rm -f $(BIN)

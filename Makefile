@@ -36,7 +36,7 @@ OS_FLAGS         ?= -bundle -undefined dynamic_lookup
 MAC_ENV          ?= env MACOSX_DEPLOYMENT_TARGET='10.3'
 endif
 
-ifeq ($(DEBUG),)
+ifneq ($(DEBUG),)
 DBG               = -ggdb
 endif
 

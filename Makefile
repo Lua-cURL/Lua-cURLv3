@@ -36,17 +36,21 @@ OS_FLAGS         ?= -bundle -undefined dynamic_lookup
 MAC_ENV          ?= env MACOSX_DEPLOYMENT_TARGET='10.3'
 endif
 
+ifeq ($(DEBUG),)
+DBG               = -ggdb
+endif
+
 ifeq ($(DEV),)
-WARN= -Wall -Wno-unused-value
+WARN              = -Wall -Wno-unused-value
 else
-WARN= -Wall -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings -pedantic
+WARN              = -Wall -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings -pedantic
 endif
 
 INCLUDES          = -I$(LUA_INC)
 DEFINES           =
 LIBS              = -lrt -ldl $(CURL_LIBS)
 
-COMMONFLAGS       = -O2 -g -pipe -fPIC $(OS_FLAGS)
+COMMONFLAGS       = -O2 -g -pipe -fPIC $(OS_FLAGS) $(DBG)
 LF                = $(LIBS) $(LDFLAGS)
 CF                = $(INCLUDES) $(DEFINES) $(COMMONFLAGS) $(WARN) -DPTHREADS $(CFLAGS)
 

@@ -12,7 +12,7 @@ LUA_BIN          ?= $(LUA_IMPL)
 CC               ?= $(MAC_ENV) gcc
 
 
-LUA_VERSION       = $(shell $(PKG_CONFIG) --print-provides $(LUA_IMPL))
+LUA_VERSION       = $(shell $(PKG_CONFIG) --print-provides $(LUA_IMPL) 2>/dev/null)
 ifeq ($(LUA_VERSION),)
 LUA_CMOD         ?= /usr/lib/lua/5.1
 LUA_LMOD         ?= /usr/share/lua/5.1

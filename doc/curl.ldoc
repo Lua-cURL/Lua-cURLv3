@@ -133,6 +133,9 @@ do
 --  with digest auth you should get 401 and 200 responses).
 --
 -- @treturn Iterator iterator for generic for
-function iperfom() end
+--
+-- @usage
+-- for data, type, easy in m:iperform() do ... end
+function iperform() end
 
 end

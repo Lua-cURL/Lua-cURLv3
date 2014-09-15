@@ -303,13 +303,22 @@ function setopt_headerfunction() end
 -- A callback accepting one or two parameters.
 -- The first is the reader context if any, and the second is the maximum amount of data to be read.
 -- You can ignore second argument and pass as mach data as you need. lcurl can split data.
--- Function must return data to continue operation. To stop operation it must return empty string on nil.
+-- Function must return data to continue operation. To stop operation it must return empty string or nil or nothing.
 -- Otherwise the transfer will be aborted with an error.
+-- 
 --
 -- @tparam function reader
 -- @param[opt] context reader context
 -- @return[1] self
 --
+-- @usage
+-- local counter = 10
+-- c:setopt_readfunction(function()
+--   if counter > 0 then
+--     counter = counter - 1
+--     return 'a'
+--   end
+-- end)
 function setopt_readfunction() end
 
 --- Set reader function.

@@ -714,7 +714,7 @@ static size_t lcurl_read_callback(lua_State *L,
   }
 
   if(lua_gettop(L) == top){
-    return CURL_READFUNC_ABORT;
+    return 0;
   }
 
   assert(lua_gettop(L) >= top);

@@ -514,10 +514,10 @@ function teardown()
 end
 
 function test_abort_01()
-  assert_equal(c, c:setopt_readfunction(function() end))
-
-  local _, e = assert_nil(c:perform())
-  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+--  assert_equal(c, c:setopt_readfunction(function() end))
+--
+--  local _, e = assert_nil(c:perform())
+--  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
 end
 
 function test_abort_02()
@@ -611,12 +611,28 @@ function test_readbuffer()
 end
 
 function test_pass_01()
+  -- We need this to support file:read() method which returns nil as EOF
   assert_equal(c, c:setopt_readfunction(function() return nil end))
 
   assert_equal(c, c:perform())
   c:close()
   local data = read_file(fname)
   assert_equal(0, #data)
+end
+
+function test_pass_02()
+  local counter = 10
+  assert_equal(c, c:setopt_readfunction(function()
+    if counter > 0 then
+      counter = counter - 1
+      return 'a'
+    end
+  end))
+
+  assert_equal(c, c:perform())
+  c:close()
+  local data = read_file(fname)
+  assert_equal(('a'):rep(10), data)
 end
 
 end

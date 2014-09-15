@@ -131,6 +131,7 @@ do
 -- <br/>Returned data types: `response`, `header`, `data`, `error`, `done`.
 -- <br/>Note. response data may appeare several times (e.g. if you proceed http request 
 --  with digest auth you should get 401 and 200 responses).
+-- <br/> Easy handle is removed at the end of the operation (when get `done` or `error` row).
 --
 -- @treturn Iterator iterator for generic for
 --

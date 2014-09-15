@@ -93,6 +93,7 @@ local function make_iterator(self, perform)
             ok = e:getinfo_response_code() or ok
             buffers:append(e, "done", ok)
           else buffers:append(e, "error", err) end
+          self:remove_handle(e)
         end
         remain = n
       end

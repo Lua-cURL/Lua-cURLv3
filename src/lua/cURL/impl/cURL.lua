@@ -36,10 +36,8 @@ local function wrap_setopt_flags(k, flags)
   end
 end
 
-local function make_iterator(self, perform)
-  local curl = require "lcurl.safe"
-
-  local buffers = {resp = {}, _ = {}} do
+local function new_buffers()
+  local buffers = {resp = {}, _ = {}}
 
   function buffers:append(e, ...)
     local resp = assert(e:getinfo_response_code())
@@ -62,19 +60,35 @@ local function make_iterator(self, perform)
     end
   end
 
+  return buffers
+end
+
+local function make_iterator(self, perform)
+  local curl = require "lcurl.safe"
+
+  local buffers = new_buffers()
+
+  -- reset callbacks to all easy handles
+  local function reset_easy(self)
+    if not self._easy_mark then -- that means we have some new easy handles
+      for h, e in pairs(self._easy) do if h ~= 'n' then 
+          e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
+          e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
+      end end
+      self._easy_mark = true
+    end
+    return self._easy.n
   end
 
-  local remain = self._easy.n
-  for h, e in pairs(self._easy) do
-    if h ~= 'n' then 
-      e:setopt_writefunction (function(str) buffers:append(e, "data",   str) end)
-      e:setopt_headerfunction(function(str) buffers:append(e, "header", str) end)
-    end
-  end
+  if 0 == reset_easy(self) then return end
 
   assert(perform(self))
 
   return function()
+    -- we can add new handle during iteration
+    local remain = reset_easy(self)
+
+    -- wait next event
     while true do
       local e, t = buffers:next()
       if t then return t[2], t[1], e end
@@ -82,7 +96,7 @@ local function make_iterator(self, perform)
 
       self:wait()
 
-      local n, err = assert(perform(self))
+      local n = assert(perform(self))
 
       if n <= remain then
         while true do
@@ -95,8 +109,9 @@ local function make_iterator(self, perform)
           else buffers:append(e, "error", err) end
           self:remove_handle(e)
         end
-        remain = n
       end
+
+      remain = n
     end
   end
 end
@@ -502,6 +517,8 @@ function Multi:add_handle(e)
   local ok, err = add_handle(self, h)
   if not ok then return nil, err end
   self._easy[h], self._easy.n = e, self._easy.n + 1
+  self._easy_mark = nil
+
   return self
 end
 

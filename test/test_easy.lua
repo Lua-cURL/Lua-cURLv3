@@ -700,6 +700,61 @@ function test_reset()
   assert(not pfrom.value)
 end
 
+end
+
+local _ENV = TEST_CASE'setopt_postfields'    if ENABLE then
+
+local c
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+function test()
+
+  do local fields = {}
+    for i = 1, 100 do fields[#fields + 1] = "key" .. i .. "=value"..i end
+    fields = table.concat(fields, '&')
+    c = assert(curl.easy{
+      url           = "http://httpbin.org/post",
+      postfields    = fields,
+      writefunction = function()end,
+    })
+  end
+
+  -- call gc to try clear `fields` string
+  for i = 1, 4 do collectgarbage"collect" end
+
+  c:perform()
+end
+
+function test_unset()
+  local pfields
+
+  do local fields = {}
+    for i = 1, 100 do fields[#fields + 1] = "key" .. i .. "=value"..i end
+    fields = table.concat(fields, '&')
+    c = assert(curl.easy{
+      url           = "http://httpbin.org/post",
+      postfields    = fields,
+      writefunction = function()end,
+    })
+    pfields = weak_ptr(fields)
+  end
+
+  -- call gc to try clear `fields` string
+  for i = 1, 4 do collectgarbage"collect" end
+  assert_string(pfields.value)
+
+  assert_equal(c, c:unsetopt_postfields())
+
+  -- @todo check internal storage because gc really do not clear `weak` string
+  -- for i = 1, 4 do collectgarbage"collect" end
+  -- assert_nil(pfields.value)
+
+  -- c:perform()
+end
 
 end
 

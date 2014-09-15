@@ -31,6 +31,7 @@ script:
   - lunit.sh test_safe.lua
   - lunit.sh test_form.lua
   - lunit.sh test_pause02.c.lua
+  - lunit.sh test_curl.lua
 
 after_success:
   - coveralls -b .. -r ..

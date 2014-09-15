@@ -32,7 +32,6 @@ Lua-cURLv2 binding has several problems:
 * it has memory leak when send multipart/formdata
 * it does not save string for curl options that may result crush in libcurl
 * there no way to get result for operations in multi interface (e.g. if one of easy operation fail you can not get result code/error message)
-* you can not use multi interface for upload operation (?)
 * you can not use your own callback function to perform operation with multi interface
 * you can not pass your context to callback functions
 
@@ -62,7 +61,7 @@ curl.easy()
 curl.easy()
   :setopt_url('http://posttestserver.com/post.php')
   :setopt_writefunction(io.write)
-  :setopt_httppost(curl.form() -- lcurl guarantee that form will be alive
+  :setopt_httppost(curl.form() -- Lua-cURL guarantee that form will be alive
     :add_content("test_content", "some data", {
       "MyHeader: SomeValue"
     })
@@ -101,16 +100,12 @@ curl.easy()
 -- Multi FTP Upload
 
 -- We get error E_LOGIN_DENIED for this operation
-e1 = curl.easy()
-  :setopt_url("ftp://moteus:999999@127.0.0.1/test1.dat")
-  :setopt_upload(true)
+e1 = curl.easy{url = "ftp://moteus:999999@127.0.0.1/test1.dat", upload = true}
   :setopt_readfunction(
     function(t) return table.remove(t) end, {"1111", "2222"}
   )
 
-e2 = curl.easy()
-  :setopt_url("ftp://moteus:123456@127.0.0.1/test2.dat")
-  :setopt_upload(true)
+e2 = curl.easy{url = "ftp://moteus:123456@127.0.0.1/test2.dat", upload = true}
   :setopt_readfunction(get_bin_by(("e"):rep(1000), 5))
 
 m = curl.multi()

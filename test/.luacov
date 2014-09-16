@@ -1,0 +1,38 @@
+return {
+  configfile = ".luacov",
+
+  -- filename to store stats collected
+  statsfile = "luacov.stats.out",
+
+  -- filename to store report
+  reportfile = "luacov.report.json",
+
+  -- Run reporter on completion? (won't work for ticks)
+  runreport = false,
+
+  -- Delete stats file after reporting?
+  deletestats = false,
+
+  -- Patterns for files to include when reporting
+  -- all will be included if nothing is listed
+  -- (exclude overrules include, do not include
+  -- the .lua extension)
+  include = {
+    "/cURL$",
+    "/cURL/.+$",
+  },
+
+  -- Patterns for files to exclude when reporting
+  -- all will be included if nothing is listed
+  -- (exclude overrules include, do not include
+  -- the .lua extension)
+  exclude = {
+  },
+
+  -- configuration for luacov-coveralls reporter
+  coveralls = {
+    pathcorrect = {
+      {"/usr/local/share/lua/5.[123]", "src/lua"};
+    },
+  },
+}

@@ -1,3 +1,13 @@
+--
+--  Author: Alexey Melnichuk <mimir@newmail.ru>
+--
+--  Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+--
+--  Licensed according to the included 'LICENSE' document
+--
+--  This file is part of Lua-cURL library.
+--
+
 --- Returns path to cURL ca bundle
 --
 -- @tparam[opt="curl-ca-bundle.crt"] string name name of bundle

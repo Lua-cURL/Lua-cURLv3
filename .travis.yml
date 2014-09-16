@@ -20,6 +20,7 @@ before_install:
   - sudo luarocks install dkjson
   - sudo luarocks install luafilesystem
   - sudo luarocks install lua-path
+  - sudo luarocks install luacov-coveralls
 
 install:
   - sudo luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"
@@ -34,7 +35,8 @@ script:
   - lunit.sh test_curl.lua
 
 after_success:
-  - coveralls -b .. -r ..
+  - coveralls -b .. -r .. --dump c.report.json
+  - luacov-coveralls -j c.report.json
 
 notifications:
   email:

@@ -1,3 +1,5 @@
+local _,luacov = pcall(require, "luacov")
+
 local HAS_RUNNER = not not lunit
 local lunit      = require "lunit"
 local TEST_CASE  = assert(lunit.TEST_CASE)

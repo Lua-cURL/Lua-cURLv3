@@ -5,11 +5,7 @@
 --
 --  Licensed according to the included 'LICENSE' document
 --
---  This file is part of lua-lcurl library.
---
-
---
--- Implementation of Lua-cURL http://msva.github.io/lua-curl
+--  This file is part of Lua-cURL library.
 --
 
 local function clone(t, o)

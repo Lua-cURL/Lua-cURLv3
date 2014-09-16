@@ -130,7 +130,7 @@ OPT_ENTRY( expect_100_timeout_ms,  EXPECT_100_TIMEOUT_MS,    LNG, 0,            
 
 #if LCURL_CURL_VER_GE(7,20,0)
 OPT_ENTRY( mail_from,              MAIL_FROM,                STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE ) /*! @check doc says `blank` */
-OPT_ENTRY( mail_rcpt,              MAIL_RCPT,                STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
+OPT_ENTRY( mail_rcpt,              MAIL_RCPT,                LST, 0,                  LCURL_DEFAULT_VALUE )
 #endif
 #if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( mail_auth,              MAIL_AUTH,                STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )

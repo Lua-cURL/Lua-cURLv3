@@ -20,7 +20,7 @@ do
 --- Form description table.
 --
 -- @table FORM_DESCRIPTION
--- @tfield string|form_stream|form_file|form_buffer content_name
+-- @tfield string|form_stream|form_file|form_buffer|form_content content_name
 --
 -- @usage
 -- post_form = cURL.form{
@@ -58,6 +58,14 @@ do
 --     type    = "text/plain",
 --   },
 -- 
+--   -- content form string
+--   name05 = 'value05',
+--
+--   -- content form string
+--   name06 = { 'value06', -- or content = 'value05'
+--     type    = "text/plain",
+--   },
+-- 
 -- }
 
 --- Table describe stream part in form.
@@ -85,6 +93,14 @@ do
 -- @table form_buffer
 -- @tfield string data file content
 -- @tfield string name file name
+-- @tfield[opt] string type mime type (e.g. 'text/plain')
+-- @tfield[opt] table headers array of headers 
+--
+
+--- Table describe content part in form.
+--
+-- @table form_content
+-- @tfield string content value (or first field in table)
 -- @tfield[opt] string type mime type (e.g. 'text/plain')
 -- @tfield[opt] table headers array of headers 
 --

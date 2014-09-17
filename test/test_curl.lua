@@ -87,5 +87,200 @@ end
 
 end
 
+local _ENV = TEST_CASE'form'           if ENABLE then
+
+local post
+
+function teardown()
+  if post then post:free() end
+  post = nil
+end
+
+function test_content_01()
+  post = assert(scurl.form{name01 = 'value01'})
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue01\r\n", data)
+  assert_match('name="name01"', data)
+end
+
+function test_content_02()
+  post = assert(scurl.form{name02 = {'value02', type = "text/plain"}})
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue02\r\n", data)
+  assert_match('name="name02"', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_content_03()
+  post = assert(scurl.form{name03 = {content = 'value03', headers = {"Content-Encoding: gzip"}}})
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue03\r\n", data)
+  assert_match('name="name03"', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_content_04()
+  post = assert(scurl.form{name04 = {'value04', type = "text/plain", headers = {"Content-Encoding: gzip"}}})
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue04\r\n", data)
+  assert_match('name="name04"', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_buffer_01()
+  post = assert(scurl.form{name01 = {
+    name = 'file01',
+    data = 'value01',
+  }})
+
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue01\r\n", data)
+  assert_match('name="name01"', data)
+  assert_match('filename="file01"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+end
+
+function test_buffer_02()
+  post = assert(scurl.form{name02 = {
+    name = 'file02',
+    data = 'value02',
+    type = "text/plain",
+  }})
+
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue02\r\n", data)
+  assert_match('name="name02"', data)
+  assert_match('filename="file02"', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+end
+
+function test_buffer_03()
+  post = assert(scurl.form{name03 = {
+    name = 'file03',
+    data = 'value03',
+    headers = {"Content-Encoding: gzip"},
+  }})
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue03\r\n", data)
+  assert_match('name="name03"', data)
+  assert_match('filename="file03"', data)
+  assert_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_buffer_04()
+  post = assert(scurl.form{name04 = {
+    name = 'file04',
+    data = 'value04',
+    type = "text/plain",
+    headers = {"Content-Encoding: gzip"},
+  }})
+
+  local data = assert_string(post:get())
+  assert_match("\r\n\r\nvalue04\r\n", data)
+  assert_match('name="name04"', data)
+  assert_match('filename="file04"', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_stream_01()
+  post = assert(scurl.form{name01 = {
+    stream = function() end,
+    length = 128,
+  }})
+  local data = assert_string(post:get())
+  assert_match('name="name01"', data)
+  assert_not_match('filename', data)
+end
+
+function test_stream_02()
+  post = assert(scurl.form{name02 = {
+    name   = 'file02',
+    stream = function() end,
+    length = 128,
+  }})
+  local data = assert_string(post:get())
+  assert_match('name="name02"', data)
+  assert_match('filename="file02"', data)
+end
+
+function test_stream_03()
+  post = assert(scurl.form{name03 = {
+    name   = 'file03',
+    stream = function() end,
+    length = 128,
+    type   = 'text/plain',
+  }})
+
+  local data = assert_string(post:get())
+  assert_match('name="name03"', data)
+  assert_match('filename="file03"', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+end
+
+function test_stream_04()
+  post = assert(scurl.form{name04 = {
+    name   = 'file04',
+    stream = function() end,
+    length = 128,
+    type   = 'text/plain',
+    headers = {"Content-Encoding: gzip"},
+  }})
+  local data = assert_string(post:get())
+  assert_match('name="name04"', data)
+  assert_match('filename="file04"', data)
+  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Encoding: gzip\r\n', data)
+end
+
+function test_stream_05()
+  post = assert(scurl.form{name05 = {
+    stream = {
+      length = function() return 128 end;
+      read   = function() end;
+    }
+  }})
+  local data = assert_string(post:get())
+  assert_match('name="name05"', data)
+  assert_not_match('filename', data)
+end
+
+function test_error()
+  assert_error(function() post = scurl.form{name = {content = 1}}             end)
+  assert_error(function() post = scurl.form{name = {1}}                       end)
+  assert_error(function() post = scurl.form{name = {data = {}}}               end)
+  assert_error(function() post = scurl.form{name = {file = true}}             end)
+  assert_error(function() post = scurl.form{name = {stream = function() end}} end)
+  assert_error(function() post = scurl.form{name = {stream = {}}}             end)
+  assert_error(function() post = scurl.form{name = {stream = {
+    read=function()end;length=function()end
+  }}}end)
+  assert_error(function() post = scurl.form{name = {stream = {
+    read=function()end;length=function() return "123" end
+  }}}end)
+  assert_error(function() post = scurl.form{name = {stream = {
+    read=function()end;length=function() return "hello" end
+  }}}end)
+end
+
+function test_ignore_unknown()
+  post = assert(scurl.form{
+    name01 = {},
+    name02 = {name = "helo"},
+  })
+  local data = assert_string(post:get())
+  assert_not_match('name="name01"', data)
+  assert_not_match('name="name02"', data)
+end
+
+function test_empty()
+  post = assert(scurl.form{})
+end
+
+end
 
 if not HAS_RUNNER then lunit.run() end

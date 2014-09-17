@@ -41,6 +41,8 @@ external_dependencies = {
 }
 
 build = {
+  copy_directories = {'doc', 'examples'},
+
   type = "builtin",
 
   platforms = {

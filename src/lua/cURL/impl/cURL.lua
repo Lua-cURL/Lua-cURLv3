@@ -115,7 +115,7 @@ local function make_iterator(self, perform)
 end
 
 
--- name = <string>/<stream>/<file>/<buffer>
+-- name = <string>/<stream>/<file>/<buffer>/<content>
 --
 -- <stream> = {
 --   stream  = function/object
@@ -139,15 +139,22 @@ end
 --   headers = ?table
 -- }
 --
+-- <content> = {
+--   content = string -- or first key in table
+--   type    = ?string
+--   headers = ?table
+-- }
+-- 
+
 local function form_add_element(form, name, value)
   local vt = type(value)
   if vt == "string" then return form:add_content(name, value) end
 
   assert(type(name) == "string")
   assert(vt == "table")
-  assert((value.name == nil)   or (type(value.name) == 'string'))
-  assert((value.type == nil)   or (type(value.type) == 'string'))
-  assert((value.headrs == nil) or (type(value.type) == 'string'))
+  assert((value.name    == nil) or (type(value.name   ) == 'string'))
+  assert((value.type    == nil) or (type(value.type   ) == 'string'))
+  assert((value.headers == nil) or (type(value.headers) == 'table' ))
 
   if value.stream then
     local vst = type(value.stream)
@@ -177,6 +184,17 @@ local function form_add_element(form, name, value)
     assert(type(value.name) == 'string')
     return form:add_buffer(name, value.name, value.data, value.type, value.headers)
   end
+
+  local content = value[1] or value.content
+  if content then
+    assert(type(content) == 'string')
+    if value.type then
+      return form:add_content(name, content, value.type, value.headers)
+    end
+    return form:add_content(name, content, value.headers)
+  end
+
+  return form
 end
 
 local function form_add(form, data)

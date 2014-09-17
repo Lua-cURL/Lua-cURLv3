@@ -41,6 +41,13 @@ Original Lua-cURLv2 binding has several problems:
 luarocks install lua-curl --server=https://rocks.moonscript.org/dev
 ```
 
+## List of incompatibility with original [Lua-cURLv2](https://github.com/Lua-cURL/Lua-cURLv2)
+
+* objects are tables
+* multi:perform() also returns ("done",code), ("error",error) and ("response",code) records
+* writer callback does not recv string len (just string itself)
+* on Lua > 5.2 errors are objects but not strings
+
 ## Usage
 
 ```Lua

@@ -104,6 +104,8 @@ local function make_iterator(self, perform)
             buffers:append(e, "done", ok)
           else buffers:append(e, "error", err) end
           self:remove_handle(e)
+          e:unsetopt_headerfunction()
+          e:unsetopt_writefunction()
         end
       end
 
@@ -384,6 +386,8 @@ function Multi:add_handle(e)
   local ok, err = add_handle(self, h)
   if not ok then return nil, err end
   self._easy[h], self._easy.n = e, self._easy.n + 1
+  self._easy_mark = nil
+
   return self
 end
 

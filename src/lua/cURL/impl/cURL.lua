@@ -24,8 +24,11 @@ end
 
 local function wrap_setopt_flags(k, flags)
   k = "setopt_" .. k
+  local flags2 = clone(flags)
+  for k, v in pairs(flags) do flags2[v] = v end
+
   return function(self, v)
-    v = assert(flags[v], "Unsupported value " .. tostring(v))
+    v = assert(flags2[v], "Unsupported value " .. tostring(v))
     local ok, err = self._handle[k](self._handle, v)
     if ok == self._handle then return self end
     return ok, err

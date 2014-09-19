@@ -216,7 +216,7 @@ local function class(ctor)
 
     if not fn and self._handle[k] then
       fn = wrap_function(k)
-      self[k] = fn
+      C[k] = fn
     end
     return fn
   end

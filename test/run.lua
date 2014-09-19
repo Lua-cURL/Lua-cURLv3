@@ -1,3 +1,11 @@
+local RUN = lunit and function()end or function ()
+  local res = lunit.run()
+  if res.errors + res.failed > 0 then
+    os.exit(-1)
+  end
+  return os.exit(0)
+end
+
 lunit = require "lunit"
 
 local ok, curl = pcall(require, "lcurl")
@@ -16,3 +24,6 @@ print("")
 require "test_safe"
 require "test_easy"
 require "test_form"
+require "test_curl"
+
+RUN()

@@ -1,4 +1,11 @@
-local HAS_RUNNER = not not lunit
+local RUN = lunit and function()end or function ()
+  local res = lunit.run()
+  if res.errors + res.failed > 0 then
+    os.exit(-1)
+  end
+  return os.exit(0)
+end
+
 local lunit      = require "lunit"
 local TEST_CASE  = assert(lunit.TEST_CASE)
 local skip       = lunit.skip or function() end
@@ -275,4 +282,4 @@ end
 
 end
 
-if not HAS_RUNNER then lunit.run() end
+RUN()

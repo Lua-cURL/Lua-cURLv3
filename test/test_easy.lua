@@ -1,4 +1,11 @@
-local HAS_RUNNER = not not lunit
+local RUN = lunit and function()end or function ()
+  local res = lunit.run()
+  if res.errors + res.failed > 0 then
+    os.exit(-1)
+  end
+  return os.exit(0)
+end
+
 local lunit      = require "lunit"
 local TEST_CASE  = assert(lunit.TEST_CASE)
 local skip       = lunit.skip or function() end
@@ -405,10 +412,11 @@ end
 
 function test_abort_01()
   assert_equal(f, f:add_stream('SSSSS', 128 * 1024, function() end))
+  assert_equal(c, c:setopt_timeout(5))
   assert_equal(c, c:setopt_httppost(f))
 
   local _, e = assert_nil(c:perform())
-  assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), e)
+  assert_equal(curl.error(curl.ERROR_EASY, curl.E_OPERATION_TIMEDOUT), e)
 end
 
 function test_abort_02()
@@ -556,12 +564,24 @@ end
 
 function test_pause()
 
--- Note.
+-- BUG?
+-- c:perform() returns curl.E_READ_ERROR after readfunction return curl.READFUNC_PAUSE
+--
 -- OS   version        : Linux Mint 17 (x86_64)
 -- cURL version        : libcurl/7.35.0 OpenSSL/1.0.1f zlib/1.2.8 libidn/1.28 librtmp/2.3
 -- version_info("host"): x86_64-pc-linux-gnu
 --
--- c:perform() returns curl.E_READ_ERROR after readfunction return curl.READFUNC_PAUSE
+-- OS   version        : Windows XP (x86_64)
+-- cURL version        : libcurl/7.38.0 OpenSSL/1.0.1c zlib/1.2.7 WinIDN
+-- cURL version        : libcurl/7.37.1 OpenSSL/1.0.1c zlib/1.2.7 WinIDN
+-- version_info("host"): i386-pc-win32
+--
+-- Works correctly on
+-- (same binary as with libcurl 7.38.0/7.37.1)
+--
+-- OS   version        : Windows XP (x86_64)
+-- cURL version        : libcurl/7.30.0 OpenSSL/0.9.8y zlib/1.2.7
+-- version_info("host"): i386-pc-win32
 --
 
   local counter = 0
@@ -774,4 +794,4 @@ end
 
 end
 
-if not HAS_RUNNER then lunit.run() end
+RUN()

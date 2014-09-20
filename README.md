@@ -37,8 +37,14 @@ Original Lua-cURLv2 binding has several problems:
 
 ## Installation
 
+Using LuaRocks:
 ```
-luarocks install lua-curl --server=https://rocks.moonscript.org/dev
+luarocks install Lua-cURL
+```
+
+Install current master:
+```
+luarocks install Lua-cURL --server=https://rocks.moonscript.org/dev
 ```
 
 ## List of incompatibility with original [Lua-cURLv2](https://github.com/Lua-cURL/Lua-cURLv2)

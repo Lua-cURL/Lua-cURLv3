@@ -1,0 +1,48 @@
+project='Lua-cURLv3'
+title='Lua-cURLv3 Docmentation'
+description='Lua binding to libcurl'
+format='discount'
+backtick_references=false
+file={
+	'../src/lua/cURL.lua',
+	'../src/lua/cURL/safe.lua',
+	'../src/lua/cURL/utils.lua',
+	'../src/lua/cURL/impl/cURL.lua',
+}
+dir='html'
+readme='../README.md'
+style='!pale'
+kind_names={topic='Manual',script='Programs'}
+examples = {
+'../examples/lcurl',
+'../examples/lcurl/file.lua',
+'../examples/lcurl/pause.lua',
+'../examples/lcurl/ftpupload.lua',
+'../examples/lcurl/easy.obj.lua',
+'../examples/lcurl/multi_iterator.lua',
+'../examples/lcurl/multi.lua',
+'../examples/lcurl/post.lua',
+'../examples/lcurl/post_stream.lua',
+'../examples/lcurl/share.lua',
+'../examples/cURLv3',
+'../examples/cURLv3/pop3.lua',
+'../examples/cURLv3/file.lua',
+'../examples/cURLv3/rss.lua',
+'../examples/cURLv3/multi3.lua',
+'../examples/cURLv3/multi.lua',
+'../examples/cURLv3/post_form.lua',
+'../examples/cURLv3/multi2.lua',
+'../examples/cURLv2',
+'../examples/cURLv2/file.lua',
+'../examples/cURLv2/browser.lua',
+'../examples/cURLv2/rss.lua',
+'../examples/cURLv2/multi.lua',
+'../examples/cURLv2/post_stream.lua',
+'../test/test_easy.lua',
+'../test/run.lua',
+'../test/test_form.lua',
+'../test/test_safe.lua',
+'../test/test_curl.lua',
+'../test/.luacov',
+'../test/test_pause02.c.lua',
+}

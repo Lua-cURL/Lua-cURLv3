@@ -1,12 +1,14 @@
-local RUN = lunit and function()end or function ()
+local lunit, RUN = lunit do
+RUN   = lunit and function()end or function ()
   local res = lunit.run()
   if res.errors + res.failed > 0 then
     os.exit(-1)
   end
   return os.exit(0)
 end
+lunit = require "lunit"
+end
 
-local lunit      = require "lunit"
 local TEST_CASE  = assert(lunit.TEST_CASE)
 local skip       = lunit.skip or function() end
 

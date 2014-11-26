@@ -14,6 +14,23 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#if LUA_VERSION_NUM >= 503 /* Lua 5.3 */
+
+#ifndef luaL_optint
+# define luaL_optint luaL_optinteger
+#endif
+
+#ifndef luaL_checkint
+# define luaL_checkint luaL_checkinteger
+#endif
+
+#ifndef luaL_checklong
+# define luaL_checklong luaL_checkinteger
+#endif
+
+#endif
+
+
 #if LUA_VERSION_NUM >= 502 // lua 5.2
 
 // lua_rawgetp

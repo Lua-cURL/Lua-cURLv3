@@ -264,6 +264,17 @@ FLG_ENTRY( HTTP_VERSION_2_0   )
 FLG_ENTRY( READFUNC_PAUSE     ) /*7.18.0*/
 FLG_ENTRY( WRITEFUNC_PAUSE    ) /*7.18.0*/
 
+FLG_ENTRY( POLL_IN            ) /*7.14.0*/
+FLG_ENTRY( POLL_INOUT         ) /*7.14.0*/
+FLG_ENTRY( POLL_NONE          ) /*7.14.0*/
+FLG_ENTRY( POLL_OUT           ) /*7.14.0*/
+FLG_ENTRY( POLL_REMOVE        ) /*7.14.0*/
+FLG_ENTRY( SOCKET_TIMEOUT     ) /*7.14.0*/
+
+FLG_ENTRY( CSELECT_ERR        ) /*7.16.3*/
+FLG_ENTRY( CSELECT_IN         ) /*7.16.3*/
+FLG_ENTRY( CSELECT_OUT        ) /*7.16.3*/
+
 #ifdef OPT_ENTRY_IS_NULL
 #  undef OPT_ENTRY
 #endif
@@ -271,3 +282,4 @@ FLG_ENTRY( WRITEFUNC_PAUSE    ) /*7.18.0*/
 #ifdef FLG_ENTRY_IS_NULL
 #  undef FLG_ENTRY
 #endif
+

@@ -99,9 +99,8 @@ local function make_iterator(self, perform)
 
       if n <= remain then
         while true do
-          local h, ok, err = assert(self:info_read())
-          if h == 0 then break end
-          local e = assert(self._easy[h])
+          local e, ok, err = assert(self:info_read())
+          if e == 0 then break end
           if ok then
             ok = e:getinfo_response_code() or ok
             buffers:append(e, "done", ok)
@@ -421,6 +420,22 @@ function Multi:remove_handle(e)
   assert(self._easy.n >= 0)
 
   return remove_handle(self, h)
+end
+
+function Multi:info_read(...)
+  while true do
+    local h, ok, err = self:handle():info_read(...)
+    if not h then return nil, ok end
+    if h == 0 then return h end
+
+    local e = self._easy[h]
+    if e then
+      if ... then
+        self._easy[h], self._easy.n = nil, self._easy.n - 1
+      end
+      return e, ok, err
+    end
+  end
 end
 
 end

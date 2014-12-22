@@ -135,6 +135,17 @@ do
 --  e:perfom{writefunction = assert(io.open("fname.txt", "w+b"))}
 function perfom() end
 
+--- User data.
+--
+-- Please use this field to associate any data with curl handle.
+--
+-- @field data
+--
+-- @usage
+-- f = io.open("lua.org.download", "w+")
+-- e = curl.easy{url = "http://lua.org", writefunction = f}
+-- e.data = f
+
 end
 
 --- Muli curl object
@@ -154,5 +165,11 @@ do
 -- @usage
 -- for data, type, easy in m:iperform() do ... end
 function iperform() end
+
+--- User data.
+--
+-- Please use this field to associate any data with curl handle.
+--
+-- @field data
 
 end

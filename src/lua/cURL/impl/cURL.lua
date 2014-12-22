@@ -99,9 +99,8 @@ local function make_iterator(self, perform)
 
       if n <= remain then
         while true do
-          local h, ok, err = assert(self:info_read())
-          if h == 0 then break end
-          local e = assert(self._easy[h])
+          local e, ok, err = assert(self:info_read())
+          if e == 0 then break end
           if ok then
             ok = e:getinfo_response_code() or ok
             buffers:append(e, "done", ok)
@@ -423,6 +422,22 @@ function Multi:remove_handle(e)
   return remove_handle(self, h)
 end
 
+function Multi:info_read(...)
+  while true do
+    local h, ok, err = self:handle():info_read(...)
+    if not h then return nil, ok end
+    if h == 0 then return h end
+
+    local e = self._easy[h]
+    if e then
+      if ... then
+        self._easy[h], self._easy.n = nil, self._easy.n - 1
+      end
+      return e, ok, err
+    end
+  end
+end
+
 end
 -------------------------------------------
 
@@ -556,14 +571,74 @@ function Multi:remove_handle(e)
 end
 
 function Multi:info_read(...)
-  local h, ok, err = self:handle():info_read(...)
-  if not h then return nil, ok end
-  if h == 0 then return h end
+  while true do
+    local h, ok, err = self:handle():info_read(...)
+    if not h then return nil, ok end
+    if h == 0 then return h end
 
-  if ... and self._easy[h] then
-    self._easy[h], self._easy.n = nil, self._easy.n - 1
+    local e = self._easy[h]
+    if e then
+      if ... then
+        self._easy[h], self._easy.n = nil, self._easy.n - 1
+      end
+      return e, ok, err
+    end
   end
-  return h, ok, err
+end
+
+function wrap_callback(...)
+  local n = select("#", ...)
+  local fn, ctx, has_ctx
+  if n >= 2 then
+    has_ctx, fn, ctx = true, assert(...)
+  else
+    fn = assert(...)
+    if type(fn) ~= "function" then
+      has_ctx, fn, ctx = true, assert(fn.socket), fn
+    end
+  end
+  if has_ctx then
+    return function(...) return fn(ctx, ...) end
+  end
+  return function(...) return fn(...) end
+end
+
+function wrap_socketfunction(self, cb)
+  return function(h, ...)
+    local e = self._easy[h]
+    if e then return cb(e, ...) end
+    return 0
+  end
+end
+
+local setopt_socketfunction = wrap_function("setopt_socketfunction")
+function Multi:setopt_socketfunction(...)
+  local cb = wrap_callback(...)
+
+  return setopt_socketfunction(wrap_socketfunction(self, cb))
+end
+
+local setopt = wrap_function("setopt")
+function Multi:setopt(k, v)
+  if type(k) == 'table' then
+    local t = k
+
+    local socketfunction = t.socketfunction or t[curl.OPT_SOCKETFUNCTION]
+    if socketfunction then
+      t = clone(t)
+      local fn = wrap_socketfunction(self, socketfunction)
+      if t.socketfunction           then t.socketfunction           = fn end
+      if t[curl.OPT_SOCKETFUNCTION] then t[curl.OPT_SOCKETFUNCTION] = fn end
+    end
+
+    return setopt(self, t)
+  end
+
+  if k == curl.OPT_SOCKETFUNCTION then
+    return self:setopt_httppost(wrap_socketfunction(v))
+  end
+
+  return setopt(self, k, v)
 end
 
 end

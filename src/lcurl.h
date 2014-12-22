@@ -23,5 +23,6 @@
 
 #define LCURL_LUA_REGISTRY lua_upvalueindex(1)
 
+#define LCURL_USERVALUES lua_upvalueindex(2)
 
 #endif

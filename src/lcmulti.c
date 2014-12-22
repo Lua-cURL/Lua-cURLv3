@@ -78,6 +78,11 @@ static int lcurl_multi_cleanup(lua_State *L){
   luaL_unref(L, LCURL_LUA_REGISTRY, p->sc.ud_ref);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
   p->sc.cb_ref = p->sc.ud_ref = LUA_NOREF;
+
+  lua_settop(L, 1);
+  lua_pushnil(L);
+  lua_rawset(L, LCURL_USERVALUES);
+
   return 0;
 }
 
@@ -441,6 +446,22 @@ static int lcurl_multi_setopt(lua_State *L){
   return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
 }
 
+static int lcurl_multi_setdata(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  lua_settop(L, 2);
+  lua_pushvalue(L, 1);
+  lua_insert(L, 2);
+  lua_rawset(L, LCURL_USERVALUES);
+  return 1;
+}
+
+static int lcurl_multi_getdata(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  lua_settop(L, 1);
+  lua_rawget(L, LCURL_USERVALUES);
+  return 1;
+}
+
 //}
 
 static const struct luaL_Reg lcurl_multi_methods[] = {
@@ -458,6 +479,9 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
   OPT_ENTRY(timerfunction,  TIMERFUNCTION,  TTT, 0)
   OPT_ENTRY(socketfunction, SOCKETFUNCTION, TTT, 0)
 #undef OPT_ENTRY
+
+  { "setdata",         lcurl_multi_setdata          },
+  { "getdata",         lcurl_multi_getdata          },
 
   {"close",            lcurl_multi_cleanup          },
   {"__gc",             lcurl_multi_cleanup          },

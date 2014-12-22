@@ -180,6 +180,7 @@ static const lcurl_const_t lcurl_flags[] = {
 static volatile int LCURL_INIT = 0;
 
 static const char* LCURL_REGISTRY = "LCURL Registry";
+static const char* LCURL_USERVAL  = "LCURL Uservalues";
 
 static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   if(!LCURL_INIT){
@@ -192,16 +193,24 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
     lua_pop(L, 1);
     lua_newtable(L);
   }
+
+  lua_rawgetp(L, LUA_REGISTRYINDEX, LCURL_USERVAL);
+  if(!lua_istable(L, -1)){ /* usevalues */
+    lua_pop(L, 1);
+    lcurl_util_new_weak_table(L, "k");
+  }
+
   lua_newtable(L); /* library  */
 
-  lua_pushvalue(L, -2); luaL_setfuncs(L, func, 1);
-  lua_pushvalue(L, -2); lcurl_error_initlib(L, 1);
-  lua_pushvalue(L, -2); lcurl_hpost_initlib(L, 1);
-  lua_pushvalue(L, -2); lcurl_easy_initlib (L, 1);
-  lua_pushvalue(L, -2); lcurl_multi_initlib(L, 1);
-  lua_pushvalue(L, -2); lcurl_share_initlib(L, 1);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); luaL_setfuncs(L, func, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_error_initlib(L, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_hpost_initlib(L, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_easy_initlib (L, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_multi_initlib(L, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_share_initlib(L, 2);
 
-  lua_pushvalue(L, -2); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
+  lua_pushvalue(L, -3); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
+  lua_pushvalue(L, -2); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_USERVAL);
 
   lua_remove(L, -2); /* registry */
 

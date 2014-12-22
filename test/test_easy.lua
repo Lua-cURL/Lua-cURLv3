@@ -796,4 +796,36 @@ end
 
 end
 
+local _ENV = TEST_CASE'setopt_user_data'     if ENABLE then
+
+local c
+
+function setup()
+  if c then c:close() end
+  c = nil
+end
+
+function test_data()
+  c = assert(curl.easy())
+  assert_nil(c:getdata())
+  c:setdata("hello")
+  assert_equal("hello", c:getdata())
+end
+
+function test_cleanup()
+  local ptr do
+    local t = {}
+    local e = curl.easy():setdata(t)
+    ptr = weak_ptr(t)
+    gc_collect()
+
+    assert_equal(t, ptr.value)
+  end
+
+  gc_collect()
+  assert_nil(ptr.value)
+end
+
+end
+
 RUN()

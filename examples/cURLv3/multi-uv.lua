@@ -27,9 +27,11 @@ local FLAGS = {
 
 }
 
-local trace = function() end or print
+local trace = true
 
-local FILES, CONTEXT = {}, {}
+trace = trace and print or function() end
+
+local CONTEXT = {}
 
 function create_curl_context(sockfd)
   local context = {
@@ -58,7 +60,7 @@ function add_download(url, num)
     writefunction = file;
   }
 
-  FILES[handle] = file
+  handle.data = file
 
   curl_handle:add_handle(handle)
   fprintf(stderr, "Added download %s -> %s\n", url, filename);
@@ -66,14 +68,14 @@ end
 
 function check_multi_info()
   while true do
-    local easy, ok, err = curl_handle:info_read()
+    local easy, ok, err = curl_handle:info_read(true)
     if not easy then curl_handle:close() error(err) end
     if easy == 0 then break end
 
     local context = CONTEXT[e]
     if context then destroy_curl_context(context) end
-    local file = FILES[easy]
-    if file then FILES[easy] = nil, file:close() end
+    local file = assert(easy.data)
+    file:close()
     local done_url = easy:getinfo_effective_url()
     easy:close()
     if ok then
@@ -116,29 +118,26 @@ function start_timeout(timeout_ms)
   timeout:stop():start(timeout_ms, 0, on_timeout)
 end
 
-local handle_socket = function(...)
-  local ok, err = pcall(handle_socket_impl, ...)
+function handle_socket(easy, s, action)
+  local ok, err = pcall(function()
+    -- calls by curl --
+    trace("CURL::SOCKET", easy, s, ACTION_NAMES[action] or action)
+
+    local curl_context = CONTEXT[easy] or create_curl_context(s)
+    CONTEXT[easy] = curl_context
+
+    assert(curl_context.sockfd == s)
+
+    if action == curl.POLL_IN then
+      curl_context.poll_handle:start(uv.READABLE, curl_perform)
+    elseif action == curl.POLL_OUT then
+      curl_context.poll_handle:start(uv.WRITABLE, curl_perform)
+    elseif action == curl.POLL_REMOVE then
+      CONTEXT[easy] = nil
+      destroy_curl_context(curl_context)
+    end
+  end)
   if not ok then uv.defer(function() error(err) end) end
-end
-
-function handle_socket_impl(easy, s, action)
-  -- calls by curl --
-
-  trace("CURL::SOCKET", easy, s, ACTION_NAMES[action] or action)
-
-  local curl_context = CONTEXT[easy] or create_curl_context(s)
-  CONTEXT[easy] = curl_context
-
-  assert(curl_context.sockfd == s)
-
-  if action == curl.POLL_IN then
-    curl_context.poll_handle:start(uv.READABLE, curl_perform)
-  elseif action == curl.POLL_OUT then
-    curl_context.poll_handle:start(uv.WRITABLE, curl_perform)
-  elseif action == curl.POLL_REMOVE then
-    CONTEXT[easy] = nil
-    destroy_curl_context(curl_context)
-  end
 end
 
 timeout = uv.timer()

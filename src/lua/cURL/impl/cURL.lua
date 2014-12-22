@@ -571,6 +571,61 @@ function Multi:info_read(...)
   end
 end
 
+function wrap_callback(...)
+  local n = select("#", ...)
+  local fn, ctx, has_ctx
+  if n >= 2 then
+    has_ctx, fn, ctx = true, assert(...)
+  else
+    fn = assert(...)
+    if type(fn) ~= "function" then
+      has_ctx, fn, ctx = true, assert(fn.socket), fn
+    end
+  end
+  if has_ctx then
+    return function(...) return fn(ctx, ...) end
+  end
+  return function(...) return fn(...) end
+end
+
+function wrap_socketfunction(self, cb)
+  return function(h, ...)
+    local e = self._easy[h]
+    if e then return cb(e, ...) end
+    return 0
+  end
+end
+
+local setopt_socketfunction = wrap_function("setopt_socketfunction")
+function Multi:setopt_socketfunction(...)
+  local cb = wrap_callback(...)
+
+  return setopt_socketfunction(wrap_socketfunction(self, cb))
+end
+
+local setopt = wrap_function("setopt")
+function Multi:setopt(k, v)
+  if type(k) == 'table' then
+    local t = k
+
+    local socketfunction = t.socketfunction or t[curl.OPT_SOCKETFUNCTION]
+    if socketfunction then
+      t = clone(t)
+      local fn = wrap_socketfunction(self, socketfunction)
+      if t.socketfunction           then t.socketfunction           = fn end
+      if t[curl.OPT_SOCKETFUNCTION] then t[curl.OPT_SOCKETFUNCTION] = fn end
+    end
+
+    return setopt(self, t)
+  end
+
+  if k == curl.OPT_SOCKETFUNCTION then
+    return self:setopt_httppost(wrap_socketfunction(v))
+  end
+
+  return setopt(self, k, v)
+end
+
 end
 -------------------------------------------
 

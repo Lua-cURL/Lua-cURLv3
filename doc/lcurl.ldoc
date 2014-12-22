@@ -24,6 +24,13 @@ function easy() end
 --
 -- @tparam[opt] table options
 -- @treturn[1] multi new curl multi object
+--
+-- @usage
+-- m = curl.multi{
+--   socketfunction = handle_socket;
+--   timerfunction  = start_timeout;
+-- }
+--
 function multi() end
 
 --- Create Share object
@@ -432,6 +439,18 @@ function info_read() end
 -- c:setopt(curl.OPT_MULTI_MAXCONNECTS, 10)
 -- c:setopt{maxconnects = 10}
 function setopt() end
+
+--- Perform socket action.
+--
+-- @tparam[opt=curl.SOCKET_TIMEOUT] number socket
+-- @tparam[opt=0] number mask
+-- @treturn multi self
+--
+-- @usage
+-- c:socket_action()
+-- c:socket_action(sock_fd, curl.CSELECT_IN)
+-- c:socket_action(sock_fd, curl.CSELECT_OUT)
+function socket_action() end
 
 --- Set timer callback.
 --

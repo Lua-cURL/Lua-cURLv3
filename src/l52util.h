@@ -13,47 +13,52 @@
 
 #include "lua.h"
 #include "lauxlib.h"
+#include <stdint.h>
 
 #if LUA_VERSION_NUM >= 503 /* Lua 5.3 */
 
-#ifndef luaL_optint
-# define luaL_optint luaL_optinteger
-#endif
-
 #ifndef luaL_checkint
-# define luaL_checkint luaL_checkinteger
+#define luaL_checkint  luaL_checkinteger
 #endif
 
 #ifndef luaL_checklong
-# define luaL_checklong luaL_checkinteger
+#define luaL_checklong  luaL_checkinteger
+#endif
+
+#ifndef luaL_optint
+#define luaL_optint luaL_optinteger
+#endif
+
+#ifndef luaL_optlong
+#define luaL_optlong luaL_optinteger
 #endif
 
 #endif
 
+#if LUA_VERSION_NUM >= 502 /* Lua 5.2 */
 
-#if LUA_VERSION_NUM >= 502 // lua 5.2
+/* lua_rawgetp */
+/* lua_rawsetp */
+/* luaL_setfuncs */
+/* lua_absindex */
 
-// lua_rawgetp
-// lua_rawsetp
-// luaL_setfuncs
-// lua_absindex
 #ifndef lua_objlen
-
 #define lua_objlen      lua_rawlen
-
 #endif
 
 int   luaL_typerror (lua_State *L, int narg, const char *tname);
 
 #ifndef luaL_register
-
 void luaL_register (lua_State *L, const char *libname, const luaL_Reg *l);
-
 #endif
 
-#else                      // lua 5.1
+#ifndef lua_equal
+#define lua_equal(L,idx1,idx2) lua_compare(L,(idx1),(idx2),LUA_OPEQ)
+#endif
 
-// functions form lua 5.2
+#else                      /* Lua 5.1 */
+
+/* functions form lua 5.2 */
 
 # define lua_absindex(L, i) (((i)>0)?(i):((i)<=LUA_REGISTRYINDEX?(i):(lua_gettop(L)+(i)+1)))
 # define lua_rawlen  lua_objlen
@@ -78,5 +83,12 @@ int   lutil_createmetap   (lua_State *L, const void *p, const luaL_Reg *methods,
 
 void *lutil_newudatap_impl     (lua_State *L, size_t size, const void *p);
 
-#endif
+void lutil_pushint64(lua_State *L, int64_t v);
 
+int64_t lutil_checkint64(lua_State *L, int idx);
+
+int64_t lutil_optint64(lua_State *L, int idx, int64_t v);
+
+void lutil_pushnvalues(lua_State *L, int n);
+
+#endif

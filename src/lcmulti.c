@@ -43,6 +43,7 @@ int lcurl_multi_create(lua_State *L, int error_mode){
   lcurl_util_new_weak_table(L, "v");
   p->h_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
+  p->sc.cb_ref = p->sc.ud_ref = LUA_NOREF;
 
   if(lua_type(L, 1) == LUA_TTABLE){
     int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
@@ -73,7 +74,10 @@ static int lcurl_multi_cleanup(lua_State *L){
 
   luaL_unref(L, LCURL_LUA_REGISTRY, p->tm.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->tm.ud_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->sc.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->sc.ud_ref);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
+  p->sc.cb_ref = p->sc.ud_ref = LUA_NOREF;
   return 0;
 }
 
@@ -226,6 +230,20 @@ static int lcurl_multi_timeout(lua_State *L){
   return 1;
 }
 
+static int lcurl_multi_socket_action(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  curl_socket_t s  = lutil_optint64(L, 2, CURL_SOCKET_TIMEOUT);
+  CURLMcode code; int n, mask;
+  if(s == CURL_SOCKET_TIMEOUT) mask = lutil_optint64(L, 3, 0);
+  else mask = lutil_checkint64(L, 3);
+  code = curl_multi_socket_action(p->curl, s, mask, &n);
+  if(code != CURLM_OK){
+    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+  lua_pushinteger(L, n);
+  return 1;
+}
+
 //{ OPTIONS
 static int lcurl_opt_set_long_(lua_State *L, int opt){
   lcurl_multi_t *p = lcurl_getmulti(L);
@@ -313,7 +331,7 @@ static int lcurl_multi_set_callback(lua_State *L,
   return 1;
 }
 
-//{Timer
+//{ Timer
 
 int lcurl_multi_timer_callback(CURLM *multi, long ms, void *arg){
   lcurl_multi_t *p = arg;
@@ -347,12 +365,48 @@ int lcurl_multi_timer_callback(CURLM *multi, long ms, void *arg){
   return ret;
 }
 
-
 static int lcurl_multi_set_TIMERFUNCTION(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   return lcurl_multi_set_callback(L, p, &p->tm,
     CURLMOPT_TIMERFUNCTION, CURLMOPT_TIMERDATA,
     "timer", lcurl_multi_timer_callback
+  );
+}
+
+//}
+
+//{ Socket
+
+static int lcurl_multi_socket_callback(CURL *easy, curl_socket_t s, int what, void *arg, void *socketp){
+  lcurl_multi_t *p = arg;
+  lua_State *L = p->L;
+  lcurl_easy_t *e;
+  int n, top = lua_gettop(L);
+
+  n = lcurl_util_push_cb(L, &p->sc);
+
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
+  lua_rawgetp(L, -1, easy);
+  e = lcurl_geteasy_at(L, -1);
+  lua_remove(L, -2);
+  lutil_pushint64(L, s);
+  lua_pushinteger(L, what);
+
+  if(lua_pcall(L, n+2, 0, 0)){
+    assert(lua_gettop(L) >= top);
+    lua_settop(L, top);
+    return -1; //! @todo break perform
+  }
+
+  lua_settop(L, top);
+  return 0;
+}
+
+static int lcurl_multi_set_SOCKETFUNCTION(lua_State *L){
+  lcurl_multi_t *p = lcurl_getmulti(L);
+  return lcurl_multi_set_callback(L, p, &p->sc,
+    CURLMOPT_SOCKETFUNCTION, CURLMOPT_SOCKETDATA,
+    "socket", lcurl_multi_socket_callback
   );
 }
 
@@ -379,7 +433,8 @@ static int lcurl_multi_setopt(lua_State *L){
 #define OPT_ENTRY(l, N, T, S) case CURLMOPT_##N: return lcurl_multi_set_##N(L);
   switch(opt){
     #include "lcoptmulti.h"
-    OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
+    OPT_ENTRY(timerfunction,  TIMERFUNCTION,  TTT, 0)
+    OPT_ENTRY(socketfunction, SOCKETFUNCTION, TTT, 0)
   }
 #undef OPT_ENTRY
 
@@ -396,10 +451,12 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
   {"setopt",           lcurl_multi_setopt           },
   {"wait",             lcurl_multi_wait             },
   {"timeout",          lcurl_multi_timeout          },
+  {"socket_action",    lcurl_multi_socket_action    },
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_multi_set_##N },
   #include "lcoptmulti.h"
-  OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
+  OPT_ENTRY(timerfunction,  TIMERFUNCTION,  TTT, 0)
+  OPT_ENTRY(socketfunction, SOCKETFUNCTION, TTT, 0)
 #undef OPT_ENTRY
 
   {"close",            lcurl_multi_cleanup          },
@@ -411,7 +468,8 @@ static const struct luaL_Reg lcurl_multi_methods[] = {
 static const lcurl_const_t lcurl_multi_opt[] = {
 #define OPT_ENTRY(L, N, T, S) { "OPT_MULTI_"#N, CURLMOPT_##N },
   #include "lcoptmulti.h"
-  OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
+  OPT_ENTRY(timerfunction,  TIMERFUNCTION,  TTT, 0)
+  OPT_ENTRY(socketfunction, SOCKETFUNCTION, TTT, 0)
 #undef OPT_ENTRY
 
   {NULL, 0}

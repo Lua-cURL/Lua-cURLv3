@@ -93,6 +93,20 @@ function test_add_handle()
   assert_nil(c)
 end
 
+function test_info_read()
+  local url = 'http://httpbin.org/get?key=1'
+  c = assert(curl.easy{url=url, writefunction=function() end})
+  assert_equal(m, m:add_handle(c))
+
+  while m:perform() > 0 do m:wait() end
+
+  local h, ok, err = m:info_read()
+  assert_equal(c, h)
+
+  local h, ok, err = m:info_read()
+  assert_equal(0, h)
+end
+
 end
 
 local _ENV = TEST_CASE'form'           if ENABLE then

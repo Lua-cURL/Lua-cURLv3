@@ -556,14 +556,19 @@ function Multi:remove_handle(e)
 end
 
 function Multi:info_read(...)
-  local h, ok, err = self:handle():info_read(...)
-  if not h then return nil, ok end
-  if h == 0 then return h end
+  while true do
+    local h, ok, err = self:handle():info_read(...)
+    if not h then return nil, ok end
+    if h == 0 then return h end
 
-  if ... and self._easy[h] then
-    self._easy[h], self._easy.n = nil, self._easy.n - 1
+    local e = self._easy[h]
+    if e then
+      if ... then
+        self._easy[h], self._easy.n = nil, self._easy.n - 1
+      end
+      return e, ok, err
+    end
   end
-  return h, ok, err
 end
 
 end

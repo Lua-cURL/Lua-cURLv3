@@ -520,8 +520,9 @@ local Multi = class(curl.multi) do
 local add_handle    = wrap_function("add_handle")
 local remove_handle = wrap_function("remove_handle")
 
-function Multi:__init()
+function Multi:__init(opt)
   self._easy = {n = 0}
+  if opt then self:setopt(opt) end
   return self
 end
 

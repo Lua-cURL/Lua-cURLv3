@@ -43,6 +43,7 @@ int lcurl_multi_create(lua_State *L, int error_mode){
   lcurl_util_new_weak_table(L, "v");
   p->h_ref = luaL_ref(L, LCURL_LUA_REGISTRY);
   p->tm.cb_ref = p->tm.ud_ref = LUA_NOREF;
+  p->sc.cb_ref = p->sc.ud_ref = LUA_NOREF;
 
   if(lua_type(L, 1) == LUA_TTABLE){
     int ret = lcurl_utils_apply_options(L, 1, 2, 1, p->err_mode, LCURL_ERROR_MULTI, CURLM_UNKNOWN_OPTION);
@@ -228,9 +229,11 @@ static int lcurl_multi_timeout(lua_State *L){
 
 static int lcurl_multi_socket_action(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
-  curl_socket_t s  = lutil_checkint64(L, 2);
-  int n, mask      = lutil_checkint64(L, 3);
-  CURLMcode code   = curl_multi_socket_action(p->curl, s, mask, &n);
+  curl_socket_t s  = lutil_optint64(L, 2, CURL_SOCKET_TIMEOUT);
+  CURLMcode code; int n, mask;
+  if(s == CURL_SOCKET_TIMEOUT) mask = 0;
+  else mask = lutil_checkint64(L, 3);
+  code = curl_multi_socket_action(p->curl, s, mask, &n);
   if(code != CURLM_OK){
     lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
@@ -427,7 +430,8 @@ static int lcurl_multi_setopt(lua_State *L){
 #define OPT_ENTRY(l, N, T, S) case CURLMOPT_##N: return lcurl_multi_set_##N(L);
   switch(opt){
     #include "lcoptmulti.h"
-    OPT_ENTRY(timerfunction, TIMERFUNCTION, TTT, 0)
+    OPT_ENTRY(timerfunction,  TIMERFUNCTION,  TTT, 0)
+    OPT_ENTRY(socketfunction, SOCKETFUNCTION, TTT, 0)
   }
 #undef OPT_ENTRY
 

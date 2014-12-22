@@ -231,7 +231,7 @@ static int lcurl_multi_socket_action(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   curl_socket_t s  = lutil_optint64(L, 2, CURL_SOCKET_TIMEOUT);
   CURLMcode code; int n, mask;
-  if(s == CURL_SOCKET_TIMEOUT) mask = 0;
+  if(s == CURL_SOCKET_TIMEOUT) mask = lutil_optint64(L, 3, 0);
   else mask = lutil_checkint64(L, 3);
   code = curl_multi_socket_action(p->curl, s, mask, &n);
   if(code != CURLM_OK){

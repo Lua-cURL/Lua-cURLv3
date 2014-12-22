@@ -100,6 +100,10 @@ static int lcurl_easy_cleanup(lua_State *L){
     p->lists[i] = LUA_NOREF;
   }
 
+  lua_settop(L, 1);
+  lua_pushnil(L);
+  lua_rawset(L, LCURL_USERVALUES);
+
   return 0;
 }
 
@@ -941,6 +945,22 @@ static int lcurl_easy_pause(lua_State *L){
   return 1;
 }
 
+static int lcurl_easy_setdata(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lua_settop(L, 2);
+  lua_pushvalue(L, 1);
+  lua_insert(L, 2);
+  lua_rawset(L, LCURL_USERVALUES);
+  return 1;
+}
+
+static int lcurl_easy_getdata(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lua_settop(L, 1);
+  lua_rawget(L, LCURL_USERVALUES);
+  return 1;
+}
+
 //}
 
 static const struct luaL_Reg lcurl_easy_methods[] = {
@@ -981,6 +1001,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   { "perform",  lcurl_easy_perform        },
   { "close",    lcurl_easy_cleanup        },
   { "__gc",     lcurl_easy_cleanup        },
+
+  { "setdata",  lcurl_easy_setdata        },
+  { "getdata",  lcurl_easy_getdata        },
 
   {NULL,NULL}
 };

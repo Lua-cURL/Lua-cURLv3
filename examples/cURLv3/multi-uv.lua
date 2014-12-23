@@ -31,6 +31,12 @@ local FLAGS = {
   [ uv.READABLE + uv.WRITABLE ] = curl.CSELECT_IN + curl.CSELECT_OUT;
 }
 
+local POLL_IO_FLAGS = {
+  [ curl.POLL_IN    ] = uv.READABLE;
+  [ curl.POLL_OUT   ] = uv.WRITABLE;
+  [ curl.POLL_INOUT ] = uv.READABLE + uv.WRITABLE;
+}
+
 local Context = ut.class() do
 
 function Context:__init(fd)
@@ -67,6 +73,31 @@ local qtask = ut.Queue.new() -- wait tasks
 local qfree = ut.Queue.new() -- avaliable easy handles
 local qeasy = {} -- all easy handles
 
+local function on_begin(handle, url, num)
+  local filename = tostring(num) ..  ".download"
+  local file = io.open(filename, "w")
+  if not file then
+    fprintf(stderr, "Error opening %s\n", filename)
+    return
+  end
+  handle.data.file = file
+  handle:setopt_writefunction(file)
+
+  fprintf(stderr, "Added download %s -> %s\n", url, filename);
+  return true
+end
+
+local function on_end(handle, err, url)
+  handle.data.file:close()
+  handle.data.file = nil
+
+  if err then
+    printf("%s ERROR - %s\n", url, tostring(err));
+  else
+    printf("%s DONE\n", url);
+  end
+end
+
 local function cleanup()
   timer:close()
 
@@ -81,40 +112,39 @@ end
 local proceed_queue, add_download do
 
 proceed_queue = function()
-  if qtask:empty() then return end
+  while true do
+    if qtask:empty() then return end
 
-  if qfree:empty() then
-    if #qeasy < MAX_REQUESTS then
-      local easy = assert(curl.easy())
-      qeasy[#qeasy + 1] = easy
-      qfree:push(easy)
+    if qfree:empty() then
+      if #qeasy < MAX_REQUESTS then
+        local easy = assert(curl.easy())
+        qeasy[#qeasy + 1] = easy
+        qfree:push(easy)
+      else
+        return
+      end
+    end
+
+    local task = assert(qtask:pop())
+    local url, num = task[1], task[2]
+
+    local handle = assert(qfree:pop())
+
+    handle:setopt{
+      url           = url;
+      fresh_connect = true;
+      forbid_reuse  = true;
+    }
+
+    handle.data = {}
+
+    if on_begin(handle, url, num) then
+      multi:add_handle(handle)
     else
-      return
+      handle:reset().data = nil
+      qfree:push(handle)
     end
   end
-
-  local task = assert(qtask:pop())
-  local url, num = task[1], task[2]
-
-  local filename = tostring(num) ..  ".download"
-  local file = io.open(filename, "w")
-  if not file then
-    fprintf(stderr, "Error opening %s\n", filename)
-    return
-  end
-
-  local handle = assert(qfree:pop())
-
-  handle:setopt{
-    url           = url;
-    writefunction = file;
-  }
-
-  handle.data = { file = file }
-
-  multi:add_handle(handle)
-
-  fprintf(stderr, "Added download %s -> %s\n", url, filename);
 end
 
 add_download = function(url, num)
@@ -143,17 +173,14 @@ on_curl_action = function(easy, fd, action)
     trace("CURL::SOCKET", easy, s, ACTION_NAMES[action] or action)
 
     local context = easy.data.context
-    if (action == curl.POLL_IN) or (action == curl.POLL_OUT) then
+
+    local flag = POLL_IO_FLAGS[action]
+    if flag then
       if not context then
         context = Context.new(fd)
         easy.data.context = context
       end
-    end
-
-    assert(context:fileno() == fd)
-
-    if     action == curl.POLL_IN  then  context:poll(uv.READABLE, on_libuv_poll)
-    elseif action == curl.POLL_OUT then  context:poll(uv.WRITABLE, on_libuv_poll)
+      context:poll(flag, on_libuv_poll)
     elseif action == curl.POLL_REMOVE then
       if context then
         easy.data.context = nil
@@ -185,20 +212,15 @@ local curl_check_multi_info = function()
 
     local context = easy.data.context
     if context then context:close() end
-    local file    = assert(easy.data.file)
-    file:close()
+    easy.data.context = nil
 
-    easy.data = nil
+    if ok then on_end(easy, nil, done_url) else on_end(easy, err, done_url) end
+
+    easy:reset().data = nil
     qfree:push(easy)
-
-    if ok then
-      printf("%s DONE\n", done_url);
-    elseif data == "error" then
-      printf("%s ERROR - %s\n", done_url, tostring(err));
-    end
-
-    proceed_queue()
   end
+
+  proceed_queue()
 end
 
 on_libuv_poll = function(handle, err, events)

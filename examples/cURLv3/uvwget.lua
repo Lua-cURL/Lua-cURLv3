@@ -1,15 +1,21 @@
+--
+-- implementation of uvwget example from
+-- http://nikhilm.github.io/uvbook/index.html
+--
+
 local curl = require "cURL"
 local uv   = require "lluv"
 local ut   = require "lluv.utils"
 
 local fprintf = function(f, ...) f:write((string.format(...))) end
-local printf  = function(...) fprintf(io.stdout, ...) end
 
 local stderr = io.stderr
 
-local trace = false
+local trace = false do
 
 trace = trace and print or function() end
+
+end
 
 local ACTION_NAMES = {
   [curl.POLL_IN     ] = "POLL_IN";
@@ -19,9 +25,15 @@ local ACTION_NAMES = {
   [curl.POLL_REMOVE ] = "POLL_REMOVE";
 }
 
+local POLL_IO_FLAGS = {
+  [ curl.POLL_IN    ] = uv.READABLE;
+  [ curl.POLL_OUT   ] = uv.WRITABLE;
+  [ curl.POLL_INOUT ] = uv.READABLE + uv.WRITABLE;
+}
+
 local EVENT_NAMES = {
-  [ uv.READABLE ] = "READABLE";
-  [ uv.WRITABLE ] = "WRITABLE";
+  [ uv.READABLE               ] = "READABLE";
+  [ uv.WRITABLE               ] = "WRITABLE";
   [ uv.READABLE + uv.WRITABLE ] = "READABLE + WRITABLE";
 }
 
@@ -29,12 +41,6 @@ local FLAGS = {
   [ uv.READABLE               ] = curl.CSELECT_IN;
   [ uv.WRITABLE               ] = curl.CSELECT_OUT;
   [ uv.READABLE + uv.WRITABLE ] = curl.CSELECT_IN + curl.CSELECT_OUT;
-}
-
-local POLL_IO_FLAGS = {
-  [ curl.POLL_IN    ] = uv.READABLE;
-  [ curl.POLL_OUT   ] = uv.WRITABLE;
-  [ curl.POLL_INOUT ] = uv.READABLE + uv.WRITABLE;
 }
 
 local Context = ut.class() do
@@ -66,12 +72,11 @@ end
 
 end
 
--- Number of parallel request
-local MAX_REQUESTS
+local MAX_REQUESTS = 64      -- Number of parallel request
 local timer, multi
 local qtask = ut.Queue.new() -- wait tasks
 local qfree = ut.Queue.new() -- avaliable easy handles
-local qeasy = {} -- all easy handles
+local qeasy = {}             -- all easy handles
 
 local function on_begin(handle, url, num)
   local filename = tostring(num) ..  ".download"
@@ -92,9 +97,9 @@ local function on_end(handle, err, url)
   handle.data.file = nil
 
   if err then
-    printf("%s ERROR - %s\n", url, tostring(err));
+    fprintf(stderr, "%s ERROR - %s\n", url, tostring(err));
   else
-    printf("%s DONE\n", url);
+    fprintf(stderr, "%s DONE\n", url);
   end
 end
 
@@ -103,6 +108,13 @@ local function cleanup()
 
   for i, easy in ipairs(qeasy) do
     multi:remove_handle(easy)
+    if easy.data then
+      local context = easy.data.context
+      if context then context:close() end
+
+      local file = easy.data.file
+      if file then on_end(easy, 'closed', easy:getinfo_effective_url()) end
+    end
     easy:close()
   end
 
@@ -223,12 +235,12 @@ local curl_check_multi_info = function()
   proceed_queue()
 end
 
-on_libuv_poll = function(handle, err, events)
-  trace("UV::POLL", handle, err, EVENT_NAMES[events] or events)
+on_libuv_poll = function(poller, err, events)
+  trace("UV::POLL", poller, err, EVENT_NAMES[events] or events)
 
   local flags = assert(FLAGS[events], ("unknown event:" .. events))
 
-  context = handle.data.context
+  local context = poller.data.context
 
   multi:socket_action(context:fileno(), flags)
 
@@ -238,14 +250,12 @@ end
 on_libuv_timeout = function(timer)
   trace("UV::TIMEOUT", timer)
 
-  local running_handles, err = multi:socket_action()
+  multi:socket_action()
 
   curl_check_multi_info()
 end
 
 end
-
-MAX_REQUESTS = 64
 
 timer = uv.timer()
 

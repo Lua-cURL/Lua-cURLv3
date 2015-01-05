@@ -16,7 +16,7 @@ branches:
 before_install:
   - sudo apt-get update
   - bash .travis/setup_lua.sh
-  - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec
+  - sudo luarocks install lunitx
   - sudo pip install cpp-coveralls
   - sudo luarocks install dkjson --deps-mode=none
   - sudo luarocks install luafilesystem --from=https://rocks.moonscript.org/dev

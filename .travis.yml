@@ -16,12 +16,11 @@ branches:
 before_install:
   - sudo apt-get update
   - bash .travis/setup_lua.sh
-  - sudo luarocks install lunitx
   - sudo pip install cpp-coveralls
-  - sudo luarocks install dkjson --deps-mode=none
   - sudo luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
-  - sudo luarocks install lua-path --deps-mode=none
   - sudo luarocks install luacov-coveralls
+  - sudo luarocks install lunitx
+  - sudo luarocks install dkjson --deps-mode=none
 
 install:
   - sudo luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"

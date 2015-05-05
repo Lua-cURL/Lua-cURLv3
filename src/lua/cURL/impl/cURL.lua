@@ -586,7 +586,7 @@ function Multi:info_read(...)
   end
 end
 
-function wrap_callback(...)
+local function wrap_callback(...)
   local n = select("#", ...)
   local fn, ctx, has_ctx
   if n >= 2 then
@@ -603,7 +603,7 @@ function wrap_callback(...)
   return function(...) return fn(...) end
 end
 
-function wrap_socketfunction(self, cb)
+local function wrap_socketfunction(self, cb)
   return function(h, ...)
     local e = self._easy[h]
     if e then return cb(e, ...) end

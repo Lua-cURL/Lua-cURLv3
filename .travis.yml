@@ -1,8 +1,10 @@
 language: c
 
+sudo: false
+
 env:
   global:
-    - LUAROCKS=2.2.0
+    - LUAROCKS=2.2.2
   matrix:
     - LUA=lua5.1
     - LUA=lua5.2
@@ -14,16 +16,15 @@ branches:
     - master
 
 before_install:
-  - sudo apt-get update
-  - bash .travis/setup_lua.sh
-  - sudo pip install cpp-coveralls
-  - sudo luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
-  - sudo luarocks install luacov-coveralls
-  - sudo luarocks install lunitx
-  - sudo luarocks install dkjson --deps-mode=none
+  - source .travis/setenv_lua.sh
+  - pip install --user cpp-coveralls
+  - luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
+  - luarocks install luacov-coveralls
+  - luarocks install lunitx
+  - luarocks install dkjson --deps-mode=none
 
 install:
-  - sudo luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"
+  - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"
 
 script: 
   - cd test

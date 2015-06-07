@@ -11,6 +11,7 @@
 #include "l52util.h"
 
 #include <memory.h>
+#include <string.h> /* for memset */
 #include <assert.h>
 
 #if LUA_VERSION_NUM >= 502 

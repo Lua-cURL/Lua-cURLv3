@@ -1,0 +1,65 @@
+version: 0.3.2.{build}
+
+os:
+- Windows Server 2012 R2
+
+shallow_clone: true
+
+environment:
+  LUAROCKS_VER: 2.2.1
+  CURL_VER: 7.41.0
+
+  matrix:
+    - LUA_VER: 5.1.5
+    # - LUA_VER: 5.2.4
+    # - LUA_VER: 5.3.0
+    # - LJ_VER: 2.0.3
+    # - LJ_VER: 2.1
+
+platform:
+  - x64
+  - x86
+
+cache:
+  - c:\lua -> appveyor.yml
+  - c:\external -> appveyor.yml
+  - C:\Program Files (x86)\LuaRocks -> appveyor.yml
+  - C:\Program Files\LuaRocks -> appveyor.yml
+
+init:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
+
+install:
+  # Setup Lua development/build environment
+  - call .appveyor\install.bat
+
+before_build:
+  # external deps
+  - call .appveyor\install_curl.bat
+
+build_script:
+  - set LUA_CURL_VER=scm-0
+  - if "%APPVEYOR_REPO_TAG%" == "true" set set LUA_CURL_VER=%APPVEYOR_REPO_TAG_NAME:~1%-1
+  - echo "Making lua-curl-%LUA_CURL_VER% ..."
+  - luarocks make rockspecs/lua-curl-%LUA_CURL_VER%.rockspec
+
+before_test:
+  # test deps
+  - luarocks install lunitx
+  - luarocks install dkjson
+  - luarocks install luafilesystem
+  - if "%LUA_SHORTV%"=="5.1" luarocks install bit32
+  - luarocks install lua-path
+
+test_script:
+  - echo "Testing..."
+  - cd %APPVEYOR_BUILD_FOLDER%\test
+  - lua test_easy.lua
+  - lua test_safe.lua
+  - lua test_form.lua
+  - lua test_pause02.c.lua
+  - lua test_curl.lua
+
+after_test:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - .appveyor\pack_artifact.bat lua-curl bin-rock

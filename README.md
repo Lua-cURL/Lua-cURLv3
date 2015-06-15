@@ -1,5 +1,6 @@
 # Lua binding to [libcurl](http://curl.haxx.se/libcurl)
 [![Build Status](https://travis-ci.org/Lua-cURL/Lua-cURLv3.svg?branch=master)](https://travis-ci.org/Lua-cURL/Lua-cURLv3)
+[![Build status](https://ci.appveyor.com/api/projects/status/oxiuv2u04ob391k0?svg=true)](https://ci.appveyor.com/project/moteus/lua-curlv3)
 [![Coverage Status](https://coveralls.io/repos/Lua-cURL/Lua-cURLv3/badge.png?branch=master)](https://coveralls.io/r/Lua-cURL/Lua-cURLv3?branch=master)
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
 

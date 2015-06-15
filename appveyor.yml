@@ -39,7 +39,7 @@ before_build:
 
 build_script:
   - set LUA_CURL_VER=scm-0
-  - if "%APPVEYOR_REPO_TAG%" == "true" set set LUA_CURL_VER=%APPVEYOR_REPO_TAG_NAME:~1%-1
+  - if "%APPVEYOR_REPO_TAG%" == "true" set LUA_CURL_VER=%APPVEYOR_REPO_TAG_NAME:~1%-1
   - echo "Making lua-curl-%LUA_CURL_VER% ..."
   - luarocks make rockspecs/lua-curl-%LUA_CURL_VER%.rockspec
 

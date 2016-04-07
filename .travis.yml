@@ -2,31 +2,45 @@ language: c
 
 sudo: false
 
-env:
-  global:
-    - LUAROCKS=2.2.2
-  matrix:
-    - LUA=lua5.1
-    - LUA=lua5.2
-    - LUA=lua5.3
-    - LUA=luajit
+matrix:
+  include:
+    - compiler: ": Lua51"
+      env: LUA="lua 5.1"
+    - compiler: ": Lua52"
+      env: LUA="lua 5.2"
+    - compiler: ": Lua53"
+      env: LUA="lua 5.3"
+    - compiler: ": LuaJIT20"
+      env: LUA="luajit 2.0"
+    - compiler: ": LuaJIT21"
+      env: LUA="luajit 2.1"
+
+cache:
+  directories:
+    - here
+    - $HOME/.cache/pip
 
 branches:
   only:
     - master
 
 before_install:
-  - source .travis/setenv_lua.sh
+  - export CC=gcc
   - pip install --user cpp-coveralls
-  - luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
-  - luarocks install luacov-coveralls
-  - luarocks install lunitx
-  - luarocks install dkjson --deps-mode=none
+  - pip install --user hererocks
+  - hererocks here -r^ --$LUA
+  - export PATH=$PATH:$PWD/here/bin
 
 install:
   - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"
 
-script: 
+before_script:
+  - luarocks show luacov-coveralls || luarocks install luacov-coveralls
+  - luarocks show lunitx           || luarocks install lunitx
+  - luarocks show luafilesystem    || luarocks install luafilesystem
+  - luarocks show dkjson           || luarocks install dkjson --deps-mode=none
+
+script:
   - cd test
   - lua -e "print(require 'cURL.utils'.find_ca_bundle())"
   - lunit.sh test_easy.lua
@@ -37,7 +51,7 @@ script:
 
 after_success:
   - coveralls -b .. -r .. --dump c.report.json
-  - luacov-coveralls -j c.report.json
+  - luacov-coveralls -j c.report.json -v
 
 notifications:
   email:

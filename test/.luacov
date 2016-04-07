@@ -32,7 +32,7 @@ return {
   -- configuration for luacov-coveralls reporter
   coveralls = {
     pathcorrect = {
-      {"/usr/local/share/lua/5.[123]", "src/lua"};
+      {"^.-[/\\]share[/\\]lua[/\\]5.%d", "src/lua"};
     },
   },
 }

@@ -118,6 +118,21 @@ static int lcurl_multi_perform(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   int running_handles = 0;
   CURLMcode code;
+
+  lua_settop(L, 1);
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
+  lua_pushnil(L);
+  while(lua_next(L, 2)){
+    lcurl_easy_t *e = lcurl_geteasy_at(L, -1);
+    e->L = L;
+    if(e->post){
+      e->post->L = L;
+    }
+    lua_pop(L, 1);
+  }
+
+  lua_settop(L, 1);
+
   while((code = curl_multi_perform(p->curl, &running_handles)) == CURLM_CALL_MULTI_PERFORM);
   if(code != CURLM_OK){
     lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);

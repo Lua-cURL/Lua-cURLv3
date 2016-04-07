@@ -15,14 +15,19 @@
 #include "lcutils.h"
 #include <stdlib.h>
 
+#define LCURL_HPOST_STREAM_MAGIC 0xAA
+
 typedef struct lcurl_hpost_stream_tag{
-  lua_State          *L;
+  unsigned char       magic;
+
+  lua_State          **L;
   lcurl_callback_t    rd;
   lcurl_read_buffer_t rbuffer;
   struct lcurl_hpost_stream_tag *next;
 }lcurl_hpost_stream_t;
 
 typedef struct lcurl_hpost_tag{
+  lua_State            *L;
   struct curl_httppost *post;
   struct curl_httppost *last;
   int storage;

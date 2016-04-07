@@ -63,7 +63,7 @@ function test_add_handle()
     end
   end
 
-  m = assert_equal(m, m:add_handle(next_easy()))
+  assert_equal(m, m:add_handle(next_easy()))
 
   for data, type, easy in m:iperform() do
 

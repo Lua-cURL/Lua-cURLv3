@@ -23,7 +23,8 @@ static lcurl_hpost_stream_t *lcurl_hpost_stream_add(lua_State *L, lcurl_hpost_t 
   lcurl_hpost_stream_t *stream = malloc(sizeof(lcurl_hpost_stream_t));
   if(!stream) return NULL;
 
-  stream->L = L;
+  stream->magic = LCURL_HPOST_STREAM_MAGIC;
+  stream->L = &p->L;
   stream->rbuffer.ref = LUA_NOREF;
   stream->rd.cb_ref = stream->rd.ud_ref = LUA_NOREF;
   stream->next = NULL;

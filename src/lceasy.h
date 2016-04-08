@@ -13,6 +13,7 @@
 
 #include "lcurl.h"
 #include "lcutils.h"
+#include "lchttppost.h"
 
 #define LCURL_LST_INDEX(N) LCURL_##N##_LIST,
 #define LCURL_STR_INDEX(N)
@@ -33,8 +34,6 @@ enum {
 #undef OPT_ENTRY
 
 #define LCURL_EASY_MAGIC 0xEA
-
-typedef struct lcurl_hpost_tag lcurl_hpost_t;
 
 typedef struct lcurl_easy_tag{
   unsigned char magic;

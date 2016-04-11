@@ -64,6 +64,29 @@ local function strem(ch, n, m)
   return n, get_bin_by( (ch):rep(n), m)
 end
 
+local function Stream(ch, n, m)
+  local size, reader
+
+  local _stream = {}
+
+  function _stream:read(...)
+    _stream.called_ctx = self
+    _stream.called_co  = coroutine.running()
+    return reader(...)
+  end
+
+  function _stream:size()
+    return size
+  end
+
+  function _stream:reset()
+    size, reader = strem(ch, n, m)
+    return self
+  end
+
+  return _stream:reset()
+end
+
 local ENABLE = true
 
 local _ENV = TEST_CASE'write_callback'       if ENABLE then
@@ -163,6 +186,31 @@ function test_write_pass_03()
   })
 
   assert_equal(c, c:perform())
+end
+
+function test_write_coro()
+  local co1, co2
+  local called
+
+  co1 = coroutine.create(function()
+    c = assert(curl.easy{
+      url = url;
+      writefunction = function()
+        called = coroutine.running()
+        return true
+      end
+    })
+    coroutine.yield()
+  end)
+
+  co2 = coroutine.create(function()
+    assert_equal(c, c:perform())
+  end)
+
+  coroutine.resume(co1)
+  coroutine.resume(co2)
+
+  assert_equal(co2, called)
 end
 
 end
@@ -380,7 +428,7 @@ local _ENV = TEST_CASE'read_stream_callback' if ENABLE and is_curl_ge(7,30,0) th
 
 local url = "http://httpbin.org/post"
 
-local c, f, t
+local m, c, f, t
 
 local function json_data()
   return json.decode(table.concat(t))
@@ -399,17 +447,86 @@ end
 function teardown()
   if f then f:free() end
   if c then c:close() end
-  t, f, c = nil
+  if m then m:close() end
+  t, f, c, m = nil
 end
 
 function test()
   assert_equal(f, f:add_stream('SSSSS', strem('X', 128, 13)))
   assert_equal(c, c:setopt_httppost(f))
+
+  -- should be called only stream callback
+  local read_called
+  assert_equal(c, c:setopt_readfunction(function()
+    read_called = true
+  end))
+
   assert_equal(c, c:perform())
+
+  assert_nil(read_called)
+
   assert_equal(200, c:getinfo_response_code())
   local data = assert_table(json_data())
   assert_table(data.form)
   assert_equal(('X'):rep(128), data.form.SSSSS)
+end
+
+function test_object()
+  local s = Stream('X', 128, 13)
+
+  assert_equal(f, f:add_stream('SSSSS', s:size(), s))
+  assert_equal(c, c:setopt_httppost(f))
+  assert_equal(c, c:perform())
+
+  assert_equal(s, s.called_ctx)
+
+  assert_equal(200, c:getinfo_response_code())
+  local data = assert_table(json_data())
+  assert_table(data.form)
+  assert_equal(('X'):rep(128), data.form.SSSSS)
+end
+
+function test_co_multi()
+  local s = Stream('X', 128, 13)
+  assert_equal(f, f:add_stream('SSSSS', s:size(), s))
+  assert_equal(c, c:setopt_httppost(f))
+
+  m = assert(scurl.multi())
+  assert_equal(m, m:add_handle(c))
+
+  co = coroutine.create(function()
+    while 1== m:perform() do end
+  end)
+
+  coroutine.resume(co)
+
+  assert_equal(co, s.called_co)
+
+  assert_equal(200, c:getinfo_response_code())
+  local data = assert_table(json_data())
+  assert_table(data.form)
+  assert_equal(('X'):rep(128), data.form.SSSSS)
+end
+
+function test_co()
+  local s = Stream('X', 128, 13)
+
+  assert_equal(f, f:add_stream('SSSSS', s:size(), s))
+  assert_equal(c, c:setopt_httppost(f))
+
+  co = coroutine.create(function()
+    assert_equal(c, c:perform())
+  end)
+
+  coroutine.resume(co)
+
+  assert_equal(co, s.called_co)
+
+  assert_equal(200, c:getinfo_response_code())
+  local data = assert_table(json_data())
+  assert_table(data.form)
+  assert_equal(('X'):rep(128), data.form.SSSSS)
+
 end
 
 function test_abort_01()

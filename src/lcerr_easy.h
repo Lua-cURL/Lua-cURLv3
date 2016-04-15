@@ -112,3 +112,9 @@ ERR_ENTRY ( HTTP2                    )
 #else
 ERR_ENTRY ( OBSOLETE16               )
 #endif
+#if LCURL_CURL_VER_GE(7,39,0)
+ERR_ENTRY ( SSL_PINNEDPUBKEYNOTMATCH )
+#endif
+#if LCURL_CURL_VER_GE(7,41,0)
+ERR_ENTRY ( SSL_INVALIDCERTSTATUS    )
+#endif

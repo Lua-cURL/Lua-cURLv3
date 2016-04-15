@@ -4,7 +4,7 @@
 #undef TCP_KEEPALIVE
 
 /* Before version 7.17.0, strings were not copied.
-   Instead the user was forced keep them available 
+   Instead the user was forced keep them available
    until libcurl no longer needed them.
 */
 
@@ -232,13 +232,12 @@ OPT_ENTRY( ssl_cipher_list,         SSL_CIPHER_LIST,         STR, LCURL_STORE_ST
 OPT_ENTRY( ssl_enable_alpn,         SSL_ENABLE_ALPN,         LNG, 0,                  1 )
 OPT_ENTRY( ssl_enable_npn,          SSL_ENABLE_NPN,          LNG, 0,                  1 )
 #endif
-#if LCURL_CURL_VER_GE(7,25,0)                                
+#if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( ssl_options,             SSL_OPTIONS,             LNG, 0,                  LCURL_DEFAULT_VALUE )
 #endif
 OPT_ENTRY( ssl_sessionid_cache,     SSL_SESSIONID_CACHE,     LNG, 0,                  1 )
 OPT_ENTRY( ssl_verifyhost,          SSL_VERIFYHOST,          LNG, 0,                  2 )
 OPT_ENTRY( ssl_verifypeer,          SSL_VERIFYPEER,          LNG, 0,                  1 )
-
 
 FLG_ENTRY( SSLVERSION_DEFAULT )
 FLG_ENTRY( SSLVERSION_TLSv1   )
@@ -260,6 +259,12 @@ FLG_ENTRY( HTTP_VERSION_1_1   )
 #if LCURL_CURL_VER_GE(7,33,0)
 FLG_ENTRY( HTTP_VERSION_2_0   )
 #endif
+#if LCURL_CURL_VER_GE(7,43,0)
+FLG_ENTRY( HTTP_VERSION_2     )
+#endif
+#if LCURL_CURL_VER_GE(7,47,0)
+FLG_ENTRY( HTTP_VERSION_2TLS  )
+#endif
 
 FLG_ENTRY( READFUNC_PAUSE     ) /*7.18.0*/
 FLG_ENTRY( WRITEFUNC_PAUSE    ) /*7.18.0*/
@@ -274,6 +279,38 @@ FLG_ENTRY( SOCKET_TIMEOUT     ) /*7.14.0*/
 FLG_ENTRY( CSELECT_ERR        ) /*7.16.3*/
 FLG_ENTRY( CSELECT_IN         ) /*7.16.3*/
 FLG_ENTRY( CSELECT_OUT        ) /*7.16.3*/
+
+FLG_ENTRY( IPRESOLVE_WHATEVER ) /*7.10.8*/
+FLG_ENTRY( IPRESOLVE_V4       ) /*7.10.8*/
+FLG_ENTRY( IPRESOLVE_V6       ) /*7.10.8*/
+
+#if LCURL_CURL_VER_GE(7,39,0)
+OPT_ENTRY( pinnedpublickey,    PINNEDPUBLICKEY,    STR, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,40,0)
+OPT_ENTRY( unix_socket_path,   UNIX_SOCKET_PATH,   STR, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,41,0)
+OPT_ENTRY( ssl_verifystatus,   SSL_VERIFYSTATUS,   LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,42,0)
+OPT_ENTRY( ssl_falsestart,     SSL_FALSESTART,     LNG, 0,                  LCURL_DEFAULT_VALUE )
+OPT_ENTRY( path_as_is,         PATH_AS_IS,         LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,43,0)
+OPT_ENTRY( proxy_service_name, PROXY_SERVICE_NAME, STR, 0,                  LCURL_DEFAULT_VALUE )
+OPT_ENTRY( service_name,       SERVICE_NAME,       STR, 0,                  LCURL_DEFAULT_VALUE )
+OPT_ENTRY( pipewait,           PIPEWAIT,           LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,45,0)
+OPT_ENTRY( default_protocol,   DEFAULT_PROTOCOL,   STR, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,46,0)
+OPT_ENTRY( stream_weight,      STREAM_WEIGHT,      LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+#if LCURL_CURL_VER_GE(7,48,0)
+OPT_ENTRY( tftp_no_options,    TFTP_NO_OPTIONS,    LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
 
 #ifdef OPT_ENTRY_IS_NULL
 #  undef OPT_ENTRY

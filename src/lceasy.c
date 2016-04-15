@@ -336,6 +336,33 @@ static int lcurl_easy_set_SHARE(lua_State *L){
   lua_settop(L, 1);
   return 1;
 }
+
+#if LCURL_CURL_VER_GE(7,46,0)
+
+static int lcurl_easy_set_STREAM_DEPENDS_impl(lua_State *L, int opt){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lcurl_easy_t *e = lcurl_geteasy_at(L, 2);
+  CURLcode code = curl_easy_setopt(p->curl, opt, e->curl);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_preserve_iv(L, p->storage, opt, 2);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_set_STREAM_DEPENDS(lua_State *L){
+  return lcurl_easy_set_STREAM_DEPENDS_impl(L, CURLOPT_STREAM_DEPENDS);
+}
+
+static int lcurl_easy_set_STREAM_DEPENDS_E(lua_State *L){
+  return lcurl_easy_set_STREAM_DEPENDS_impl(L, CURLOPT_STREAM_DEPENDS_E);
+}
+
+#endif
+
 //}
 
 //{ unset
@@ -521,6 +548,38 @@ static int lcurl_easy_unset_POSTFIELDS(lua_State *L){
   lua_settop(L, 1);
   return 1;
 }
+
+#if LCURL_CURL_VER_GE(7,46,0)
+
+static int lcurl_easy_unset_STREAM_DEPENDS(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_STREAM_DEPENDS, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_STREAM_DEPENDS);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+static int lcurl_easy_unset_STREAM_DEPENDS_E(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_STREAM_DEPENDS_E, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_STREAM_DEPENDS_E);
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
 
 //}
 
@@ -907,6 +966,10 @@ static int lcurl_easy_setopt(lua_State *L){
     OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
     OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
     OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,46,0)
+    OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
+    OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
   }
 #undef OPT_ENTRY
 
@@ -930,6 +993,10 @@ static int lcurl_easy_unsetopt(lua_State *L){
     OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
     OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
     OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,46,0)
+    OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
+    OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
   }
 #undef OPT_ENTRY
 
@@ -990,6 +1057,10 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,46,0)
+  OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
+  OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
 #undef OPT_ENTRY
 
 #define OPT_ENTRY(L, N, T, S, D) { "unsetopt_"#L, lcurl_easy_unset_##N },
@@ -1001,6 +1072,10 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,46,0)
+  OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
+  OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
 #undef OPT_ENTRY
 
 #define OPT_ENTRY(L, N, T, S) { "getinfo_"#L, lcurl_easy_get_##N },
@@ -1036,6 +1111,10 @@ static const lcurl_const_t lcurl_easy_opt[] = {
   OPT_ENTRY(readfunction,      READFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(headerfunction,    HEADERFUNCTION,   TTT, 0, 0)
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,46,0)
+  OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
+  OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
 #undef OPT_ENTRY
 #undef FLG_ENTRY
 

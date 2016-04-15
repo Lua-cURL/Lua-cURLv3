@@ -16,6 +16,11 @@
 #define LCURL_ERROR_NAME LCURL_PREFIX" Error"
 static const char *LCURL_ERROR = LCURL_ERROR_NAME;
 
+#define LCURL_ERROR_EASY_NAME  "CURL-EASY"
+#define LCURL_ERROR_MULTI_NAME "CURL-MULTI"
+#define LCURL_ERROR_SHARE_NAME "CURL-SHARE"
+#define LCURL_ERROR_FORM_NAME  "CURL-FORM"
+
 typedef struct lcurl_error_tag{
   int tp;
   int no;
@@ -89,8 +94,41 @@ static const char* _lcurl_err_msg(int tp, int err){
   return "<UNSUPPORTED ERROR TYPE>";
 }
 
+static const char* _lcurl_err_category_name(int tp){
+  assert(
+    (tp == LCURL_ERROR_EASY ) ||
+    (tp == LCURL_ERROR_MULTI) ||
+    (tp == LCURL_ERROR_SHARE) ||
+    (tp == LCURL_ERROR_FORM ) ||
+    0
+  );
+
+  switch(tp){
+    case LCURL_ERROR_EASY: {
+      static const char *name = LCURL_ERROR_EASY_NAME;
+      return name;
+    }
+    case LCURL_ERROR_MULTI: {
+      static const char *name = LCURL_ERROR_MULTI_NAME;
+      return name;
+    }
+    case LCURL_ERROR_SHARE: {
+      static const char *name = LCURL_ERROR_SHARE_NAME;
+      return name;
+    }
+    case LCURL_ERROR_FORM: {
+      static const char *name = LCURL_ERROR_FORM_NAME;
+      return name;
+    }
+  }
+
+  assert(0);
+  return NULL;
+}
+
 static void _lcurl_err_pushstring(lua_State *L, int tp, int err){
-  lua_pushfstring(L, "[%s] %s (%d)",
+  lua_pushfstring(L, "[%s][%s] %s (%d)",
+    _lcurl_err_category_name(tp),
     _lcurl_err_mnemo(tp, err),
     _lcurl_err_msg(tp, err),
     err
@@ -158,7 +196,7 @@ static int lcurl_err_equal(lua_State *L){
 
 static int lcurl_err_category(lua_State *L){
   lcurl_error_t *err = lcurl_geterror(L);
-  lua_pushinteger(L, err->tp);
+  lua_pushstring(L, _lcurl_err_category_name(err->tp));
   return 1;
 }
 
@@ -190,9 +228,30 @@ int lcurl_fail(lua_State *L, int error_type, int code){
 
 //}
 
+static const int ERROR_CATEGORIES[] = {
+  LCURL_ERROR_EASY,
+  LCURL_ERROR_MULTI,
+  LCURL_ERROR_SHARE,
+  LCURL_ERROR_FORM,
+};
+
+static const char* ERROR_CATEGORIES_NAME[] = {
+  LCURL_ERROR_EASY_NAME,
+  LCURL_ERROR_MULTI_NAME,
+  LCURL_ERROR_SHARE_NAME,
+  LCURL_ERROR_FORM_NAME,
+  NULL
+};
+
 int lcurl_error_new(lua_State *L){
-  int tp = luaL_checkint(L, 1);
-  int no = luaL_checkint(L, 2);
+  int tp, no = luaL_checkint(L, 2);
+  if (lua_isnumber(L, 1)){
+    tp = luaL_checkint(L, 2);
+  }
+  else{
+    tp = luaL_checkoption(L, 1, NULL, ERROR_CATEGORIES_NAME);
+    tp = ERROR_CATEGORIES[tp];
+  }
 
   //! @todo checks error type value
 
@@ -234,21 +293,15 @@ static const lcurl_const_t lcurl_error_codes[] = {
   {NULL, 0}
 };
 
-static const lcurl_const_t lcurl_error_category[] = {
-  {"ERROR_CURL",  LCURL_ERROR_CURL},
-  {"ERROR_EASY",  LCURL_ERROR_EASY},
-  {"ERROR_MULTI", LCURL_ERROR_MULTI},
-  {"ERROR_SHARE", LCURL_ERROR_SHARE},
-  {"ERROR_FORM",  LCURL_ERROR_FORM},
-
-  {NULL, 0}
-};
-
 void lcurl_error_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_ERROR, lcurl_err_methods, nup))
     lua_pop(L, nup);
   lua_pop(L, 1);
 
   lcurl_util_set_const(L, lcurl_error_codes);
-  lcurl_util_set_const(L, lcurl_error_category);
+
+  lua_pushstring(L, _lcurl_err_category_name(LCURL_ERROR_EASY  ));lua_setfield(L, -2, "ERROR_EASY" );
+  lua_pushstring(L, _lcurl_err_category_name(LCURL_ERROR_MULTI ));lua_setfield(L, -2, "ERROR_MULTI");
+  lua_pushstring(L, _lcurl_err_category_name(LCURL_ERROR_SHARE ));lua_setfield(L, -2, "ERROR_SHARE");
+  lua_pushstring(L, _lcurl_err_category_name(LCURL_ERROR_FORM  ));lua_setfield(L, -2, "ERROR_FORM" );
 }

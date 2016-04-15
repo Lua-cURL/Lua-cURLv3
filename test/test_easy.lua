@@ -923,7 +923,7 @@ local _ENV = TEST_CASE'setopt_user_data'     if ENABLE then
 
 local c
 
-function setup()
+function teardown()
   if c then c:close() end
   c = nil
 end

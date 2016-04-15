@@ -59,8 +59,13 @@ FLG_ENTRY(USESSL_NONE                     )
 FLG_ENTRY(USESSL_TRY                      )
 FLG_ENTRY(USESSL_CONTROL                  )
 FLG_ENTRY(USESSL_ALL                      )
+
+/* Definition of bits for the CURLOPT_SSL_OPTIONS argument: */
 #ifdef CURLSSLOPT_ALLOW_BEAST
 FLG_ENTRY(SSLOPT_ALLOW_BEAST              )
+#endif
+#ifdef CURLSSLOPT_NO_REVOKE
+FLG_ENTRY(SSLOPT_NO_REVOKE                )
 #endif
 
 /* parameter for the CURLOPT_FTP_SSL_CCC option */
@@ -145,6 +150,12 @@ FLG_ENTRY(PROTO_RTMPTS                    )
 #endif
 #ifdef CURLPROTO_GOPHER
 FLG_ENTRY(PROTO_GOPHER                    )
+#endif
+#ifdef CURLPROTO_SMB
+FLG_ENTRY(PROTO_SMB                       )
+#endif
+#ifdef CURLPROTO_SMBS
+FLG_ENTRY(PROTO_SMBS                      )
 #endif
 FLG_ENTRY(PROTO_ALL                       )
 

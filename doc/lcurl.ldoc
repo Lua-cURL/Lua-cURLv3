@@ -155,7 +155,7 @@ do
 
 --- Get the error category.
 -- 
--- @treturn number number of error category (curl.ERROR_XXX constants)
+-- @treturn string string of error category (curl.ERROR_XXX constants)
 -- 
 -- @usage
 -- if err:category() == curl.ERROR_EASY then

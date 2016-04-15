@@ -89,6 +89,55 @@ end
 
 local ENABLE = true
 
+local _ENV = TEST_CASE'curl error'           if ENABLE then
+
+function test_eq_with_same_cat()
+  local e1 = curl.error(curl.ERROR_EASY, curl.E_OK)
+  local e2 = curl.error(curl.ERROR_EASY, curl.E_OK)
+  assert_equal(e1, e2)
+  print()
+  print(e1)
+end
+
+function test_eq_with_different_cat()
+  local e1 = curl.error(curl.ERROR_EASY, curl.E_OK)
+  local e2 = curl.error(curl.ERROR_FORM, curl.E_OK)
+
+  assert_equal(e1:no(), e2:no())
+  assert_not_equal(e1, e2)
+end
+
+function test_ctor_cat()
+  local e
+
+  e = curl.error(curl.ERROR_EASY, curl.E_OK)
+  assert_equal(e:category(), curl.ERROR_EASY)
+  assert_equal(e:no(), curl.E_OK)
+
+  e = curl.error(curl.ERROR_MULTI, curl.E_OK)
+  assert_equal(e:category(), curl.ERROR_MULTI)
+  assert_equal(e:no(), curl.E_OK)
+
+  e = curl.error(curl.ERROR_SHARE, curl.E_OK)
+  assert_equal(e:category(), curl.ERROR_SHARE)
+  assert_equal(e:no(), curl.E_OK)
+
+  e = curl.error(curl.ERROR_FORM, curl.E_OK)
+  assert_equal(e:category(), curl.ERROR_FORM)
+  assert_equal(e:no(), curl.E_OK)
+
+  assert_error(function()
+    curl.error(nil, curl.E_OK)
+  end)
+
+  assert_error(function()
+    curl.error('UNKNOWN STRING', curl.E_OK)
+  end)
+
+end
+
+end
+
 local _ENV = TEST_CASE'write_callback'       if ENABLE then
 
 local c, f

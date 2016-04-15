@@ -95,8 +95,6 @@ function test_eq_with_same_cat()
   local e1 = curl.error(curl.ERROR_EASY, curl.E_OK)
   local e2 = curl.error(curl.ERROR_EASY, curl.E_OK)
   assert_equal(e1, e2)
-  print()
-  print(e1)
 end
 
 function test_eq_with_different_cat()

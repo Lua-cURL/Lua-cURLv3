@@ -518,7 +518,6 @@ end
 end
 
 local setopt = wrap_function("setopt")
-local dummy  = {}
 local custom_setopt = {
   [curl.OPT_HTTPPOST         or true] = 'setopt_httppost';
   [curl.OPT_STREAM_DEPENDS   or true] = 'setopt_stream_depends';
@@ -538,14 +537,14 @@ function Easy:setopt(k, v)
       if t[curl.OPT_HTTPPOST] then t[curl.OPT_HTTPPOST] = hpost:handle() end
     end
 
-    local easy = t.stream_depends or t[curl.OPT_STREAM_DEPENDS or dummy]
+    local easy = t.stream_depends or t[curl.OPT_STREAM_DEPENDS]
     if easy and easy._handle then
       t = t2 or clone(t); t2 = t;
       if t.stream_depends           then t.stream_depends           = easy:handle() end
       if t[curl.OPT_STREAM_DEPENDS] then t[curl.OPT_STREAM_DEPENDS] = easy:handle() end
     end
 
-    local easy = t.stream_depends_e or t[curl.OPT_STREAM_DEPENDS_E or dummy]
+    local easy = t.stream_depends_e or t[curl.OPT_STREAM_DEPENDS_E]
     if easy and easy._handle then
       t = t2 or clone(t); t2 = t;
       if t.stream_depends_e           then t.stream_depends_e           = easy:handle() end

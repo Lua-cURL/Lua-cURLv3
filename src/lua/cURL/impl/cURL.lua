@@ -116,7 +116,6 @@ local function make_iterator(self, perform)
   end
 end
 
-
 -- name = <string>/<stream>/<file>/<buffer>/<content>
 --
 -- <stream> = {
@@ -504,23 +503,61 @@ function Easy:setopt_httppost(form)
   return setopt_httppost(self, form:handle())
 end
 
+if curl.OPT_STREAM_DEPENDS then
+
+local setopt_stream_depends = wrap_function("setopt_stream_depends")
+function Easy:setopt_stream_depends(easy)
+  return setopt_stream_depends(self, easy:handle())
+end
+
+local setopt_stream_depends_e = wrap_function("setopt_stream_depends_e")
+function Easy:setopt_stream_depends_e(easy)
+  return setopt_stream_depends_e(self, easy:handle())
+end
+
+end
+
 local setopt = wrap_function("setopt")
+local dummy  = {}
+local custom_setopt = {
+  [curl.OPT_HTTPPOST         or true] = 'setopt_httppost';
+  [curl.OPT_STREAM_DEPENDS   or true] = 'setopt_stream_depends';
+  [curl.OPT_STREAM_DEPENDS_E or true] = 'setopt_stream_depends_e';
+}
+custom_setopt[true] = nil
+
 function Easy:setopt(k, v)
   if type(k) == 'table' then
     local t = k
 
+    local t2
     local hpost = t.httppost or t[curl.OPT_HTTPPOST]
     if hpost and hpost._handle then
-      t = clone(t)
+      t = t2 or clone(t); t2 = t;
       if t.httppost           then t.httppost           = hpost:handle() end
       if t[curl.OPT_HTTPPOST] then t[curl.OPT_HTTPPOST] = hpost:handle() end
+    end
+
+    local easy = t.stream_depends or t[curl.OPT_STREAM_DEPENDS or dummy]
+    if easy and easy._handle then
+      t = t2 or clone(t); t2 = t;
+      if t.stream_depends           then t.stream_depends           = easy:handle() end
+      if t[curl.OPT_STREAM_DEPENDS] then t[curl.OPT_STREAM_DEPENDS] = easy:handle() end
+    end
+
+    local easy = t.stream_depends_e or t[curl.OPT_STREAM_DEPENDS_E or dummy]
+    if easy and easy._handle then
+      t = t2 or clone(t); t2 = t;
+      if t.stream_depends_e           then t.stream_depends_e           = easy:handle() end
+      if t[curl.OPT_STREAM_DEPENDS_E] then t[curl.OPT_STREAM_DEPENDS_E] = easy:handle() end
     end
 
     return setopt(self, t)
   end
 
-  if k == curl.OPT_HTTPPOST then
-    return self:setopt_httppost(v)
+  local setname = custom_setopt[k]
+  if setname then
+    return self[setname](self, v)
   end
 
   return setopt(self, k, v)

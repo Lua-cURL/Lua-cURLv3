@@ -18,9 +18,9 @@ local scurl      = require "cURL.safe"
 local json       = require "dkjson"
 local fname      = "./test.download"
 
-local ENABLE = false
+local ENABLE = true
 
-local _ENV = TEST_CASE'easy' if true or ENABLE then
+local _ENV = TEST_CASE'easy' if ENABLE then
 
 local e1, e2
 function teardown()
@@ -28,6 +28,8 @@ function teardown()
   if e2 then e2:close() end
   e1, e2 = nil
 end
+
+if curl.OPT_STREAM_DEPENDS then
 
 function test_easy_setopt_stream_depends_1()
   e1 = assert(scurl.easy())
@@ -91,6 +93,8 @@ function test_easy_setopt_stream_depends_e_4()
   assert_pass(function()
     e1:setopt{stream_depends_e = e2}
   end)
+end
+
 end
 
 function test_easy_setopt_share()

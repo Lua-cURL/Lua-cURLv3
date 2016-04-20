@@ -1,7 +1,7 @@
 --
---  Author: Alexey Melnichuk <mimir@newmail.ru>
+--  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
---  Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+--  Copyright (C) 2014-2016 Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
 --  Licensed according to the included 'LICENSE' document
 --

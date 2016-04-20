@@ -1,7 +1,7 @@
 --
---  Author: Alexey Melnichuk <mimir@newmail.ru>
+--  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
---  Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+--  Copyright (C) 2014-2016 Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
 --  Licensed according to the included 'LICENSE' document
 --
@@ -12,7 +12,7 @@ local module_info = {
   _NAME      = "Lua-cURL";
   _VERSION   = "0.3.3-dev";
   _LICENSE   = "MIT";
-  _COPYRIGHT = "Copyright (c) 2014 Alexey Melnichuk";
+  _COPYRIGHT = "Copyright (c) 2014-2016 Alexey Melnichuk";
 }
 
 local function clone(t, o)

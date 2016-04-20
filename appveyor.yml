@@ -54,11 +54,8 @@ before_test:
 test_script:
   - echo "Testing..."
   - cd %APPVEYOR_BUILD_FOLDER%\test
-  - lua test_easy.lua
-  - lua test_safe.lua
-  - lua test_form.lua
+  - lua run.lua
   - lua test_pause02.c.lua
-  - lua test_curl.lua
 
 after_test:
   - cd %APPVEYOR_BUILD_FOLDER%

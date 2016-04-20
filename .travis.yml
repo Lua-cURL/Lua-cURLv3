@@ -43,11 +43,12 @@ before_script:
 script:
   - cd test
   - lua -e "print(require 'cURL.utils'.find_ca_bundle())"
-  - lunit.sh test_easy.lua
-  - lunit.sh test_safe.lua
-  - lunit.sh test_form.lua
-  - lunit.sh test_pause02.c.lua
-  - lunit.sh test_curl.lua
+  - lunit.sh run.lua
+  - lua test_pause02.c.lua
+  # - lunit.sh test_easy.lua
+  # - lunit.sh test_safe.lua
+  # - lunit.sh test_form.lua
+  # - lunit.sh test_curl.lua
 
 after_success:
   - coveralls -b .. -r .. --dump c.report.json

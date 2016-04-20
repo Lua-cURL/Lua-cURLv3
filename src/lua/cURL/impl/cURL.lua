@@ -8,6 +8,13 @@
 --  This file is part of Lua-cURL library.
 --
 
+local module_info = {
+  _NAME      = "Lua-cURL";
+  _VERSION   = "0.3.3-dev";
+  _LICENSE   = "MIT";
+  _COPYRIGHT = "Copyright (c) 2014 Alexey Melnichuk";
+}
+
 local function clone(t, o)
   o = o or {}
   for k,v in pairs(t) do o[k]=v end
@@ -691,7 +698,7 @@ function cURL.multi(...) return Multi:new(...) end
 end
 
 return function(curl)
-  local cURL = {}
+  local cURL = clone(module_info)
 
   Load_cURLv3(cURL, curl)
 

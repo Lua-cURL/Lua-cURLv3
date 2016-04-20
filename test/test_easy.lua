@@ -20,11 +20,11 @@ local upath      = require "path".new('/')
 local url        = "http://example.com"
 local fname      = "./test.download"
 
-print("------------------------------------")
-print("Lua  version: " .. (_G.jit and _G.jit.version or _G._VERSION))
-print("cURL version: " .. curl.version())
-print("------------------------------------")
-print("")
+-- print("------------------------------------")
+-- print("Lua  version: " .. (_G.jit and _G.jit.version or _G._VERSION))
+-- print("cURL version: " .. curl.version())
+-- print("------------------------------------")
+-- print("")
 
 local function weak_ptr(val)
   return setmetatable({value = val},{__mode = 'v'})

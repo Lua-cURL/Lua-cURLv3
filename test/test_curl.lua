@@ -20,6 +20,15 @@ local fname      = "./test.download"
 
 local ENABLE = true
 
+local _ENV = TEST_CASE'version'        if ENABLE then
+
+function test()
+  assert_match("^%d+%.%d+%.%d+%-?", curl._VERSION)
+  assert_equal("Lua-cURL",          curl._NAME   )
+end
+
+end
+
 local _ENV = TEST_CASE'easy' if ENABLE then
 
 local e1, e2

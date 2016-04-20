@@ -142,6 +142,7 @@ set PATH=%LR_ROOT%;%LR_SYSTREE%\bin;%PATH%
 
 :: Lua will use just the system rocks
 set LUA_PATH=%LR_ROOT%\lua\?.lua;%LR_ROOT%\lua\?\init.lua
+set LUA_PATH=%LUA_PATH%;.\?.lua;
 set LUA_PATH=%LUA_PATH%;%LR_SYSTREE%\share\lua\%LUA_SHORTV%\?.lua
 set LUA_PATH=%LUA_PATH%;%LR_SYSTREE%\share\lua\%LUA_SHORTV%\?\init.lua
 set LUA_CPATH=%LR_SYSTREE%\lib\lua\%LUA_SHORTV%\?.dll

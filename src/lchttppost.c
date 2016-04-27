@@ -294,7 +294,7 @@ static int lcurl_hpost_add_stream(lua_State *L){
   }
 
 #if defined(LCURL_INT_SIZE_64) && LCURL_CURL_VER_GE(7,46,0)
-  len = luaL_checinteger(L, i);
+  len = luaL_checkinteger(L, i);
 #else
   len = luaL_checklong(L, i);
 #endif

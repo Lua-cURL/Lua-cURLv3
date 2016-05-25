@@ -265,6 +265,9 @@ FLG_ENTRY( HTTP_VERSION_2     )
 #if LCURL_CURL_VER_GE(7,47,0)
 FLG_ENTRY( HTTP_VERSION_2TLS  )
 #endif
+#if LCURL_CURL_VER_GE(7,49,0)
+FLG_ENTRY( HTTP_VERSION_2_PRIOR_KNOWLEDGE )
+#endif
 
 FLG_ENTRY( READFUNC_PAUSE     ) /*7.18.0*/
 FLG_ENTRY( WRITEFUNC_PAUSE    ) /*7.18.0*/
@@ -310,6 +313,11 @@ OPT_ENTRY( stream_weight,      STREAM_WEIGHT,      LNG, 0,                  LCUR
 #endif
 #if LCURL_CURL_VER_GE(7,48,0)
 OPT_ENTRY( tftp_no_options,    TFTP_NO_OPTIONS,    LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+
+#if LCURL_CURL_VER_GE(7,49,0)
+OPT_ENTRY( tcp_fastopen,       TCP_FASTOPEN,       LNG, 0,                  LCURL_DEFAULT_VALUE )
+OPT_ENTRY( connect_to,         CONNECT_TO,         LST, 0,                  LCURL_DEFAULT_VALUE )
 #endif
 
 #ifdef OPT_ENTRY_IS_NULL

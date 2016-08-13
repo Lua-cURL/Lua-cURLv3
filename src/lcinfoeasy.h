@@ -43,6 +43,10 @@ OPT_ENTRY( rtsp_server_cseq,        RTSP_SERVER_CSEQ,        LNG, 0)
 OPT_ENTRY( rtsp_cseq_recv,          RTSP_CSEQ_RECV,          LNG, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,50,1)
+OPT_ENTRY( http_version,            HTTP_VERSION,            STR, 0)
+#endif
+
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( CERTINFO,                struct curl_certinfo *
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

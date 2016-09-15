@@ -58,30 +58,6 @@ void lua_rawsetp (lua_State *L, int index, const void *p){
   lua_rawset(L, index);
 }
 
-int luaL_getmetafield (lua_State *L, int obj, const char *event) {
-  if (!lua_getmetatable(L, obj))  /* no metatable? */
-    return 0;
-  lua_pushstring(L, event);
-  lua_rawget(L, -2);
-  if (lua_isnil(L, -1)) {
-    lua_pop(L, 2);  /* remove metatable and metafield */
-    return 0;
-  }
-  else {
-    lua_remove(L, -2);  /* remove only metatable */
-    return 1;
-  }
-}
-
-int luaL_callmeta (lua_State *L, int obj, const char *event) {
-  obj = lua_absindex(L, obj);
-  if (!luaL_getmetafield(L, obj, event))  /* no metafield? */
-    return 0;
-  lua_pushvalue(L, obj);
-  lua_call(L, 1, 1);
-  return 1;
-}
-
 #endif
 
 int lutil_newmetatablep (lua_State *L, const void *p) {

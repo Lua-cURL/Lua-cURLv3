@@ -1029,7 +1029,6 @@ static int lcurl_easy_pause(lua_State *L){
 }
 
 static int lcurl_easy_setdata(lua_State *L){
-  lcurl_easy_t *p = lcurl_geteasy(L);
   lua_settop(L, 2);
   lua_pushvalue(L, 1);
   lua_insert(L, 2);
@@ -1038,7 +1037,6 @@ static int lcurl_easy_setdata(lua_State *L){
 }
 
 static int lcurl_easy_getdata(lua_State *L){
-  lcurl_easy_t *p = lcurl_geteasy(L);
   lua_settop(L, 1);
   lua_rawget(L, LCURL_USERVALUES);
   return 1;

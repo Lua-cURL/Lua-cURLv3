@@ -408,6 +408,7 @@ static int lcurl_multi_socket_callback(CURL *easy, curl_socket_t s, int what, vo
   lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
   lua_rawgetp(L, -1, easy);
   e = lcurl_geteasy_at(L, -1);
+  e->L = p->L;
   lua_remove(L, -2);
   lutil_pushint64(L, s);
   lua_pushinteger(L, what);

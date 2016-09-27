@@ -110,7 +110,13 @@ static int lcurl_multi_add_handle(lua_State *L){
   CURLMcode code;
 
   if(e->multi){
-    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_ADDED_ALREADY);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, 
+#if LCURL_CURL_VER_GE(7,32,1)
+    CURLM_ADDED_ALREADY
+#else
+    CURLM_BAD_EASY_HANDLE
+#endif
+    );
   }
 
   // From doc:

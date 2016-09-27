@@ -14,6 +14,7 @@
 #include "lcutils.h"
 #include "lchttppost.h"
 #include "lcshare.h"
+#include "lcmulti.h"
 #include <memory.h>
 
 static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
@@ -45,6 +46,7 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   p->magic       = LCURL_EASY_MAGIC;
   p->L           = NULL;
   p->post        = NULL;
+  p->multi       = NULL;
   p->storage     = lcurl_storage_init(L);
   p->wr.cb_ref   = p->wr.ud_ref = LUA_NOREF;
   p->rd.cb_ref   = p->rd.ud_ref = LUA_NOREF;
@@ -75,7 +77,19 @@ static int lcurl_easy_cleanup(lua_State *L){
   int i;
 
   if(p->curl){
+    p->L = L;
+    if(p->post){
+      p->post->L = L;
+    }
+    // In my tests when I cleanup some easy handle. 
+    // timerfunction called only for single multi handle.
+    if(p->multi){
+      p->multi->L = L;
+    }
     curl_easy_cleanup(p->curl);
+    if(p->multi){
+      p->multi->L = NULL;
+    }
     p->curl = NULL;
   }
 

@@ -56,6 +56,7 @@ test_script:
   - cd %APPVEYOR_BUILD_FOLDER%\test
   - lua run.lua
   - lua test_pause02.c.lua
+  - lua test_multi_callback.lua
 
 after_test:
   - cd %APPVEYOR_BUILD_FOLDER%

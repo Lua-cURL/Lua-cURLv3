@@ -182,7 +182,7 @@ end
 
 on_curl_action = function(easy, fd, action)
   local ok, err = pcall(function()
-    trace("CURL::SOCKET", easy, s, ACTION_NAMES[action] or action)
+    trace("CURL::SOCKET", easy, fd, ACTION_NAMES[action] or action)
 
     local context = easy.data.context
 

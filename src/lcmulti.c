@@ -214,6 +214,7 @@ static int lcurl_multi_info_read(lua_State *L){
     if(remove){
       //! @fixme We ignore any errors
       if(CURLM_OK == curl_multi_remove_handle(p->curl, e->curl)){
+        e->multi = NULL;
         lua_pushnil(L);
         lua_rawsetp(L, -3, e->curl);
       }

@@ -311,7 +311,7 @@ static int lcurl_multi_socket_action(lua_State *L){
   if(s == CURL_SOCKET_TIMEOUT) mask = lutil_optint64(L, 3, 0);
   else mask = lutil_checkint64(L, 3);
 
-  lcurl__multi_assign_lua(L, p, 0);
+  lcurl__multi_assign_lua(L, p, 1);
   code = curl_multi_socket_action(p->curl, s, mask, &n);
   p->L = NULL;
 
@@ -470,7 +470,6 @@ static int lcurl_multi_socket_callback(CURL *easy, curl_socket_t s, int what, vo
   lutil_pushint64(L, s);
   lua_pushinteger(L, what);
 
-  e->L = L;
   if(lua_pcall(L, n+2, 0, 0)){
     assert(lua_gettop(L) >= top);
     lua_settop(L, top);

@@ -2,10 +2,17 @@ local curl = require "lcurl"
 
 local called, active_coroutine = 0
 
+-- for Lua 5.1 compat
+local function co_running()
+  local co, main = coroutine.running()
+  if main == true then return nil end
+  return co
+end
+
 function on_timer()
   called = called + 1
   -- use `os.exit` because now Lua-cURL did not propogate error from callback
-  if coroutine.running() ~= active_coroutine then os.exit(-1) end
+  if co_running() ~= active_coroutine then os.exit(-1) end
 end
 
 local function test_1()

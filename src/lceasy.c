@@ -40,6 +40,8 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
  * end)
  * ```
  * So we have to restore previews Lua state in callback contexts.
+ * But if previews Lua state is NULL then we can just do not set it back.
+ * But set it to NULL make esier debug code.
  */
 void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi){
   if(p->multi && assign_multi){
@@ -107,6 +109,12 @@ static int lcurl_easy_cleanup(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   int i;
 
+  if(p->multi){
+    CURLMcode code = lcurl__multi_remove_handle(L, p->multi, p);
+
+    //! @todo what I can do if I can not remove it???
+  }
+
   if(p->curl){
     lua_State *curL;
 
@@ -114,6 +122,9 @@ static int lcurl_easy_cleanup(lua_State *L){
     // timerfunction called only for single multi handle.
     curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
     curl_easy_cleanup(p->curl);
+#ifndef LCURL_RESET_NULL_LUA
+    if(curL != NULL)
+#endif
     lcurl__easy_assign_lua(L, p, curL, 1);
 
     p->curl = NULL;
@@ -163,6 +174,9 @@ static int lcurl_easy_perform(lua_State *L){
   // User should not call `perform` if handle assign to multi
   curL = p->L; lcurl__easy_assign_lua(L, p, L, 0);
   code = curl_easy_perform(p->curl);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__easy_assign_lua(L, p, curL, 0);
 
   if(p->rbuffer.ref != LUA_NOREF){
@@ -1070,6 +1084,9 @@ static int lcurl_easy_pause(lua_State *L){
 
   curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
   code = curl_easy_pause(p->curl, mask);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__easy_assign_lua(L, p, curL, 1);
 
   if(code != CURLE_OK){

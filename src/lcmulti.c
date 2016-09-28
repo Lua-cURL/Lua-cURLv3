@@ -28,7 +28,35 @@
 #define LCURL_MULTI_NAME LCURL_PREFIX" Multi"
 static const char *LCURL_MULTI = LCURL_MULTI_NAME;
 
+#if defined(DEBUG) || defined(_DEBUG)
+static void lcurl__multi_validate_sate(lua_State *L, lcurl_multi_t *p){
+  int top = lua_gettop(L);
+
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
+  assert(lua_istable(L, -1));
+
+  lua_pushnil(L);
+  while(lua_next(L, -2)){
+    lcurl_easy_t *e = lcurl_geteasy_at(L, -1);
+    void *ptr = lua_touserdata(L, -2);
+
+    assert(e->curl == ptr);
+    assert(e->multi == p);
+    assert(e->L == p->L);
+
+    lua_pop(L, 1);
+  }
+
+  lua_pop(L, 1);
+  assert(lua_gettop(L) == top);
+}
+#else
+#  define lcurl__multi_validate_sate(L, p) (void*)(0)
+#endif
+
 void lcurl__multi_assign_lua(lua_State *L, lcurl_multi_t *p, lua_State *value, int assign_easy){
+  lcurl__multi_validate_sate(L, p);
+
   if((assign_easy)&&(p->L != value)){
     lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
     lua_pushnil(L);
@@ -145,10 +173,16 @@ static int lcurl_multi_add_handle(lua_State *L){
   lua_rawsetp(L, -2, e->curl);
   lua_settop(L, 1);
 
+  // all `esay` handles have to have same L
+  lcurl__easy_assign_lua(L, e, p->L, 0);
+
   e->multi = p;
 
   curL = p->L; lcurl__multi_assign_lua(L, p, L, 1);
   code = curl_multi_add_handle(p->curl, e->curl);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__multi_assign_lua(L, p, curL, 1);
 
   if(code != CURLM_OK){
@@ -166,30 +200,42 @@ static int lcurl_multi_add_handle(lua_State *L){
 static int lcurl_multi_remove_handle(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
   lcurl_easy_t  *e = lcurl_geteasy_at(L, 2);
+  CURLMcode code = lcurl__multi_remove_handle(L, p, e);
+
+  if(code != CURLM_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  }
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+CURLMcode lcurl__multi_remove_handle(lua_State *L, lcurl_multi_t *p, lcurl_easy_t *e){
   CURLMcode code;
   lua_State *curL;
 
   if(e->multi != p){
     // cURL returns CURLM_OK for such call so we do the same.
     // tested on 7.37.1
-    lua_settop(L, 1);
-    return 1;
+    return CURLM_OK;
   }
 
   curL = p->L; lcurl__multi_assign_lua(L, p, L, 1);
   code = curl_multi_remove_handle(p->curl, e->curl);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__multi_assign_lua(L, p, curL, 1);
 
-  if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+  if(code == CURLM_OK){
+    e->multi = NULL;
+    lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
+    lua_pushnil(L);
+    lua_rawsetp(L, -2, e->curl);
+    lua_pop(L, 1);
   }
-
-  e->multi = NULL;
-  lua_rawgeti(L, LCURL_LUA_REGISTRY, p->h_ref);
-  lua_pushnil(L);
-  lua_rawsetp(L, -2, e->curl);
-  lua_settop(L, 1);
-  return 1;
+ 
+  return code;
 }
 
 static int lcurl_multi_perform(lua_State *L){
@@ -200,6 +246,9 @@ static int lcurl_multi_perform(lua_State *L){
 
   curL = p->L; lcurl__multi_assign_lua(L, p, L, 1);
   while((code = curl_multi_perform(p->curl, &running_handles)) == CURLM_CALL_MULTI_PERFORM);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__multi_assign_lua(L, p, curL, 1);
 
   if(code != CURLM_OK){
@@ -232,6 +281,9 @@ static int lcurl_multi_info_read(lua_State *L){
 
       curL = p->L; lcurl__multi_assign_lua(L, p, L, 1);
       code = curl_multi_remove_handle(p->curl, e->curl);
+#ifndef LCURL_RESET_NULL_LUA
+      if(curL != NULL)
+#endif
       lcurl__multi_assign_lua(L, p, curL, 1);
 
       if(CURLM_OK == code){
@@ -337,6 +389,9 @@ static int lcurl_multi_socket_action(lua_State *L){
 
   curL = p->L; lcurl__multi_assign_lua(L, p, L, 1);
   code = curl_multi_socket_action(p->curl, s, mask, &n);
+#ifndef LCURL_RESET_NULL_LUA
+  if(curL != NULL)
+#endif
   lcurl__multi_assign_lua(L, p, curL, 1);
 
   if(code != CURLM_OK){

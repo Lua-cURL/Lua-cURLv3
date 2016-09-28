@@ -33,4 +33,6 @@ void lcurl_multi_initlib(lua_State *L, int nup);
 
 void lcurl__multi_assign_lua(lua_State *L, lcurl_multi_t *p, lua_State *value, int assign_easy);
 
+CURLMcode lcurl__multi_remove_handle(lua_State *L, lcurl_multi_t *p, lcurl_easy_t *e);
+
 #endif

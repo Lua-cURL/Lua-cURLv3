@@ -28,6 +28,31 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
 #  define LCURL_E_UNKNOWN_OPTION CURLE_UNKNOWN_TELNET_OPTION
 #endif
 
+/* Before call curl_XXX function which can call any callback
+ * need set Curren Lua thread pointer in easy/multi contexts.
+ * But it also possible that we already in callback call.
+ * E.g. `curl_easy_pause` function may be called from write callback.
+ * and it even may be called in different thread.
+ * ```Lua
+ * multi:add_handle(easy)
+ * easy:setopt_writefunction(function(...)
+ *   coroutine.wrap(function() multi:add_handle(easy2) end)()
+ * end)
+ * ```
+ * So we have to restore previews Lua state in callback contexts.
+ */
+void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi){
+  if(p->multi && assign_multi){
+    lcurl__multi_assign_lua(L, p->multi, value, 1);
+  }
+  else{
+    p->L = value;
+    if(p->post){
+      p->post->L = value;
+    }
+  }
+}
+
 //{
 
 int lcurl_easy_create(lua_State *L, int error_mode){
@@ -72,24 +97,25 @@ lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i){
   return p;
 }
 
+static int lcurl_easy_to_s(lua_State *L){
+  lcurl_easy_t *p = (lcurl_easy_t *)lutil_checkudatap (L, 1, LCURL_EASY);
+  lua_pushfstring(L, LCURL_PREFIX " Easy (%p)", (void*)p);
+  return 1;
+}
+
 static int lcurl_easy_cleanup(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   int i;
 
   if(p->curl){
-    p->L = L;
-    if(p->post){
-      p->post->L = L;
-    }
+    lua_State *curL;
+
     // In my tests when I cleanup some easy handle. 
     // timerfunction called only for single multi handle.
-    if(p->multi){
-      p->multi->L = L;
-    }
+    curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
     curl_easy_cleanup(p->curl);
-    if(p->multi){
-      p->multi->L = NULL;
-    }
+    lcurl__easy_assign_lua(L, p, curL, 1);
+
     p->curl = NULL;
   }
 
@@ -127,18 +153,17 @@ static int lcurl_easy_cleanup(lua_State *L){
 static int lcurl_easy_perform(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   CURLcode code;
+  lua_State *curL;
   int top = 1;
   lua_settop(L, top);
 
   assert(p->rbuffer.ref == LUA_NOREF);
 
   // store reference to current coroutine to callbacks
-  p->L = L;
-  if(p->post){
-    p->post->L = L;
-  }
-
+  // User should not call `perform` if handle assign to multi
+  curL = p->L; lcurl__easy_assign_lua(L, p, L, 0);
   code = curl_easy_perform(p->curl);
+  lcurl__easy_assign_lua(L, p, curL, 0);
 
   if(p->rbuffer.ref != LUA_NOREF){
     luaL_unref(L, LCURL_LUA_REGISTRY, p->rbuffer.ref);
@@ -744,6 +769,7 @@ static size_t lcurl_write_callback_(lua_State*L,
 
 static size_t lcurl_write_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
+  assert(NULL != p->L);
   return lcurl_write_callback_(p->L, p, &p->wr, ptr, size, nmemb);
 }
 
@@ -847,11 +873,13 @@ static size_t lcurl_easy_read_callback(char *buffer, size_t size, size_t nitems,
   if(p->magic == LCURL_HPOST_STREAM_MAGIC){
     return lcurl_hpost_read_callback(buffer, size, nitems, arg);
   }
+  assert(NULL != p->L);
   return lcurl_read_callback(p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
 }
 
 static size_t lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg){
   lcurl_hpost_stream_t *p = arg;
+  assert(NULL != p->L);
   return lcurl_read_callback(*p->L, &p->rd, &p->rbuffer, buffer, size, nitems);
 }
 
@@ -869,6 +897,7 @@ static int lcurl_easy_set_READFUNCTION(lua_State *L){
 
 static size_t lcurl_header_callback(char *ptr, size_t size, size_t nmemb, void *arg){
   lcurl_easy_t *p = arg;
+  assert(NULL != p->L);
   return lcurl_write_callback_(p->L, p, &p->hd, ptr, size, nmemb);
 }
 
@@ -889,10 +918,12 @@ static int lcurl_xferinfo_callback(void *arg, curl_off_t dltotal, curl_off_t dln
 {
   lcurl_easy_t *p = arg;
   lua_State *L = p->L;
+  int n, top, ret = 0;
 
-  int ret = 0;
-  int top = lua_gettop(L);
-  int n   = lcurl_util_push_cb(L, &p->pr);
+  assert(NULL != p->L);
+
+  top = lua_gettop(L);
+  n   = lcurl_util_push_cb(L, &p->pr);
 
   lua_pushnumber( L, (lua_Number)dltotal );
   lua_pushnumber( L, (lua_Number)dlnow   );
@@ -1033,8 +1064,14 @@ static int lcurl_easy_getinfo(lua_State *L){
 
 static int lcurl_easy_pause(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
+  lua_State *curL;
   int mask = luaL_checkint(L, 2);
-  CURLcode code = curl_easy_pause(p->curl, mask);
+  CURLcode code;
+
+  curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
+  code = curl_easy_pause(p->curl, mask);
+  lcurl__easy_assign_lua(L, p, curL, 1);
+
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
@@ -1096,19 +1133,20 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
 
-  { "pause",    lcurl_easy_pause          },
-  { "reset",    lcurl_easy_reset          },
-  { "setopt",   lcurl_easy_setopt         },
-  { "getinfo",  lcurl_easy_getinfo        },
-  { "unsetopt", lcurl_easy_unsetopt       },
-  { "escape",   lcurl_easy_escape         },
-  { "unescape", lcurl_easy_unescape       },
-  { "perform",  lcurl_easy_perform        },
-  { "close",    lcurl_easy_cleanup        },
-  { "__gc",     lcurl_easy_cleanup        },
+  { "pause",      lcurl_easy_pause          },
+  { "reset",      lcurl_easy_reset          },
+  { "setopt",     lcurl_easy_setopt         },
+  { "getinfo",    lcurl_easy_getinfo        },
+  { "unsetopt",   lcurl_easy_unsetopt       },
+  { "escape",     lcurl_easy_escape         },
+  { "unescape",   lcurl_easy_unescape       },
+  { "perform",    lcurl_easy_perform        },
+  { "close",      lcurl_easy_cleanup        },
+  { "__gc",       lcurl_easy_cleanup        },
+  { "__tostring", lcurl_easy_to_s           },
 
-  { "setdata",  lcurl_easy_setdata        },
-  { "getdata",  lcurl_easy_getdata        },
+  { "setdata",    lcurl_easy_setdata        },
+  { "getdata",    lcurl_easy_getdata        },
 
   {NULL,NULL}
 };

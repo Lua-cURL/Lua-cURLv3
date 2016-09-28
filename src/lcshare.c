@@ -43,6 +43,12 @@ lcurl_share_t *lcurl_getshare_at(lua_State *L, int i){
   return p;
 }
 
+static int lcurl_easy_to_s(lua_State *L){
+  lcurl_share_t *p = (lcurl_share_t *)lutil_checkudatap (L, 1, LCURL_SHARE);
+  lua_pushfstring(L, LCURL_PREFIX " Share (%p)", (void*)p);
+  return 1;
+}
+
 static int lcurl_share_cleanup(lua_State *L){
   lcurl_share_t *p = lcurl_getshare(L);
   if(p->curl){
@@ -113,6 +119,7 @@ static int lcurl_share_setopt(lua_State *L){
 //}
 
 static const struct luaL_Reg lcurl_share_methods[] = {
+  { "__tostring",  lcurl_easy_to_s              },
   {"setopt",       lcurl_share_setopt           },
 
 #define OPT_ENTRY(L, N, T, S) { "setopt_"#L, lcurl_share_set_##N },

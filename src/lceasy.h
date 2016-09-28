@@ -65,4 +65,6 @@ lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i);
 
 void lcurl_easy_initlib(lua_State *L, int nup);
 
+void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi);
+
 #endif

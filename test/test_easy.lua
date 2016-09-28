@@ -998,4 +998,38 @@ end
 
 end
 
+local _ENV = TEST_CASE'multi_add_remove'     if ENABLE then
+
+local m, c
+
+function setup()
+  m = assert(scurl.multi())
+end
+
+function teardown()
+  if c then c:close() end
+  if m then m:close() end
+  m, c = nil
+end
+
+function test_remove_unknow_easy()
+  c = assert(scurl.easy())
+  assert_equal(m, m:remove_handle(c))
+end
+
+function test_double_remove_easy()
+  c = assert(scurl.easy())
+  assert_equal(m, m:add_handle(c))
+  assert_equal(m, m:remove_handle(c))
+  assert_equal(m, m:remove_handle(c))
+end
+
+function test_double_add_easy()
+  c = assert(scurl.easy())
+  assert_equal(m, m:add_handle(c))
+  assert_nil(m:add_handle(c))
+end
+
+end
+
 RUN()

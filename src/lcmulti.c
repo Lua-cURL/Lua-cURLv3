@@ -71,13 +71,13 @@ int lcurl_multi_create(lua_State *L, int error_mode){
 
 lcurl_multi_t *lcurl_getmulti_at(lua_State *L, int i){
   lcurl_multi_t *p = (lcurl_multi_t *)lutil_checkudatap (L, i, LCURL_MULTI);
-  luaL_argcheck (L, p != NULL, 1, LCURL_MULTI_NAME" expected");
+  luaL_argcheck (L, p != NULL, 1, LCURL_MULTI_NAME" object expected");
   return p;
 }
 
 static int lcurl_multi_to_s(lua_State *L){
   lcurl_multi_t *p = (lcurl_multi_t *)lutil_checkudatap (L, 1, LCURL_MULTI);
-  lua_pushfstring(L, LCURL_PREFIX " Multi (%p)", (void*)p);
+  lua_pushfstring(L, LCURL_MULTI_NAME" (%p)", (void*)p);
   return 1;
 }
 

@@ -93,13 +93,13 @@ int lcurl_easy_create(lua_State *L, int error_mode){
 
 lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i){
   lcurl_easy_t *p = (lcurl_easy_t *)lutil_checkudatap (L, i, LCURL_EASY);
-  luaL_argcheck (L, p != NULL, 1, LCURL_EASY_NAME" expected");
+  luaL_argcheck (L, p != NULL, 1, LCURL_EASY_NAME" object expected");
   return p;
 }
 
 static int lcurl_easy_to_s(lua_State *L){
   lcurl_easy_t *p = (lcurl_easy_t *)lutil_checkudatap (L, 1, LCURL_EASY);
-  lua_pushfstring(L, LCURL_PREFIX " Easy (%p)", (void*)p);
+  lua_pushfstring(L, LCURL_EASY_NAME" (%p)", (void*)p);
   return 1;
 }
 

@@ -112,8 +112,14 @@ int lcurl_hpost_create(lua_State *L, int error_mode){
 
 lcurl_hpost_t *lcurl_gethpost_at(lua_State *L, int i){
   lcurl_hpost_t *p = (lcurl_hpost_t *)lutil_checkudatap (L, i, LCURL_HTTPPOST);
-  luaL_argcheck (L, p != NULL, 1, LCURL_PREFIX"HTTPPost object expected");
+  luaL_argcheck (L, p != NULL, 1, LCURL_HTTPPOST_NAME" object expected");
   return p;
+}
+
+static int lcurl_hpost_to_s(lua_State *L){
+  lcurl_hpost_t *p = (lcurl_hpost_t *)lutil_checkudatap (L, 1, LCURL_HTTPPOST);
+  lua_pushfstring(L, LCURL_HTTPPOST_NAME" (%p)", (void*)p);
+  return 1;
 }
 
 static int lcurl_hpost_add_content(lua_State *L){

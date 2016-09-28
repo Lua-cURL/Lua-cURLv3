@@ -45,6 +45,8 @@ script:
   - lua -e "print(require 'cURL.utils'.find_ca_bundle())"
   - lunit.sh run.lua
   - lua test_pause02.c.lua
+  - lua test_multi_callback.lua
+  - lua test_multi_nested_callback.lua
   # - lunit.sh test_easy.lua
   # - lunit.sh test_safe.lua
   # - lunit.sh test_form.lua

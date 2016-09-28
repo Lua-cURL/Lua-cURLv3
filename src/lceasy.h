@@ -35,6 +35,8 @@ enum {
 
 #define LCURL_EASY_MAGIC 0xEA
 
+typedef struct lcurl_multi_tag lcurl_multi_t;
+
 typedef struct lcurl_easy_tag{
   unsigned char magic;
 
@@ -43,6 +45,8 @@ typedef struct lcurl_easy_tag{
   lcurl_read_buffer_t rbuffer;
 
   lcurl_hpost_t *post;
+
+  lcurl_multi_t *multi;
 
   CURL *curl;
   int storage;
@@ -60,5 +64,7 @@ lcurl_easy_t *lcurl_geteasy_at(lua_State *L, int i);
 #define lcurl_geteasy(L) lcurl_geteasy_at((L),1)
 
 void lcurl_easy_initlib(lua_State *L, int nup);
+
+void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi);
 
 #endif

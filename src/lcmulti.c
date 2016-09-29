@@ -252,7 +252,7 @@ static int lcurl_multi_perform(lua_State *L){
   lcurl__multi_assign_lua(L, p, curL, 1);
 
   if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
   lua_pushnumber(L, running_handles);
   return 1;
@@ -312,7 +312,7 @@ static int lcurl_multi_wait(lua_State *L){
   if(lua_isnoneornil(L, 2)){
     code = curl_multi_timeout(p->curl, &ms);
     if(code != CURLM_OK){
-      lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+      return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
     }
   }
   else{
@@ -332,7 +332,7 @@ static int lcurl_multi_wait(lua_State *L){
   //! @todo supports extra_fds
   code = curl_multi_wait(p->curl, 0, 0, ms, &maxfd);
   if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
   lua_pushnumber(L, maxfd);
   return 1;
@@ -346,7 +346,7 @@ static int lcurl_multi_wait(lua_State *L){
 
   code = curl_multi_fdset(p->curl, &fdread, &fdwrite, &fdexcep, &maxfd);
   if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
 
   //if(maxfd > 0)
@@ -372,7 +372,7 @@ static int lcurl_multi_timeout(lua_State *L){
   long n;
   CURLMcode code = curl_multi_timeout(p->curl, &n);
   if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
   lua_pushnumber(L, n);
   return 1;
@@ -395,7 +395,7 @@ static int lcurl_multi_socket_action(lua_State *L){
   lcurl__multi_assign_lua(L, p, curL, 1);
 
   if(code != CURLM_OK){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);
   }
   lua_pushinteger(L, n);
   return 1;

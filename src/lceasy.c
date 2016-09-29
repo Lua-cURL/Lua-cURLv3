@@ -213,7 +213,7 @@ static int lcurl_easy_escape(lua_State *L){
   size_t data_size; const char *data = luaL_checklstring(L, 2, &data_size);
   const char *ret = curl_easy_escape(p->curl, data, (int)data_size);
   if(!ret){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
   }
   lua_pushstring(L, ret);
   curl_free((char*)ret);
@@ -225,7 +225,7 @@ static int lcurl_easy_unescape(lua_State *L){
   size_t data_size; const char *data = luaL_checklstring(L, 2, &data_size);
   int ret_size; const char *ret = curl_easy_unescape(p->curl, data, (int)data_size, &ret_size);
   if(!ret){
-    lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, CURLE_OUT_OF_MEMORY);
   }
   lua_pushlstring(L, ret, ret_size);
   curl_free((char*)ret);

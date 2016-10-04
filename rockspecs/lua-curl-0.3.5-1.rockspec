@@ -1,9 +1,9 @@
 package = "Lua-cURL"
-version = "scm-0"
+version = "0.3.5-1"
 
 source = {
-  url = "https://github.com/Lua-cURL/Lua-cURLv3/archive/master.zip",
-  dir = "Lua-cURLv3-master",
+  url = "https://github.com/Lua-cURL/Lua-cURLv3/archive/v0.3.5.zip",
+  dir = "Lua-cURLv3-0.3.5",
 }
 
 description = {

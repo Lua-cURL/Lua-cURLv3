@@ -10,7 +10,7 @@
 
 local module_info = {
   _NAME      = "Lua-cURL";
-  _VERSION   = "0.3.5";
+  _VERSION   = "0.3.6-dev";
   _LICENSE   = "MIT";
   _COPYRIGHT = "Copyright (c) 2014-2016 Alexey Melnichuk";
 }

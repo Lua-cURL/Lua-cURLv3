@@ -348,6 +348,10 @@ OPT_ENTRY( tcp_fastopen,       TCP_FASTOPEN,       LNG, 0,                  LCUR
 OPT_ENTRY( connect_to,         CONNECT_TO,         LST, 0,                  LCURL_DEFAULT_VALUE )
 #endif
 
+#if LCURL_CURL_VER_GE(7,51,0)
+OPT_ENTRY( keep_sending_on_error, KEEP_SENDING_ON_ERROR, LNG, 0,            LCURL_DEFAULT_VALUE )
+#endif
+
 #ifdef OPT_ENTRY_IS_NULL
 #  undef OPT_ENTRY
 #endif
@@ -355,4 +359,3 @@ OPT_ENTRY( connect_to,         CONNECT_TO,         LST, 0,                  LCUR
 #ifdef FLG_ENTRY_IS_NULL
 #  undef FLG_ENTRY
 #endif
-

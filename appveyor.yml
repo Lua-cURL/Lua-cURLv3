@@ -6,32 +6,38 @@ os:
 shallow_clone: true
 
 environment:
-  LUAROCKS_VER: 2.2.1
+  LR_EXTERNAL: c:\external
   CURL_VER: 7.51.0
 
   matrix:
-    - LUA_VER: 5.1.5
-    - LUA_VER: 5.2.4
-    - LUA_VER: 5.3.0
-    # - LJ_VER: 2.0.3
-    # - LJ_VER: 2.1
+  - LUA: "lua 5.1"
+  - LUA: "lua 5.2"
+  - LUA: "lua 5.3"
 
 platform:
   - x64
   - x86
+  # - mingw
 
 cache:
-  - c:\lua -> appveyor.yml
-  - c:\external -> appveyor.yml
-  - C:\Program Files (x86)\LuaRocks -> appveyor.yml
-  - C:\Program Files\LuaRocks -> appveyor.yml
-
-init:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
+  - c:\hererocks -> appveyor.yml
 
 install:
-  # Setup Lua development/build environment
-  - call .appveyor\install.bat
+  - set PATH=C:\Python27\Scripts;%PATH%
+  - if /I "%platform%"=="x86" set HR_TARGET=vs_32
+  - if /I "%platform%"=="x64" set HR_TARGET=vs_64
+  - if /I "%platform%"=="mingw" set HR_TARGET=mingw
+  - if /I "%platform%"=="mingw" set PATH=C:\MinGW\bin;%PATH%
+  - if not exist "%LR_EXTERNAL%" (
+      mkdir "%LR_EXTERNAL%" &&
+      mkdir "%LR_EXTERNAL%\lib" &&
+      mkdir "%LR_EXTERNAL%\include"
+    )
+  - if not exist c:\hererocks (
+      pip install hererocks &&
+      hererocks c:\hererocks --%LUA% --target %HR_TARGET% -rlatest &&
+      call c:\hererocks\bin\activate
+    )
 
 before_build:
   # external deps
@@ -45,11 +51,11 @@ build_script:
 
 before_test:
   # test deps
-  - luarocks install lunitx
-  - luarocks install dkjson
-  - luarocks install luafilesystem
-  - if "%LUA_SHORTV%"=="5.1" luarocks install bit32
-  - luarocks install lua-path
+  - if "%LUA%"=="lua 5.1" luarocks show bit32 >nul 2>&1 || luarocks install bit32
+  - luarocks show lunitx >nul 2>&1 || luarocks install lunitx
+  - luarocks show dkjson >nul 2>&1 || luarocks install dkjson
+  - luarocks show luafilesystem >nul 2>&1 || luarocks install luafilesystem
+  - luarocks show lua-path >nul 2>&1 || luarocks install lua-path
 
 test_script:
   - echo "Testing..."

@@ -30,6 +30,11 @@
 #  define LCURL_DEFAULT_VALUE 0
 #endif
 
+#ifdef TCP_FASTOPEN
+#  define LCURL__TCP_FASTOPEN TCP_FASTOPEN
+#  undef TCP_FASTOPEN
+#endif
+
 OPT_ENTRY( verbose,                VERBOSE,                  LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( header,                 HEADER,                   LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( noprogress,             NOPROGRESS,               LNG, 0,                  1 )
@@ -342,14 +347,17 @@ OPT_ENTRY( stream_weight,      STREAM_WEIGHT,      LNG, 0,                  LCUR
 #if LCURL_CURL_VER_GE(7,48,0)
 OPT_ENTRY( tftp_no_options,    TFTP_NO_OPTIONS,    LNG, 0,                  LCURL_DEFAULT_VALUE )
 #endif
-
 #if LCURL_CURL_VER_GE(7,49,0)
 OPT_ENTRY( tcp_fastopen,       TCP_FASTOPEN,       LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( connect_to,         CONNECT_TO,         LST, 0,                  LCURL_DEFAULT_VALUE )
 #endif
-
 #if LCURL_CURL_VER_GE(7,51,0)
 OPT_ENTRY( keep_sending_on_error, KEEP_SENDING_ON_ERROR, LNG, 0,            LCURL_DEFAULT_VALUE )
+#endif
+
+#ifdef LCURL__TCP_FASTOPEN
+#  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
+#  undef LCURL__TCP_FASTOPEN
 #endif
 
 #ifdef OPT_ENTRY_IS_NULL

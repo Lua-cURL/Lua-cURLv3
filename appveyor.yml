@@ -11,12 +11,12 @@ environment:
 
   matrix:
   - LUA: "lua 5.1"
-  - LUA: "lua 5.2"
-  - LUA: "lua 5.3"
+  # - LUA: "lua 5.2"
+  # - LUA: "lua 5.3"
 
 platform:
   - x64
-  - x86
+  # - x86
   # - mingw
 
 cache:

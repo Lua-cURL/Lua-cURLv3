@@ -278,6 +278,15 @@ static const lcurl_const_t lcurl_error_codes[] = {
 #include "lcerr_easy.h"
 #undef ERR_ENTRY
 
+/* libcurl rename CURLE_FTP_WEIRD_SERVER_REPLY to CURLE_WEIRD_SERVER_REPLY in version 7.51.0*/
+/* we can not have both codes in general because we have to be able convern error number to error name*/
+/* so we use newest name but add error code as alias.*/
+#if LCURL_CURL_VER_GE(7,51,0)
+  { "E_FTP_WEIRD_SERVER_REPLY", CURLE_FTP_WEIRD_SERVER_REPLY },
+#else
+  { "E_WEIRD_SERVER_REPLY", CURLE_FTP_WEIRD_SERVER_REPLY },
+#endif
+
 #define ERR_ENTRY(N) { "E_MULTI_"#N, CURLM_##N },
 #include "lcerr_multi.h"
 #undef ERR_ENTRY

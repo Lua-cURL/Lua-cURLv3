@@ -12,7 +12,8 @@ local ok, curl = pcall(require, "cURL")
 local version if ok then
   version = curl.version()
 else
-  version = "<UNKNOWN>"
+  io.stderr:write('can not load cURL:' .. curl)
+  os.exit(-1)
 end
 
 print("------------------------------------")

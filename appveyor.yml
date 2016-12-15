@@ -23,7 +23,7 @@ cache:
   - c:\hererocks -> appveyor.yml
 
 install:
-  - set PATH=C:\Python27\Scripts;%PATH%
+  - set PATH=C:\Python27\Scripts;%LR_EXTERNAL%;%PATH%
   - if /I "%platform%"=="x86" set HR_TARGET=vs_32
   - if /I "%platform%"=="x64" set HR_TARGET=vs_64
   - if /I "%platform%"=="mingw" set HR_TARGET=mingw

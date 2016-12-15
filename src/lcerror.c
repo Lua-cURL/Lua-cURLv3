@@ -284,7 +284,7 @@ static const lcurl_const_t lcurl_error_codes[] = {
 #if LCURL_CURL_VER_GE(7,51,0)
   { "E_FTP_WEIRD_SERVER_REPLY", CURLE_FTP_WEIRD_SERVER_REPLY },
 #else
-  { "E_WEIRD_SERVER_REPLY", CURLE_WEIRD_SERVER_REPLY },
+  { "E_WEIRD_SERVER_REPLY", CURLE_FTP_WEIRD_SERVER_REPLY },
 #endif
 
 #define ERR_ENTRY(N) { "E_MULTI_"#N, CURLM_##N },

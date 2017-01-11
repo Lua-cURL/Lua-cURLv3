@@ -110,6 +110,9 @@ static int lcurl_version_info(lua_State *L){
 #ifdef CURL_VERSION_HTTP2
     lua_pushliteral(L, "HTTP2");        lua_pushboolean(L, data->features & CURL_VERSION_HTTP2       ); lua_rawset(L, -3);
 #endif
+#ifdef CURL_VERSION_HTTPS_PROXY
+    lua_pushliteral(L, "HTTPS_PROXY");  lua_pushboolean(L, data->features & CURL_VERSION_HTTPS_PROXY ); lua_rawset(L, -3);
+#endif
   lua_setfield(L, -2, "features");         /* bitmask, see defines below */
 
   if(data->ssl_version){lua_pushstring(L, data->ssl_version); lua_setfield(L, -2, "ssl_version");}      /* human readable string */

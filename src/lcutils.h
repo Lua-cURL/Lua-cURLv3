@@ -71,4 +71,7 @@ int lcurl_util_pcall_method(lua_State *L, const char *name, int nargs, int nresu
 int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
                               int error_mode, int error_type, int error_code
                               );
+
+void lcurl_stack_dump (lua_State *L);
+
 #endif

@@ -304,3 +304,32 @@ int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
   assert(lua_gettop(L) == top);
   return 0;
 }
+
+void lcurl_stack_dump (lua_State *L){
+  int i = 1, top = lua_gettop(L);
+
+  fprintf(stderr, " ----------------  Stack Dump ----------------\n" );
+  while( i <= top ) {
+    int t = lua_type(L, i);
+    switch (t) {
+      case LUA_TSTRING:
+        fprintf(stderr, "%d(%d):`%s'\n", i, i - top - 1, lua_tostring(L, i));
+        break;
+      case LUA_TBOOLEAN:
+        fprintf(stderr, "%d(%d): %s\n",  i, i - top - 1,lua_toboolean(L, i) ? "true" : "false");
+        break;
+      case LUA_TNUMBER:
+        fprintf(stderr, "%d(%d): %g\n",  i, i - top - 1, lua_tonumber(L, i));
+        break;
+      default:
+        lua_getglobal(L, "tostring");
+        lua_pushvalue(L, i);
+        lua_call(L, 1, 1);
+        fprintf(stderr, "%d(%d): %s(%s)\n", i, i - top - 1, lua_typename(L, t), lua_tostring(L, -1));
+        lua_pop(L, 1);
+        break;
+    }
+    i++;
+  }
+  fprintf(stderr, " ------------ Stack Dump Finished ------------\n" );
+}

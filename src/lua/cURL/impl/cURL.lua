@@ -360,6 +360,7 @@ Easy.setopt_proxytype = wrap_setopt_flags("proxytype", {
   ["SOCKS5"          ] = curl.PROXY_SOCKS5;
   ["SOCKS4A"         ] = curl.PROXY_SOCKS4A;
   ["SOCKS5_HOSTNAME" ] = curl.PROXY_SOCKS5_HOSTNAME;
+  ["HTTPS"           ] = curl.PROXY_HTTPS;
 })
 
 Easy.setopt_httpauth  = wrap_setopt_flags("httpauth", {

@@ -88,7 +88,7 @@ OPT_ENTRY( httpauth,               HTTPAUTH,                 LNG, 0,            
 #if LCURL_CURL_VER_GE(7,21,4)
 OPT_ENTRY( tlsauth_username,       TLSAUTH_USERNAME,         STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
 OPT_ENTRY( tlsauth_password,       TLSAUTH_PASSWORD,         STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
-OPT_ENTRY( tlsauth_type,           TLSAUTH_TYPE,             LNG, 0,                  CURL_TLSAUTH_NONE   )
+OPT_ENTRY( tlsauth_type,           TLSAUTH_TYPE,             STR, 0,                  "" )
 #endif
 OPT_ENTRY( proxyauth,              PROXYAUTH,                LNG, 0,                  CURLAUTH_BASIC )
 #if LCURL_CURL_VER_GE(7,31,0)
@@ -353,6 +353,27 @@ OPT_ENTRY( connect_to,         CONNECT_TO,         LST, 0,                  LCUR
 #endif
 #if LCURL_CURL_VER_GE(7,51,0)
 OPT_ENTRY( keep_sending_on_error, KEEP_SENDING_ON_ERROR, LNG, 0,            LCURL_DEFAULT_VALUE )
+#endif
+
+#if LCURL_CURL_VER_GE(7,52,0)
+OPT_ENTRY( proxy_cainfo,           PROXY_CAINFO,           STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_capath,           PROXY_CAPATH,           STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_ssl_verifypeer,   PROXY_SSL_VERIFYPEER,   LNG, 0, 1)
+OPT_ENTRY( proxy_ssl_verifyhost,   PROXY_SSL_VERIFYHOST,   LNG, 0, 2)
+OPT_ENTRY( proxy_sslversion,       PROXY_SSLVERSION,       LNG, 0, CURL_SSLVERSION_DEFAULT)
+OPT_ENTRY( proxy_tlsauth_username, PROXY_TLSAUTH_USERNAME, STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_tlsauth_password, PROXY_TLSAUTH_PASSWORD, STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_tlsauth_type,     PROXY_TLSAUTH_TYPE,     STR, 0, "")
+OPT_ENTRY( proxy_sslcert,          PROXY_SSLCERT,          STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_sslcerttype,      PROXY_SSLCERTTYPE,      STR, 0, "PEM")
+OPT_ENTRY( proxy_sslkey,           PROXY_SSLKEY,           STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_sslkeytype,       PROXY_SSLKEYTYPE,       STR, 0, "PEM") /* default value not defined. Use same as for `SSLKEYTYPE` */
+OPT_ENTRY( proxy_keypasswd,        PROXY_KEYPASSWD,        STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_ssl_cipher_list,  PROXY_SSL_CIPHER_LIST,  STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_crlfile,          PROXY_CRLFILE,          STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_ssl_options,      PROXY_SSL_OPTIONS,      LNG, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( pre_proxy,              PRE_PROXY,              STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( proxy_pinnedpublickey,  PROXY_PINNEDPUBLICKEY,  STR, 0, LCURL_DEFAULT_VALUE)
 #endif
 
 #ifdef LCURL__TCP_FASTOPEN

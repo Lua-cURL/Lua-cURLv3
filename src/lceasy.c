@@ -253,12 +253,22 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
   lcurl_easy_t *p = lcurl_geteasy(L);
   long val; CURLcode code;
 
-  if(lua_isboolean(L, 2)) val = lua_toboolean(L, 2);
+  if(lua_isboolean(L, 2)){
+    val = lua_toboolean(L, 2);
+    if( val
+      && (opt == CURLOPT_SSL_VERIFYHOST)
+#if LCURL_CURL_VER_GE(7,52,0)
+      && (opt == CURLOPT_PROXY_SSL_VERIFYHOST)
+#endif
+    ){
+      val = 2;
+    }
+  }
   else{
     luaL_argcheck(L, lua_type(L, 2) == LUA_TNUMBER, 2, "number or boolean expected");
     val = luaL_checklong(L, 2);
   }
-  
+
   code = curl_easy_setopt(p->curl, opt, val);
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);

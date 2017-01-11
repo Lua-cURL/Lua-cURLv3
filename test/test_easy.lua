@@ -668,9 +668,9 @@ end
 
 local _ENV = TEST_CASE'read_callback'        if ENABLE then
 
-local uname = upath:normolize(path.fullpath(fname))
+local uname = upath:normalize(path.fullpath(fname))
 
-local url   = "FILE://" .. uname
+local url   = "FILE:///" .. uname
 
 local c
 

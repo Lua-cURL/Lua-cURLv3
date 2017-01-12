@@ -13,7 +13,7 @@
 
 #include "lcurl.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__cplusplus)
 #  define LCURL_CC_SUPPORT_FORWARD_TYPEDEF 1
 #elif defined(__STDC_VERSION__)
 #  if __STDC_VERSION__ >= 201112

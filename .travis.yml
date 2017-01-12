@@ -4,7 +4,7 @@ sudo: false
 
 matrix:
   include:
-    - compiler: ": Lua51"
+    - compiler: ": Lua51osx"
       env: LUA="lua 5.1"
       os: osx
     - compiler: ": Lua51"
@@ -34,6 +34,7 @@ branches:
 
 before_install:
   - export CC=gcc
+  - gcc --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=$PATH:~/Library/Python/2.7/bin/; fi
   - pip install --user cpp-coveralls
   - pip install --user hererocks

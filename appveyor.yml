@@ -35,9 +35,9 @@ install:
     )
   - if not exist c:\hererocks (
       pip install hererocks &&
-      hererocks c:\hererocks --%LUA% --target %HR_TARGET% -rlatest &&
-      call c:\hererocks\bin\activate
+      hererocks c:\hererocks --%LUA% --target %HR_TARGET% -rlatest
     )
+  - call c:\hererocks\bin\activate
 
 before_build:
   # external deps

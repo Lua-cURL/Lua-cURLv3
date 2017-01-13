@@ -13,6 +13,18 @@
 
 #include "lcurl.h"
 
+#if defined(_MSC_VER) || defined(__cplusplus)
+#  define LCURL_CC_SUPPORT_FORWARD_TYPEDEF 1
+#elif defined(__STDC_VERSION__)
+#  if __STDC_VERSION__ >= 201112
+#    define LCURL_CC_SUPPORT_FORWARD_TYPEDEF 1
+#  endif
+#endif
+
+#ifndef LCURL_CC_SUPPORT_FORWARD_TYPEDEF
+#  define LCURL_CC_SUPPORT_FORWARD_TYPEDEF 0
+#endif
+
 #define LCURL_MAKE_VERSION(MIN, MAJ, PAT) ((MIN<<16) + (MAJ<<8) + PAT)
 #define LCURL_CURL_VER_GE(MIN, MAJ, PAT) (LIBCURL_VERSION_NUM >= LCURL_MAKE_VERSION(MIN, MAJ, PAT))
 

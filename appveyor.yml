@@ -21,6 +21,7 @@ platform:
 
 cache:
   - c:\hererocks -> appveyor.yml
+  - c:\external -> appveyor.yml
 
 install:
   - set PATH=C:\Python27\Scripts;%LR_EXTERNAL%;%PATH%

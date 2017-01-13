@@ -2,9 +2,14 @@ language: c
 
 sudo: false
 
+env:
+  global:
+    - LCURL_CC_FLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs"
+    - LCURL_LD_FLAGS="-shared --coverage"
+
 matrix:
   include:
-    - compiler: ": Lua51osx"
+    - compiler: ": Lua51-osx"
       env: LUA="lua 5.1"
       os: osx
     - compiler: ": Lua51"
@@ -36,19 +41,20 @@ before_install:
   - export CC=gcc
   - gcc --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=$PATH:~/Library/Python/2.7/bin/; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export LCURL_LD_FLAGS="-bundle -undefined dynamic_lookup -all_load --coverage"; fi
   - pip install --user cpp-coveralls
   - pip install --user hererocks
   - hererocks here -r^ --$LUA
   - source here/bin/activate
 
 install:
-  - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="-O2 -fPIC -ftest-coverage -fprofile-arcs" LIBFLAG="-shared --coverage"
+  - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="$LCURL_CC_FLAGS" LIBFLAG="$LCURL_LD_FLAGS"
 
 before_script:
-  - luarocks show luacov-coveralls || luarocks install luacov-coveralls
-  - luarocks show lunitx           || luarocks install lunitx
-  - luarocks show luafilesystem    || luarocks install luafilesystem
-  - luarocks show dkjson           || luarocks install dkjson --deps-mode=none
+  - luarocks show luacov-coveralls > /dev/null 2>&1 || luarocks install luacov-coveralls
+  - luarocks show lunitx > /dev/null 2>&1           || luarocks install lunitx
+  - luarocks show luafilesystem > /dev/null 2>&1    || luarocks install luafilesystem
+  - luarocks show dkjson > /dev/null 2>&1           || luarocks install dkjson --deps-mode=none
 
 script:
   - cd test

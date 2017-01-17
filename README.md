@@ -59,13 +59,14 @@ luarocks install Lua-cURL --server=https://rocks.moonscript.org/dev
 
 ```Lua
 -- HTTP Get
-curl.easy()
-  :setopt_url('http://httpbin.org/get')
-  :setopt_httpheader{
-    "X-Test-Header1: Header-Data1",
-    "X-Test-Header2: Header-Data2",
+curl.easy{
+    url = 'http://httpbin.org/get',
+    httpheader = {
+      "X-Test-Header1: Header-Data1",
+      "X-Test-Header2: Header-Data2",
+    },
+    writefunction = io.stderr -- use io.stderr:write()
   }
-  :setopt_writefunction(io.stderr) -- use io.stderr:write()
   :perform()
 :close()
 ```

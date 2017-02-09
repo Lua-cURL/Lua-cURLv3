@@ -661,7 +661,7 @@ local setopt_socketfunction = wrap_function("setopt_socketfunction")
 function Multi:setopt_socketfunction(...)
   local cb = wrap_callback(...)
 
-  return setopt_socketfunction(wrap_socketfunction(self, cb))
+  return setopt_socketfunction(self, wrap_socketfunction(self, cb))
 end
 
 local setopt = wrap_function("setopt")

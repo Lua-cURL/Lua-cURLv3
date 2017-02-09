@@ -175,9 +175,11 @@ on_curl_timeout = function(ms)
   -- calls by curl --
   trace("CURL::TIMEOUT", ms)
 
-  if ms <= 0 then ms = 1 end
+  if not timer:active() then
+    if ms <= 0 then ms = 1 end
 
-  timer:start(ms, 0, on_libuv_timeout)
+    timer:start(ms, 0, on_libuv_timeout)
+  end
 end
 
 on_curl_action = function(easy, fd, action)

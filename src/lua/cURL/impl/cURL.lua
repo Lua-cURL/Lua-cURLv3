@@ -681,7 +681,7 @@ function Multi:setopt(k, v)
   end
 
   if k == curl.OPT_SOCKETFUNCTION then
-    return self:setopt_httppost(wrap_socketfunction(v))
+    return self:setopt_socketfunction(v)
   end
 
   return setopt(self, k, v)

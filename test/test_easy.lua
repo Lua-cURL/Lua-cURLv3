@@ -885,7 +885,7 @@ function test_unset()
   gc_collect()
   assert(pfrom.value)
 
-  e:unsetopt_httppost()
+  assert_equal(e, e:unsetopt_httppost())
 
   gc_collect()
   assert(not pfrom.value)
@@ -902,7 +902,7 @@ function test_reset()
   gc_collect()
   assert(pfrom.value)
 
-  e:reset()
+  assert_equal(e, e:reset())
 
   gc_collect()
   assert(not pfrom.value)

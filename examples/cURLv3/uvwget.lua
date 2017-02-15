@@ -230,7 +230,8 @@ local curl_check_multi_info = function()
 
     if ok then on_end(easy, nil, done_url) else on_end(easy, err, done_url) end
 
-    easy:reset().data = nil
+    easy:reset()
+    easy.data = nil
     qfree:push(easy)
   end
 

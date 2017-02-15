@@ -240,6 +240,7 @@ static int lcurl_easy_reset(lua_State *L){
   if(p->storage != LUA_NOREF){
     lcurl_storage_free(L, p->storage);
     p->storage = lcurl_storage_init(L);
+    lua_settop(L, 1);
   }
 
   return 1;

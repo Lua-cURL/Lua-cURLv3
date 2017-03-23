@@ -376,6 +376,10 @@ OPT_ENTRY( pre_proxy,              PRE_PROXY,              STR, 0, LCURL_DEFAULT
 OPT_ENTRY( proxy_pinnedpublickey,  PROXY_PINNEDPUBLICKEY,  STR, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,53,0)
+OPT_ENTRY( abstract_unix_socket,   ABSTRACT_UNIX_SOCKET,  STR, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 #ifdef LCURL__TCP_FASTOPEN
 #  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
 #  undef LCURL__TCP_FASTOPEN

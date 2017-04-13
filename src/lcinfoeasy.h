@@ -44,7 +44,7 @@ OPT_ENTRY( rtsp_cseq_recv,          RTSP_CSEQ_RECV,          LNG, 0)
 #endif
 
 #if LCURL_CURL_VER_GE(7,50,1)
-OPT_ENTRY( http_version,            HTTP_VERSION,            STR, 0)
+OPT_ENTRY( http_version,            HTTP_VERSION,            LNG, 0)
 #endif
 
 #if LCURL_CURL_VER_GE(7,52,0)

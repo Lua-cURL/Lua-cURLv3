@@ -7,7 +7,7 @@ shallow_clone: true
 
 environment:
   LR_EXTERNAL: c:\external
-  CURL_VER: 7.53.1
+  CURL_VER: 7.54.0
 
   matrix:
   - LUA: "lua 5.1"

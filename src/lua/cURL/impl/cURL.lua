@@ -15,6 +15,11 @@ local module_info = {
   _COPYRIGHT = "Copyright (c) 2014-2017 Alexey Melnichuk";
 }
 
+local function hash_id(str)
+  local id = string.match(str, "%((.-)%)") or string.match(str, ': (%x+)$')
+  return id
+end
+
 local function clone(t, o)
   o = o or {}
   for k,v in pairs(t) do o[k]=v end
@@ -485,6 +490,11 @@ function Form:add(data)
   return form_add(self, data)
 end
 
+function Form:__tostring()
+  local id = hash_id(tostring(self._handle))
+  return string.format("%s %s (%s)", module_info._NAME, 'Form', id)
+end
+
 end
 -------------------------------------------
 
@@ -568,6 +578,11 @@ function Easy:setopt(k, v)
   end
 
   return setopt(self, k, v)
+end
+
+function Easy:__tostring()
+  local id = hash_id(tostring(self._handle))
+  return string.format("%s %s (%s)", module_info._NAME, 'Easy', id)
 end
 
 end
@@ -685,6 +700,11 @@ function Multi:setopt(k, v)
   end
 
   return setopt(self, k, v)
+end
+
+function Multi:__tostring()
+  local id = hash_id(tostring(self._handle))
+  return string.format("%s %s (%s)", module_info._NAME, 'Multi', id)
 end
 
 end

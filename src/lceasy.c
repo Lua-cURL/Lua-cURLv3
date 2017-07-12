@@ -1151,7 +1151,7 @@ static int lcurl_easy_set_DEBUGFUNCTION(lua_State *L){
 static int lcurl_match_callback(void *arg, const char *pattern, const char *string) {
   lcurl_easy_t *p = arg;
   lua_State *L = p->L;
-  int ret = CURL_FNMATCHFUNC_MATCH;
+  int ret = CURL_FNMATCHFUNC_NOMATCH;
   int top = lua_gettop(L);
   int n   = lcurl_util_push_cb(L, &p->match);
 

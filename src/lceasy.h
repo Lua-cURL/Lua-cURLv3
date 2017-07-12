@@ -61,6 +61,7 @@ typedef struct lcurl_easy_tag{
   lcurl_callback_t hd;
   lcurl_callback_t pr;
   lcurl_callback_t seek;
+  lcurl_callback_t debug;
 }lcurl_easy_t;
 
 int lcurl_easy_create(lua_State *L, int error_mode);

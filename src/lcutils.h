@@ -28,7 +28,6 @@
 #define LCURL_MAKE_VERSION(MIN, MAJ, PAT) ((MIN<<16) + (MAJ<<8) + PAT)
 #define LCURL_CURL_VER_GE(MIN, MAJ, PAT) (LIBCURL_VERSION_NUM >= LCURL_MAKE_VERSION(MIN, MAJ, PAT))
 
-//! @todo test on mingw32 (gcc 4.8.1)
 #define LCURL_CONCAT_STATIC_ASSERT_IMPL_(x, y) LCURL_CONCAT1_STATIC_ASSERT_IMPL_ (x, y)
 #define LCURL_CONCAT1_STATIC_ASSERT_IMPL_(x, y) x##y
 #define LCURL_STATIC_ASSERT(expr) typedef char LCURL_CONCAT_STATIC_ASSERT_IMPL_(static_assert_failed_at_line_, __LINE__) [(expr) ? 1 : -1]

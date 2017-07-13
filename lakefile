@@ -14,6 +14,7 @@ cURL = c.shared{'lcurl',
   defines  = DEFINES,
   dynamic  = DYNAMIC,
   strip    = true,
+  cflags   = IF(not MSVC, {'-Wno-unused-local-typedefs'})
 }
 
 target('build', cURL)

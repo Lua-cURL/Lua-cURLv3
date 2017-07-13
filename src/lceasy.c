@@ -1593,9 +1593,11 @@ void lcurl_easy_initlib(lua_State *L, int nup){
   /* Hack. We ensure that lcurl_easy_t and lcurl_hpost_stream_t
      compatiable for readfunction
   */
-  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, magic)     == offsetof(lcurl_hpost_stream_t, magic));
-  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, L)         == offsetof(lcurl_hpost_stream_t, L));
-  LCURL_STATIC_ASSERT(offsetof(lcurl_easy_t, rd)        == offsetof(lcurl_hpost_stream_t, rd));
+  LCURL_ASSERT_SAME_OFFSET(lcurl_easy_t, magic,   lcurl_hpost_stream_t, magic);
+  LCURL_ASSERT_SAME_OFFSET(lcurl_easy_t, L,       lcurl_hpost_stream_t, L);
+  LCURL_ASSERT_SAME_OFFSET(lcurl_easy_t, rd,      lcurl_hpost_stream_t, rd);
+  LCURL_ASSERT_SAME_OFFSET(lcurl_easy_t, rbuffer, lcurl_hpost_stream_t, rbuffer);
+  LCURL_ASSERT_SAME_FIELD_SIZE(lcurl_easy_t, rbuffer, lcurl_hpost_stream_t, rbuffer);
 
   if(!lutil_createmetap(L, LCURL_EASY, lcurl_easy_methods, nup))
     lua_pop(L, nup);

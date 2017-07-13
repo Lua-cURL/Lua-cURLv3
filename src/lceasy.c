@@ -1326,7 +1326,7 @@ static int lcurl_easy_set_CHUNK_END_FUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   return lcurl_easy_set_callback(L, p, &p->chunk_end,
     CURLOPT_CHUNK_END_FUNCTION, CURLOPT_CHUNK_DATA,
-    "chunk_end", lcurl_chunk_bgn_callback
+    "chunk_end", lcurl_chunk_end_callback
   );
 }
 

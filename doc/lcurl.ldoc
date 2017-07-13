@@ -54,6 +54,23 @@ function version() end
 -- if proto.HTTP then ... -- libcurl support http protocol
 function version_info() end
 
+--- File description table.
+--
+-- Representation for `struct curl_fileinfo`
+--
+-- @table curl_fileinfo
+--
+-- @tfield string  filename
+-- @tfield integer filetype
+-- @tfield integer time
+-- @tfield integer perm
+-- @tfield integer uid
+-- @tfield integer gid
+-- @tfield integer size
+-- @tfield integer hardlinks
+-- @tfield integer flags
+-- @tfield table strings can have this string fields: `time`, `perm` , `user` , `group`, `target`
+
 end
 
 --- HTTP multipart/formdata object
@@ -447,6 +464,54 @@ function setopt_fnmatch_function() end
 -- @return[1] self
 --
 function setopt_fnmatch_function() end
+
+
+--- Set chunk begin function.
+--
+-- A callback accepting two or three parameters.
+-- The first is the chunk context if any, the second is the @{curl_fileinfo} table.
+-- The third parameter contains number of chunks remaining per the transfer.
+-- Function must return truthy value or nothing to indicate that transfer can begin.
+-- If function raise error or return nil and error message then it indicate
+-- that curl should interrupt current transfer operation.
+-- False value indicate that curl should skip this chunk.
+--
+-- @tparam function chunk_bgn
+-- @param[opt] context chunk context
+-- @return[1] self
+--
+function setopt_chunk_bgn_function() end
+
+--- Set chunk begin function.
+--
+-- This call same as easy:setopt_chunk_bgn_function(context.chunk_bgn, context)
+--
+-- @tparam object context
+-- @return[1] self
+--
+function setopt_chunk_bgn_function() end
+
+--- Set chunk end function.
+--
+-- A callback accepting zero or one parameter.
+-- The only parameter is the chunk context if any.
+-- Function must return truthy value or nothing to indicate that transfer can continue
+-- otherwise it indicate that curl should interrupt current transfer operation.
+--
+-- @tparam function chunk_end
+-- @param[opt] context chunk context
+-- @return[1] self
+--
+function setopt_chunk_end_function() end
+
+--- Set chunk begin function.
+--
+-- This call same as easy:setopt_chunk_end_function(context.chunk_end, context)
+--
+-- @tparam object context
+-- @return[1] self
+--
+function setopt_chunk_end_function() end
 
 --- Set HTTP multipart/formdata.
 --

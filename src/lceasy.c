@@ -790,7 +790,13 @@ static int lcurl_info_get_long_(lua_State *L, int opt){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  lua_pushnumber(L, val);
+#if LUA_VERSION_NUM >= 503 /* Lua 5.3 */
+  if(sizeof(lua_Integer) >= sizeof(val))
+    lua_pushinteger(L, (lua_Integer)val);
+  else
+#endif
+    lua_pushnumber(L, val);
+
   return 1;
 }
 

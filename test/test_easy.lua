@@ -1032,4 +1032,50 @@ end
 
 end
 
+local _ENV = TEST_CASE'unset_callback_ctx'   if ENABLE then
+
+local c
+
+function setup()
+  c = assert(scurl.easy())
+end
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+local function test_cb(name)
+  local set, unset = 'setopt_' .. name, 'unsetopt_' .. name
+
+  set   = assert_function(c[set],   set)
+  unset = assert_function(c[unset], unset)
+
+  local pctx
+  do local ctx = {}
+    pctx = weak_ptr(ctx)
+    assert(set(c, function() end, ctx))
+  end
+
+  gc_collect()
+  assert_table(pctx.value)
+
+  unset(c)
+
+  gc_collect()
+  assert_nil(pctx.value)
+end
+
+function test_read()      test_cb('readfunction')       end
+function test_write()     test_cb('writefunction')      end
+function test_header()    test_cb('headerfunction')     end
+function test_progress()  test_cb('progressfunction')   end
+function test_seek()      test_cb('seekfunction')       end
+function test_debug()     test_cb('debugfunction')      end
+function test_fnmatch()   test_cb('fnmatch_function')   end
+function test_chunk_bgn() test_cb('chunk_bgn_function') end
+function test_chunk_end() test_cb('chunk_end_function') end
+
+end
+
 RUN()

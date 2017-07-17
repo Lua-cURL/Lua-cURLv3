@@ -54,6 +54,23 @@ function version() end
 -- if proto.HTTP then ... -- libcurl support http protocol
 function version_info() end
 
+--- File description table.
+--
+-- Representation for `struct curl_fileinfo`
+--
+-- @table curl_fileinfo
+--
+-- @tfield string  filename
+-- @tfield integer filetype
+-- @tfield integer time
+-- @tfield integer perm
+-- @tfield integer uid
+-- @tfield integer gid
+-- @tfield integer size
+-- @tfield integer hardlinks
+-- @tfield integer flags
+-- @tfield table strings can have this string fields: `time`, `perm` , `user` , `group`, `target`
+
 end
 
 --- HTTP multipart/formdata object
@@ -366,6 +383,135 @@ function setopt_progressfunction() end
 -- @return[1] self
 --
 function setopt_progressfunction() end
+
+--- Set seek callback function.
+--
+-- A callback accepting two or three parameters.
+-- The first is the seek context if any, the second is the `origin` value
+-- same as in file.seek function from io library. Can be (`cur`, `set` and `end`).
+-- The third parameter is offset or position in input stream.
+-- If stream can not be seeking and need stop current transfer operation
+-- function have to raise Lua error or returns `nil` and error message.
+-- To indicate success function have to return any truthy value
+-- In other case Function must return `true` or `1` or nothing to continue operation.
+-- False value indicate that while the seek failed, libcurl is free to work
+-- around the problem if possible.
+--
+-- !!! NOTE !!! This is differents form libcurl API by swapping parameters in callback.
+-- It done to be compatiable with Lua io library.
+--
+-- @tparam function seek
+-- @param[opt] context seek context
+-- @return[1] self
+--
+function setopt_seekfunction() end
+
+--- Set seek callback function.
+--
+-- This call same as easy:setopt_seekfunction(stream.seek, seek)
+--
+-- @tparam object stream
+-- @return[1] self
+--
+function setopt_seekfunction() end
+
+--- Set debug callback function.
+--
+-- A callback accepting two or three parameters.
+-- The first is the debug context if any, the second is the `data_type` value
+-- which represent what kinde of data is passed. This value can be one of 
+-- constant `INFO_TEXT`, `INFO_HEADER_IN`, `INFO_HEADER_OUT`, `INFO_DATA_IN`,
+-- `INFO_DATA_OUT`, `INFO_SSL_DATA_IN`, `INFO_SSL_DATA_OUT`.
+-- The third parameter is data itself.
+-- Any errors and returning values from this callback are ignored.
+--
+-- @tparam function debug
+-- @param[opt] context debug context
+-- @return[1] self
+--
+function setopt_debugfunction() end
+
+--- Set debug callback function.
+--
+-- This call same as easy:setopt_debugfunction(debug.debug, debug)
+--
+-- @tparam object debug
+-- @return[1] self
+--
+function setopt_debugfunction() end
+
+--- Set match callback function.
+--
+-- A callback accepting two or three parameters.
+-- The first is the match context if any, the second is the pattern string,
+-- the third is the string to match to pattern.
+-- Function must return truthy value to indicate that string match to pattern.
+-- If function raise error or return nil and error message then it indicate
+-- that curl should interrupt current transfer operation.
+-- False value indicate that strind does not match to pattern
+--
+-- @tparam function match
+-- @param[opt] context match context
+-- @return[1] self
+--
+function setopt_fnmatch_function() end
+
+--- Set match callback function.
+--
+-- This call same as easy:setopt_fnmatch_function(match.match, match)
+--
+-- @tparam object match
+-- @return[1] self
+--
+function setopt_fnmatch_function() end
+
+
+--- Set chunk begin function.
+--
+-- A callback accepting two or three parameters.
+-- The first is the chunk context if any, the second is the @{curl_fileinfo} table.
+-- The third parameter contains number of chunks remaining per the transfer.
+-- Function must return truthy value or nothing to indicate that transfer can begin.
+-- If function raise error or return nil and error message then it indicate
+-- that curl should interrupt current transfer operation.
+-- False value indicate that curl should skip this chunk.
+--
+-- @tparam function chunk_bgn
+-- @param[opt] context chunk context
+-- @return[1] self
+--
+function setopt_chunk_bgn_function() end
+
+--- Set chunk begin function.
+--
+-- This call same as easy:setopt_chunk_bgn_function(context.chunk_bgn, context)
+--
+-- @tparam object context
+-- @return[1] self
+--
+function setopt_chunk_bgn_function() end
+
+--- Set chunk end function.
+--
+-- A callback accepting zero or one parameter.
+-- The only parameter is the chunk context if any.
+-- Function must return truthy value or nothing to indicate that transfer can continue
+-- otherwise it indicate that curl should interrupt current transfer operation.
+--
+-- @tparam function chunk_end
+-- @param[opt] context chunk context
+-- @return[1] self
+--
+function setopt_chunk_end_function() end
+
+--- Set chunk begin function.
+--
+-- This call same as easy:setopt_chunk_end_function(context.chunk_end, context)
+--
+-- @tparam object context
+-- @return[1] self
+--
+function setopt_chunk_end_function() end
 
 --- Set HTTP multipart/formdata.
 --

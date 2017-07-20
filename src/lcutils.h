@@ -91,4 +91,8 @@ int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
 
 void lcurl_stack_dump (lua_State *L);
 
+curl_socket_t lcurl_opt_os_socket(lua_State *L, int idx, curl_socket_t def);
+
+void lcurl_push_os_socket(lua_State *L, curl_socket_t fd);
+
 #endif

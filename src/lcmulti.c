@@ -380,7 +380,7 @@ static int lcurl_multi_timeout(lua_State *L){
 
 static int lcurl_multi_socket_action(lua_State *L){
   lcurl_multi_t *p = lcurl_getmulti(L);
-  curl_socket_t s  = lutil_optint64(L, 2, CURL_SOCKET_TIMEOUT);
+  curl_socket_t s  = lcurl_opt_os_socket(L, 2, CURL_SOCKET_TIMEOUT);
   CURLMcode code; int n, mask;
   lua_State *curL;
 
@@ -551,7 +551,7 @@ static int lcurl_multi_socket_callback(CURL *easy, curl_socket_t s, int what, vo
   lua_rawgetp(L, -1, easy);
   e = lcurl_geteasy_at(L, -1);
   lua_remove(L, -2);
-  lutil_pushint64(L, s);
+  lcurl_push_os_socket(L, s);
   lua_pushinteger(L, what);
 
   if(lua_pcall(L, n+2, 0, 0)){

@@ -21,7 +21,7 @@ local c = curl.easy{
 }
 
 local data, n = 0, 0
-c:setopt_writefunction(function(chunk) data = #chunk + 1 end)
+c:setopt_writefunction(function(chunk) data = #chunk + data end)
 
 -- called before each new file
 c:setopt_chunk_bgn_function(function(info, remains)
@@ -32,7 +32,7 @@ end)
 
 -- called after file download complite
 c:setopt_chunk_end_function(function()
-  printf('total size %d\n', data)
+  printf('total size %d[B]\n', data)
   printf('------------------------------------------------------\n')
 end)
 

@@ -8,7 +8,7 @@ local function printf(...)
   io.stderr:write(string.format(...))
 end
 
-local function dumb(title, data, n)
+local function dump(title, data, n)
   n = n or 16
   printf("%s, %10.10d bytes (0x%8.8x)\n", title, #data, #data)
   for i = 1, #data do
@@ -28,7 +28,7 @@ local function my_trace(type, data)
   if type == curl.INFO_HEADER_IN    then text = "<= Recv header"     end
   if type == curl.INFO_DATA_IN      then text = "<= Recv data"       end
   if type == curl.INFO_SSL_DATA_IN  then text = "<= Recv SSL data"   end
-  if text then dumb(text, data) end
+  if text then dump(text, data) end
 end
  
 local easy = curl.easy{

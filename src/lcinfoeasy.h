@@ -27,6 +27,7 @@ OPT_ENTRY( proxyauth_avail,         PROXYAUTH_AVAIL,         LNG, 0)
 OPT_ENTRY( os_errno,                OS_ERRNO,                LNG, 0)
 OPT_ENTRY( num_connects,            NUM_CONNECTS,            LNG, 0)
 OPT_ENTRY( primary_ip,              PRIMARY_IP,              STR, 0)
+OPT_ENTRY( certinfo,                CERTINFO,                CERTINFO, 0)
 #if LCURL_CURL_VER_GE(7,21,0)
 OPT_ENTRY( primary_port,            PRIMARY_PORT,            LNG, 0)
 OPT_ENTRY( local_ip,                LOCAL_IP,                STR, 0)
@@ -54,5 +55,5 @@ OPT_ENTRY( scheme,                  SCHEME,                  STR, 0)
 #endif
 
 // OPT_ENTRY( PRIVATE,                 void     ) 
-// OPT_ENTRY( CERTINFO,                struct curl_certinfo *
+// OPT_ENTRY( TLS_SSL_PTR,             struct curl_tlssessioninfo **
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

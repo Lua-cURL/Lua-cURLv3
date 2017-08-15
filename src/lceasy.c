@@ -841,6 +841,39 @@ static int lcurl_info_get_slist_(lua_State *L, int opt){
   return 1;
 }
 
+static int lcurl_info_get_certinfo_(lua_State *L, int opt){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  int decode = lua_toboolean(L, 2);
+  struct curl_certinfo * val; CURLcode code;
+  
+  code = curl_easy_getinfo(p->curl, opt, &val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lua_newtable(L);
+  { int i = 0; for(;i<val->num_of_certs; ++i){
+    struct curl_slist *slist = val->certinfo[i];
+    if (decode) {
+      lua_newtable(L);
+      for(;slist; slist = slist->next){
+        const char *ptr = strchr(slist->data, ':');
+        if(ptr){
+          lua_pushlstring(L, slist->data, ptr - slist->data);
+          lua_pushstring(L, ptr + 1);
+          lua_rawset(L, -3);
+        }
+      }
+    }
+    else{
+      lcurl_util_slist_to_table(L, slist);
+    }
+    lua_rawseti(L, -2, i + 1);
+  }}
+
+  return 1;
+}
+
 #define LCURL_STR_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\
   return lcurl_info_get_string_(L, CURLINFO_##N); \
 }
@@ -855,6 +888,10 @@ static int lcurl_info_get_slist_(lua_State *L, int opt){
 
 #define LCURL_DBL_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\
   return lcurl_info_get_double_(L, CURLINFO_##N);\
+}
+
+#define LCURL_CERTINFO_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\
+  return lcurl_info_get_certinfo_(L, CURLINFO_##N);\
 }
 
 #define OPT_ENTRY(L, N, T, S) LCURL_##T##_INFO(N, S)

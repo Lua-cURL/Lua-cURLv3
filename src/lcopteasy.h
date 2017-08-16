@@ -396,6 +396,11 @@ OPT_ENTRY( abstract_unix_socket,   ABSTRACT_UNIX_SOCKET,  STR, 0, LCURL_DEFAULT_
 OPT_ENTRY( suppress_connect_headers, SUPPRESS_CONNECT_HEADERS, LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,55,0)
+OPT_ENTRY( request_target,           REQUEST_TARGET,           STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY( socks5_auth,              SOCKS5_AUTH,              LNG, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 #ifdef LCURL__TCP_FASTOPEN
 #  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
 #  undef LCURL__TCP_FASTOPEN

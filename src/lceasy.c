@@ -813,6 +813,23 @@ static int lcurl_info_get_double_(lua_State *L, int opt){
   return 1;
 }
 
+#if LCURL_CURL_VER_GE(7,55,0)
+
+static int lcurl_info_get_offset_(lua_State *L, int opt){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  curl_off_t val; CURLcode code;
+
+  code = curl_easy_getinfo(p->curl, opt, &val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lutil_pushint64(L, val);
+  return 1;
+}
+
+#endif
+
 static int lcurl_info_get_string_(lua_State *L, int opt){
   lcurl_easy_t *p = lcurl_geteasy(L);
   char *val; CURLcode code;
@@ -888,6 +905,10 @@ static int lcurl_info_get_certinfo_(lua_State *L, int opt){
 
 #define LCURL_DBL_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\
   return lcurl_info_get_double_(L, CURLINFO_##N);\
+}
+
+#define LCURL_OFF_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\
+  return lcurl_info_get_offset_(L, CURLINFO_##N);\
 }
 
 #define LCURL_CERTINFO_INFO(N, S) static int lcurl_easy_get_##N(lua_State *L){\

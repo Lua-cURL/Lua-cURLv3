@@ -54,6 +54,15 @@ OPT_ENTRY( protocol,                PROTOCOL,                LNG, 0)
 OPT_ENTRY( scheme,                  SCHEME,                  STR, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,55,0)
+OPT_ENTRY( content_length_download_t, CONTENT_LENGTH_DOWNLOAD_T, OFF, 0)
+OPT_ENTRY( content_length_upload_t,   CONTENT_LENGTH_UPLOAD_T,   OFF, 0)
+OPT_ENTRY( size_download_t,           SIZE_DOWNLOAD_T,           OFF, 0)
+OPT_ENTRY( size_upload_t,             SIZE_UPLOAD_T,             OFF, 0)
+OPT_ENTRY( speed_download_t,          SPEED_DOWNLOAD_T,          OFF, 0)
+OPT_ENTRY( speed_upload_t,            SPEED_UPLOAD_T,            OFF, 0)
+#endif
+
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( TLS_SSL_PTR,             struct curl_tlssessioninfo **
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

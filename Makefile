@@ -46,7 +46,7 @@ endif
 
 INCLUDES          = -I$(LUA_INC)
 DEFINES           =
-LIBS              = -lrt -ldl $(CURL_LIBS)
+LIBS              = $(CURL_LIBS)
 
 COMMONFLAGS       = -O2 -g -pipe -fPIC $(OS_FLAGS) $(DBG)
 LF                = $(LIBS) $(LDFLAGS)

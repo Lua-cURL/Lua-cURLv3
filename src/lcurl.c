@@ -187,6 +187,12 @@ static const char* LCURL_USERVAL  = "LCURL Uservalues";
 
 static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   if(!LCURL_INIT){
+    /* Note from libcurl documentation.
+     *
+     * The environment it sets up is constant for the life of the program
+     * and is the same for every program, so multiple calls have the same
+     * effect as one call. ... This function is not thread safe.
+     */
     curl_global_init(CURL_GLOBAL_DEFAULT);
     LCURL_INIT = 1;
   }

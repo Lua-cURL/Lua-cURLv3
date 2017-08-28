@@ -569,6 +569,7 @@ static const struct luaL_Reg lcurl_hpost_methods[] = {
   {"get",                  lcurl_hpost_get                       },
   {"free",                 lcurl_hpost_free                      },
   {"__gc",                 lcurl_hpost_free                      },
+  {"__tostring",           lcurl_hpost_to_s                      },
 
   {NULL,NULL}
 };

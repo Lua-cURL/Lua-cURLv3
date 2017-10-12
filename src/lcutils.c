@@ -21,10 +21,18 @@ int lcurl_storage_init(lua_State *L){
 }
 
 void lcurl_storage_preserve_value(lua_State *L, int storage, int i){
-  assert(i > 0);
+  assert(i > 0 && i <= lua_gettop(L));
   luaL_checkany(L, i);
   lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
   lua_pushvalue(L, i); lua_pushboolean(L, 1); lua_rawset(L, -3);
+  lua_pop(L, 1);
+}
+
+void lcurl_storage_remove_value(lua_State *L, int storage, int i){
+  assert(i > 0 && i <= lua_gettop(L));
+  luaL_checkany(L, i);
+  lua_rawgeti(L, LCURL_LUA_REGISTRY, storage);
+  lua_pushvalue(L, i); lua_pushnil(L); lua_rawset(L, -3);
   lua_pop(L, 1);
 }
 
@@ -256,7 +264,7 @@ int lcurl_utils_apply_options(lua_State *L, int opt, int obj, int do_close,
   while(lua_next(L, opt) != 0){
     int n;
     assert(lua_gettop(L) == (top + 2));
-    
+
     if(lua_type(L, -2) == LUA_TNUMBER){ /* [curl.OPT_URL] = "http://localhost" */
       lua_pushvalue(L, -2);
       lua_insert(L, -2);            /*Stack : opt, obj, k, k, v */

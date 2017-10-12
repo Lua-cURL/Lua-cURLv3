@@ -14,6 +14,7 @@
 #include "lcshare.h"
 #include "lcerror.h"
 #include "lchttppost.h"
+#include "lcmime.h"
 #include "lcutils.h"
 
 /*export*/
@@ -113,6 +114,10 @@ static int lcurl_version_info(lua_State *L){
 #ifdef CURL_VERSION_HTTPS_PROXY
     lua_pushliteral(L, "HTTPS_PROXY");  lua_pushboolean(L, data->features & CURL_VERSION_HTTPS_PROXY ); lua_rawset(L, -3);
 #endif
+#ifdef CURL_VERSION_MULTI_SSL
+    lua_pushliteral(L, "MULTI_SSL");    lua_pushboolean(L, data->features & CURL_VERSION_MULTI_SSL   ); lua_rawset(L, -3);
+#endif
+
   lua_setfield(L, -2, "features");         /* bitmask, see defines below */
 
   if(data->ssl_version){lua_pushstring(L, data->ssl_version); lua_setfield(L, -2, "ssl_version");}      /* human readable string */
@@ -155,7 +160,7 @@ static const struct luaL_Reg lcurl_functions[] = {
   {"share",           lcurl_share_new        },
   {"version",         lcurl_version          },
   {"version_info",    lcurl_version_info     },
-
+  
   {NULL,NULL}
 };
 
@@ -215,6 +220,7 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_error_initlib(L, 2);
   lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_hpost_initlib(L, 2);
   lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_easy_initlib (L, 2);
+  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_mime_initlib (L, 2);
   lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_multi_initlib(L, 2);
   lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_share_initlib(L, 2);
 

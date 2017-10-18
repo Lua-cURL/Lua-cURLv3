@@ -39,6 +39,7 @@ install:
       hererocks c:\hererocks --%LUA% --target %HR_TARGET% -rlatest
     )
   - call c:\hererocks\bin\activate
+  - luarocks show luarocks-fetch-gitrec >nul 2>&1 || luarocks install luarocks-fetch-gitrec
 
 before_build:
   # external deps
@@ -57,6 +58,10 @@ before_test:
   - luarocks show dkjson >nul 2>&1 || luarocks install dkjson
   - luarocks show luafilesystem >nul 2>&1 || luarocks install luafilesystem
   - luarocks show lua-path >nul 2>&1 || luarocks install lua-path
+  - luarocks show pegasus >nul 2>&1 || luarocks install pegasus http.parser \
+    --server=http://luarocks.org/manifests/moteus
+  - ps: $TestServer = Start-Process lua -ArgumentList test/server.lua -PassThru
+  - curl -s http://127.0.0.1:7090
 
 test_script:
   - echo "Testing..."
@@ -69,3 +74,6 @@ test_script:
 after_test:
   - cd %APPVEYOR_BUILD_FOLDER%
   - .appveyor\pack_artifact.bat lua-curl bin-rock
+
+on_finish:
+  - ps: Stop-Process -Id $TestServer.Id

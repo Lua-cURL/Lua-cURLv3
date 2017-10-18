@@ -13,16 +13,11 @@ local TEST_CASE  = assert(lunit.TEST_CASE)
 local skip       = lunit.skip or function() end
 
 local curl      = require "lcurl"
+local utils     = require "utils"
 
-local function weak_ptr(val)
-  return setmetatable({value = val}, {__mode = 'v'})
-end
+local weak_ptr, gc_collect, dump_mime_ = utils.import('weak_ptr', 'gc_collect', 'dump_mime')
 
-local function gc_collect(n)
-  for i = 1, (n or 10) do
-    collectgarbage("collect")
-  end
-end
+local dump_mime_url = 'http://127.0.0.1:7090'
 
 local function is_freed(c)
   return not not string.find(tostring(c), '%(freed%)')
@@ -181,6 +176,83 @@ function test_preserve_mime_by_easy()
   gc_collect()
 
   assert_nil(mime.value)
+end
+
+end
+
+local _ENV = TEST_CASE'mime basic' if not curl.OPT_MIMEPOST then
+function test() skip("MIMI API supports since cURL 7.56.0") end
+else
+
+local easy, mime
+
+local function dump_mime(mime)
+  return dump_mime_(easy, mime, dump_mime_url)
+end
+
+function setup()
+  easy = curl.easy()
+  mime = easy:mime()
+end
+
+function teardown()
+  if easy then easy:close() end
+  if mime then mime:free() end
+  easy, mime = nil
+end
+
+function test_data()
+  mime:addpart():data('hello')
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+end
+
+function test_data_type()
+  mime:addpart():data('hello', 'text/html')
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+text/html', info)
+end
+
+function test_data_type_name()
+  mime:addpart():data('hello', 'text/html', 'test')
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+text/html', info)
+  assert_match('Content%-Disposition:.-name="test"', info)
+end
+
+function test_data_name()
+  mime:addpart():data('hello', nil, 'test')
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Disposition:.-name="test"', info)
+end
+
+function test_data_headers()
+  mime:addpart():data('hello', {
+    'X-Custom-Header: hello'
+  })
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
+end
+
+function test_unset_name()
+  mime:addpart():data('hello', 'text/html', 'test'):name(false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+text/html', info)
+  assert_not_match('Content%-Disposition:.-name="test"', info)
+end
+
+function test_unset_type()
+  mime:addpart():data('hello', 'text/html'):type(false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_not_match('Content%-Type:%s+text/html', info)
 end
 
 end

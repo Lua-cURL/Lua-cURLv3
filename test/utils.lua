@@ -66,6 +66,33 @@ local function Stream(ch, n, m)
   return _stream:reset()
 end
 
+local function easy_dump_mime(easy, mime, url)
+  local buffer = {}
+
+  local function dump_mime(type, data)
+    if type == curl.INFO_DATA_OUT then
+      buffer[#buffer + 1] = data
+    end
+  end
+
+  local ok, err = easy:setopt{
+    url            = url or "http://127.0.0.1:7090";
+    customrequest  = "GET";
+    mimepost       = mime;
+    verbose        = true;
+    debugfunction  = dump_mime;
+    writefunction  = function()end;
+  }
+
+  if not ok then return nil, err end
+
+  ok, err = easy:perform()
+
+  if not ok then return nil, err end
+
+  return table.concat(buffer)
+end
+
 local utils = {
   weak_ptr   = weak_ptr;
   gc_collect = gc_collect;
@@ -73,6 +100,7 @@ local utils = {
   is_curl_eq = is_curl_eq;
   get_bin_by = get_bin_by;
   read_file  = read_file;
+  dump_mime  = easy_dump_mime;
   stream     = stream;
   Stream     = Stream;
 }

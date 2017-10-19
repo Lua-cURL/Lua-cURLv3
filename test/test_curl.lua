@@ -24,6 +24,8 @@ local utils = require "utils"
 -- not sure is it bug or not
 local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
 
+local GET_URL = "http://127.0.0.1:7090/get"
+
 local ENABLE = true
 
 local _ENV = TEST_CASE'version'        if ENABLE then
@@ -35,7 +37,7 @@ end
 
 end
 
-local _ENV = TEST_CASE'easy' if ENABLE then
+local _ENV = TEST_CASE'easy'           if ENABLE then
 
 local e1, e2
 function teardown()
@@ -124,7 +126,7 @@ end
 
 local _ENV = TEST_CASE'multi_iterator' if ENABLE then
 
-local url = "http://httpbin.org/get"
+local url = GET_URL
 
 local c, t, m
 
@@ -144,8 +146,7 @@ function teardown()
 end
 
 function test_add_handle()
-
-  local base_url = 'http://httpbin.org/get?key='
+  local base_url = url .. '?key='
   local urls = {
     base_url .. "1",
     base_url .. "2",
@@ -196,7 +197,9 @@ function test_add_handle()
 end
 
 function test_info_read()
-  local url = 'http://httpbin.org/get?key=1'
+
+  local url = GET_URL .. '?key=1'
+
   c = assert(curl.easy{url=url, writefunction=function() end})
   assert_equal(m, m:add_handle(c))
 

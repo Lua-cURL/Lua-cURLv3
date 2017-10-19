@@ -58,10 +58,12 @@ before_test:
   - luarocks show dkjson >nul 2>&1 || luarocks install dkjson
   - luarocks show luafilesystem >nul 2>&1 || luarocks install luafilesystem
   - luarocks show lua-path >nul 2>&1 || luarocks install lua-path
-  - luarocks show pegasus >nul 2>&1 || luarocks install pegasus http.parser \
+  - luarocks show pegasus >nul 2>&1 || luarocks install pegasus http.parser 
     --server=http://luarocks.org/manifests/moteus
-  - ps: $TestServer = Start-Process lua -ArgumentList test/server.lua -PassThru
-  - curl -s http://127.0.0.1:7090
+  - luarocks show pegasus-router >nul 2>&1 || luarocks install pegasus-router 
+    --server=http://luarocks.org/dev
+  - ps: $TestServer = Start-Process lua -ArgumentList test/server.lua -RedirectStandardOutput "$env:APPVEYOR_BUILD_FOLDER\server.stdout.txt" -RedirectStandardError "$env:APPVEYOR_BUILD_FOLDER\server.stderr.txt" -PassThru
+  - curl -s http://127.0.0.1:7090/get
 
 test_script:
   - echo "Testing..."
@@ -75,5 +77,10 @@ after_test:
   - cd %APPVEYOR_BUILD_FOLDER%
   - .appveyor\pack_artifact.bat lua-curl bin-rock
 
+on_failure:
+  - ps: $path = "$env:APPVEYOR_BUILD_FOLDER\server.stderr.txt"; if (Test-Path $path -PathType Leaf) { Push-AppveyorArtifact $path; } else { echo "File $path does not exist"; }
+  - ps: $path = "$env:APPVEYOR_BUILD_FOLDER\server.stdout.txt"; if (Test-Path $path -PathType Leaf) { Push-AppveyorArtifact $path; } else { echo "File $path does not exist"; }
+
 on_finish:
+  - curl -s http://127.0.0.1:7090/get
   - ps: Stop-Process -Id $TestServer.Id

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="lcurl"
 	ProjectGUID="{200D5C0C-8123-48F6-9EA0-CF0E6A6943F2}"
 	RootNamespace="lcurl"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(CPPLIB_DIR)\curl\7.37.1\include;$(LUA_DIR)\include"
+				AdditionalIncludeDirectories="$(CPPLIB_DIR)\curl\7.56.0\include;$(LUA_DIR)\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LCURL_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="lua5.1.lib libcurl.lib ws2_32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(CPPLIB_DIR)\curl\7.37.1\lib&quot;;&quot;$(LUA_DIR)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(CPPLIB_DIR)\curl\7.56.0\lib&quot;;&quot;$(LUA_DIR)\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\lcmime.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lcmulti.c"
 				>
 			</File>
@@ -249,6 +253,10 @@
 			</File>
 			<File
 				RelativePath="..\src\lcinfoeasy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lcmime.h"
 				>
 			</File>
 			<File

@@ -30,6 +30,10 @@ local fname      = "./test.download"
 local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream =
   utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream')
 
+-- local POST_URL = "http://httpbin.org/post"
+
+local POST_URL = "http://127.0.0.1:7090/post"
+
 local ENABLE = true
 
 local _ENV = TEST_CASE'curl error'           if ENABLE then
@@ -416,7 +420,7 @@ local _ENV = TEST_CASE'read_stream_callback' if ENABLE and is_curl_ge(7,30,0) th
 
 -- tested on WinXP(x32)/Win8(x64) libcurl/7.37.1 / libcurl/7.30.0
 
-local url = "http://httpbin.org/post"
+local url = POST_URL
 
 local m, c, f, t
 
@@ -865,10 +869,10 @@ end
 function test()
 
   do local fields = {}
-    for i = 1, 100 do fields[#fields + 1] = "key" .. i .. "=value"..i end
+    for i = 1, 100 do fields[#fields + 1] = string.format('key%d=value%d', i, i) end
     fields = table.concat(fields, '&')
     c = assert(curl.easy{
-      url           = "http://httpbin.org/post",
+      url           = POST_URL,
       postfields    = fields,
       writefunction = function()end,
     })
@@ -884,10 +888,10 @@ function test_unset()
   local pfields
 
   do local fields = {}
-    for i = 1, 100 do fields[#fields + 1] = "key" .. i .. "=value"..i end
+    for i = 1, 100 do fields[#fields + 1] = string.format('key%d=value%d', i, i) end
     fields = table.concat(fields, '&')
     c = assert(curl.easy{
-      url           = "http://httpbin.org/post",
+      url           = POST_URL,
       postfields    = fields,
       writefunction = function()end,
     })

@@ -39,15 +39,26 @@ before_install:
   - pip install --user hererocks
   - hererocks here -r^ --$LUA
   - source here/bin/activate
+  - luarocks show lluv > /dev/null 2>&1 || bash .travis/setup_uv.sh
 
 install:
   - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="$LCURL_CC_FLAGS" LIBFLAG="$LCURL_LD_FLAGS"
 
 before_script:
   - luarocks show luacov-coveralls > /dev/null 2>&1 || luarocks install luacov-coveralls
-  - luarocks show lunitx > /dev/null 2>&1           || luarocks install lunitx
-  - luarocks show luafilesystem > /dev/null 2>&1    || luarocks install luafilesystem
-  - luarocks show dkjson > /dev/null 2>&1           || luarocks install dkjson --deps-mode=none
+  - luarocks show lunitx           > /dev/null 2>&1 || luarocks install lunitx
+  - luarocks show luafilesystem    > /dev/null 2>&1 || luarocks install luafilesystem
+  - luarocks show dkjson           > /dev/null 2>&1 || luarocks install dkjson --deps-mode=none
+  - luarocks show pegasus          > /dev/null 2>&1 || luarocks install pegasus http.parser 
+    --server=http://luarocks.org/manifests/moteus
+  - luarocks show pegasus-router   > /dev/null 2>&1 || luarocks install pegasus-router 
+    --server=http://luarocks.org/dev
+  - luarocks show lluv             > /dev/null 2>&1 || luarocks install lluv UV_DIR=$TRAVIS_BUILD_DIR/libuv
+    --server=http://luarocks.org/dev
+  - luarocks show lluv-pegasus     > /dev/null 2>&1 || luarocks install lluv-pegasus 
+    --server=http://luarocks.org/dev --deps-mode=none
+  - lua test/server.lua &
+  - curl -s http://127.0.0.1:7090/get
 
 script:
   - cd test

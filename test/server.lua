@@ -4,7 +4,7 @@ local function prequire(m)
   return err
 end
 
-local uv      = prequire "lluv-"
+local uv      = prequire "lluv"
 local Pegasus = require (uv and "lluv.pegasus" or "pegasus")
 local Router  = require "pegasus.plugins.router"
 local json    = require "dkjson"
@@ -79,16 +79,6 @@ r:get('/get', function(request, response)
   response:write(result)
 end)
 
-r:get('/bytes/:size', function(request, response, params)
-  local headers = request:headers()
-  local size = tonumber(params.size) or 1024
-  local result = rand_bytes(size)
-
-  response:statusCode(200)
-  response:contentType('application/octet-stream')
-  response:write(result)
-end)
-
 r:post('/post', function(request, response, params)
   local headers = request:headers()
   local params  = request:params()
@@ -115,6 +105,17 @@ r:post('/post', function(request, response, params)
   response:statusCode(200)
   response:addHeader('Connection', 'close')
   response:contentType('application/json')
+  response:write(result)
+end)
+
+r:get('/bytes/:size', function(request, response, params)
+  local headers = request:headers()
+  local size = tonumber(params.size) or 1024
+  local result = rand_bytes(size)
+
+  response:statusCode(200)
+  response:addHeader('Connection', 'close')
+  response:contentType('application/octet-stream')
   response:write(result)
 end)
 

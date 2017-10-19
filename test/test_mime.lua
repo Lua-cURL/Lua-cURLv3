@@ -17,7 +17,7 @@ local utils     = require "utils"
 
 local weak_ptr, gc_collect, dump_mime_ = utils.import('weak_ptr', 'gc_collect', 'dump_mime')
 
-local dump_mime_url = 'http://127.0.0.1:7090/get'
+local GET_URL = 'http://127.0.0.1:7090/get'
 
 local function is_freed(c)
   return not not string.find(tostring(c), '%(freed%)')
@@ -187,7 +187,7 @@ else
 local easy, mime
 
 local function dump_mime(mime)
-  return dump_mime_(easy, mime, dump_mime_url)
+  return dump_mime_(easy, mime, GET_URL)
 end
 
 function setup()

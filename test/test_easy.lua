@@ -18,8 +18,13 @@ local json       = require "dkjson"
 local path       = require "path"
 local upath      = require "path".new('/')
 local utils      = require "utils"
-local url        = "http://example.com"
+-- local url        = "http://127.0.0.1:7090/get"
 local fname      = "./test.download"
+
+-- local GET_URL  = "http://example.com"
+-- local POST_URL = "http://httpbin.org/post"
+local GET_URL  = "http://127.0.0.1:7090/get"
+local POST_URL = "http://127.0.0.1:7090/post"
 
 -- print("------------------------------------")
 -- print("Lua  version: " .. (_G.jit and _G.jit.version or _G._VERSION))
@@ -29,10 +34,6 @@ local fname      = "./test.download"
 
 local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream =
   utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream')
-
--- local POST_URL = "http://httpbin.org/post"
-
-local POST_URL = "http://127.0.0.1:7090/post"
 
 local ENABLE = true
 
@@ -97,7 +98,7 @@ end
 function test_write_to_file()
   f = assert(io.open(fname, "w+b"))
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = f;
   })
 
@@ -106,7 +107,7 @@ end
 
 function test_write_abort_01()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function(str) return #str - 1 end;
   })
 
@@ -116,7 +117,7 @@ end
 
 function test_write_abort_02()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function(str) return false end;
   })
 
@@ -126,7 +127,7 @@ end
 
 function test_write_abort_03()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function(str) return nil, "WRITEERROR" end;
   })
 
@@ -136,7 +137,7 @@ end
 
 function test_write_abort_04()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function(str) return nil end;
   })
 
@@ -157,7 +158,7 @@ end
 
 function test_write_pass_01()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function(s) return #s end
   })
 
@@ -166,7 +167,7 @@ end
 
 function test_write_pass_02()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function() return  end
   })
 
@@ -175,7 +176,7 @@ end
 
 function test_write_pass_03()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = function() return true end
   })
 
@@ -188,7 +189,7 @@ function test_write_coro()
 
   co1 = coroutine.create(function()
     c = assert(curl.easy{
-      url = url;
+      url = GET_URL;
       writefunction = function()
         called = coroutine.running()
         return true
@@ -224,7 +225,7 @@ end
 
 function test_abort_01()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return false end
@@ -236,7 +237,7 @@ end
 
 function test_abort_02()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return 0 end
@@ -248,7 +249,7 @@ end
 
 function test_abort_03()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return nil end
@@ -260,7 +261,7 @@ end
 
 function test_abort_04()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return nil, "PROGRESSERROR" end
@@ -272,7 +273,7 @@ end
 
 function test_abort_05()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() error( "PROGRESSERROR" )end
@@ -285,7 +286,7 @@ end
 
 function test_pass_01()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() end
@@ -296,7 +297,7 @@ end
 
 function test_pass_02()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return true end
@@ -307,7 +308,7 @@ end
 
 function test_pass_03()
   c  = assert(scurl.easy{
-    url              = url,
+    url              = GET_URL,
     writefunction    = pass,
     noprogress       = false,
     progressfunction = function() return 1 end
@@ -330,7 +331,7 @@ end
 
 function test_header_abort_01()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function(str) return #str - 1 end;
   })
@@ -341,7 +342,7 @@ end
 
 function test_header_abort_02()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function(str) return false end;
   })
@@ -352,7 +353,7 @@ end
 
 function test_header_abort_03()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function(str) return nil, "WRITEERROR" end;
   })
@@ -363,7 +364,7 @@ end
 
 function test_header_abort_04()
   c = assert(scurl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function(str) return nil end;
   })
@@ -385,7 +386,7 @@ end
 
 function test_header_pass_01()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function(s) return #s end
   })
@@ -395,7 +396,7 @@ end
 
 function test_header_pass_02()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function() return  end
   })
@@ -405,7 +406,7 @@ end
 
 function test_header_pass_03()
   c = assert(curl.easy{
-    url = url;
+    url = GET_URL;
     writefunction = dummy,
     headerfunction = function() return true end
   })

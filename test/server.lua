@@ -4,7 +4,7 @@ local function prequire(m)
   return err
 end
 
-local uv      = prequire "lluv"
+local uv      = prequire "lluv-"
 local Pegasus = require (uv and "lluv.pegasus" or "pegasus")
 local Router  = require "pegasus.plugins.router"
 local json    = require "dkjson"
@@ -37,20 +37,44 @@ local server = Pegasus:new{
   host = '127.0.0.1', port = 7090, timout = 10
 }
 
+local function recvFullBody(request, T1)
+  local body, counter = {}, 0
+
+  local result, status
+  while true do
+    result, status = request:receiveBody()
+    if result then
+      counter = 0
+      body[#body + 1] = result
+    elseif status ~= 'timeout' then
+      break
+    else
+      counter = counter + 1
+      if counter > T1 then break end
+    end
+  end
+
+  return table.concat(body), status
+end
+
 r:get('/get', function(request, response)
   local headers = request:headers()
   local params  = request:params()
   local path    = request:path()
   local ip      = request.ip
 
+  local body, status = recvFullBody(request, 15)
+
   local result = json.encode({
     args    = params;
     headers = headers;
     origin  = ip;
+    content = body;
     url     = 'http://127.0.0.1' .. path;
   }, {indent = true})
 
   response:statusCode(200)
+  response:addHeader('Connection', 'close')
   response:contentType('application/json')
   response:write(result)
 end)
@@ -71,13 +95,7 @@ r:post('/post', function(request, response, params)
   local path    = request:path()
   local ip      = request.ip
 
-  local body = {}
-  while true do
-    local result, status = request:receiveBody()
-    if result then body[#body + 1] = result
-    elseif status ~= 'timeout' then break end
-  end
-  body = table.concat(body)
+  local body, status = recvFullBody(request, 15)
 
   local name, data, form = decode_form(body)
   if name then
@@ -95,6 +113,7 @@ r:post('/post', function(request, response, params)
   }, {indent = true})
 
   response:statusCode(200)
+  response:addHeader('Connection', 'close')
   response:contentType('application/json')
   response:write(result)
 end)

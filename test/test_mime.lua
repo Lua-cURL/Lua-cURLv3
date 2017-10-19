@@ -17,7 +17,7 @@ local utils     = require "utils"
 
 local weak_ptr, gc_collect, dump_mime_ = utils.import('weak_ptr', 'gc_collect', 'dump_mime')
 
-local dump_mime_url = 'http://127.0.0.1:7090/post'
+local dump_mime_url = 'http://127.0.0.1:7090/get'
 
 local function is_freed(c)
   return not not string.find(tostring(c), '%(freed%)')
@@ -246,16 +246,16 @@ function test_data_should_not_unset_on_nil()
   assert_match('Content%-Disposition:.-name="test2"', info)
   assert_match('X%-Custom%-Header:%s*hello', info)
 
-  part:data('!!!', 'text/xml', nil)
+  part:data('!!!!!', 'text/xml', nil)
   info = assert_string(dump_mime(mime))
-  assert_match('\r\n\r\n!!!', info)
+  assert_match('\r\n\r\n!!!!!', info)
   assert_match('Content%-Type:%s+text/xml', info)
   assert_match('Content%-Disposition:.-name="test2"', info)
   assert_match('X%-Custom%-Header:%s*hello', info)
 
-  part:data('!!!', 'text/xml', nil, nil)
+  part:data('!!!!!!!', 'text/xml', nil, nil)
   info = assert_string(dump_mime(mime))
-  assert_match('\r\n\r\n!!!', info)
+  assert_match('\r\n\r\n!!!!!', info)
   assert_match('Content%-Type:%s+text/xml', info)
   assert_match('Content%-Disposition:.-name="test2"', info)
   assert_match('X%-Custom%-Header:%s*hello', info)

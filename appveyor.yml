@@ -78,6 +78,7 @@ after_test:
   - .appveyor\pack_artifact.bat lua-curl bin-rock
 
 on_failure:
+  - ps: Stop-Process -Id $TestServer.Id
   - ps: $path = "$env:APPVEYOR_BUILD_FOLDER\server.stderr.txt"; if (Test-Path $path -PathType Leaf) { Push-AppveyorArtifact $path; } else { echo "File $path does not exist"; }
   - ps: $path = "$env:APPVEYOR_BUILD_FOLDER\server.stdout.txt"; if (Test-Path $path -PathType Leaf) { Push-AppveyorArtifact $path; } else { echo "File $path does not exist"; }
 

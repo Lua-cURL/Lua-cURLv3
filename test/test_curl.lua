@@ -20,8 +20,7 @@ local fname      = "./test.download"
 
 local utils = require "utils"
 
--- libcurl 7.56.0 does not add `Content-Type: text/plain`
--- not sure is it bug or not
+-- Bug. libcurl 7.56.0 does not add `Content-Type: text/plain`
 local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
 
 local GET_URL = "http://127.0.0.1:7090/get"

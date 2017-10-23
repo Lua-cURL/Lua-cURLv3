@@ -14,8 +14,7 @@ local skip       = lunit.skip or function() end
 
 local utils = require "utils"
 
--- libcurl 7.56.0 does not add `Content-Type: text/plain`
--- not sure is it bug or not
+-- Bug. libcurl 7.56.0 does not add `Content-Type: text/plain`
 local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
 
 local curl      = require "lcurl"

@@ -178,6 +178,33 @@ function test_preserve_mime_by_easy()
   assert_nil(mime.value)
 end
 
+function test_mime_does_not_ref_to_easy()
+  -- exists of mime object does not prevent easy from GC
+
+  local mime = easy:mime()
+  local peasy = weak_ptr(easy)
+  easy = nil
+
+  gc_collect()
+
+  assert_nil(peasy.value)
+end
+
+function test_mimepost_does_not_ref_to_easy()
+  -- exists of mime object does not prevent easy from GC
+
+  -- create mime and set it as mimepost option
+  local mime = easy:mime()
+  easy:setopt_mimepost(mime)
+
+  local peasy = weak_ptr(easy)
+  easy = nil
+
+  gc_collect()
+
+  assert_nil(peasy.value)
+end
+
 end
 
 local _ENV = TEST_CASE'mime basic' if not curl.OPT_MIMEPOST then
@@ -219,14 +246,21 @@ function test_data_type_name()
   local info = assert_string(dump_mime(mime))
   assert_match('\r\n\r\nhello', info)
   assert_match('Content%-Type:%s+text/html', info)
-  assert_match('Content%-Disposition:.-name="test"', info)
+  assert_match('Content%-Disposition:.-%sname="test"', info)
 end
 
 function test_data_name()
   mime:addpart():data('hello', nil, 'test')
   local info = assert_string(dump_mime(mime))
   assert_match('\r\n\r\nhello', info)
-  assert_match('Content%-Disposition:.-name="test"', info)
+  assert_match('Content%-Disposition:.-%sname="test"', info)
+end
+
+function test_data_filename()
+  mime:addpart():data('hello', nil, nil, 'test.html')
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Disposition:.-%sfilename="test%.html"', info)
 end
 
 function test_data_should_not_unset_on_nil()
@@ -357,13 +391,26 @@ end
 function test_unset_data_header()
   local part = mime:addpart():data('hello', 'text/html', 'test', {
     'X-Custom-Header: hello'
-  }):data('hello', nil, nil, false)
+  }):data('hello', nil, nil, nil, false)
 
   local info = assert_string(dump_mime(mime))
   assert_match('\r\n\r\nhello', info)
   assert_match('Content%-Type:%s+text/html', info)
   assert_match('Content%-Disposition:.-name="test"', info)
   assert_not_match('X%-Custom%-Header:%s*hello', info)
+end
+
+function test_unset_data_filename_1()
+  local part = mime:addpart():data('hello', 'text/html', 'test', 'test.html', {
+    'X-Custom-Header: hello'
+  }):data('hello', nil, nil, false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+text/html', info)
+  assert_match('Content%-Disposition:.-%sname="test"', info)
+  assert_not_match('Content%-Disposition:.-%sname="test%.html"', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
 end
 
 function test_fail_pass_nil_as_first_arg()
@@ -381,6 +428,53 @@ function test_fail_pass_nil_as_first_arg()
   assert_error(function() part:headers(nil) end)
 end
 
+end
+
+local _ENV = TEST_CASE'mime addpart' if not curl.OPT_MIMEPOST then
+function test() skip("MIMI API supports since cURL 7.56.0") end
+else
+
+local easy, mime
+
+local function dump_mime(mime)
+  return dump_mime_(easy, mime, GET_URL)
+end
+
+function setup()
+  easy = curl.easy()
+  mime = easy:mime()
+end
+
+function teardown()
+  if easy then easy:close() end
+  if mime then mime:free() end
+  easy, mime = nil
+end
+
+function test_empty_table()
+  assert(mime:addpart{})
+end
+
+function test_pass_args()
+  assert(mime:addpart{
+    data = 'hello';
+    encoder = 'base64';
+    name = 'test';
+    filename = 'test.html';
+    type = 'text/html';
+    headers = {
+      'X-Custom-Header: hello';
+    }
+  })
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\naGVsbG8=', info)
+  assert_match('Content%-Type:%s+text/html', info)
+  assert_match('Content%-Disposition:.-%sname="test"', info)
+  assert_not_match('Content%-Disposition:.-%sname="test%.html"', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
+  assert_match('Content%-Transfer%-Encoding:%s*base64', info)
+end
 
 end
 

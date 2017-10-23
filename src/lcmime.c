@@ -79,6 +79,80 @@ int lcurl_mime_set_lua(lua_State *L, lcurl_mime_t *p, lua_State *v){
   return 0;
 }
 
+#define IS_NILORSTR(L, i) (lua_type(L, i) == LUA_TSTRING) || (lua_type(L, i) == LUA_TNIL)
+#define IS_TABLE(L, i) lua_type(L, i) == LUA_TTABLE
+#define IS_FALSE(L, i) (lua_type(L, i) == LUA_TBOOLEAN) && (!lua_toboolean(L, i))
+#define IS_OPTSTR(L, i) (IS_FALSE(L, i)) || (IS_NILORSTR(L, i))
+
+static int lutil_isarray(lua_State *L, int i){
+  int ret = 0;
+  lua_pushnil(L);
+  if(lua_next(L, i)){
+    ret = lua_isnumber(L, -2);
+    lua_pop(L, 2);
+  }
+  return ret;
+}
+
+static int lcurl_mime_part_assig(lua_State *L, int part, const char *method){
+  int top = lua_gettop(L);
+
+  lua_pushvalue(L, part);
+  lua_insert(L, -2);
+  lua_getfield(L, -2, method);
+  lua_insert(L, -3);
+  lua_call(L, 2, LUA_MULTRET);
+
+  return lua_gettop(L) - top + 1;
+}
+
+static const char *lcurl_mime_part_fields[] = {
+  "data", "filedata", "name", "filename", "headers", "encoder", NULL
+};
+
+static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
+  int top = lua_gettop(L);
+  const char *method; int i;
+
+  part = lua_absindex(L, part);
+  t = lua_absindex(L, t);
+
+  if(lutil_isarray(L, t)){
+    int ret;
+    lua_pushvalue(L, t);
+    ret = lcurl_mime_part_assig(L, part, "headers");
+    if(ret != 1) return ret;
+
+    lua_pop(L, 1);
+
+    assert(top == lua_gettop(L));
+  }
+  else{
+    for(i=0;method = lcurl_mime_part_fields[i]; ++i){
+      lua_getfield(L, t, method);
+      if(!lua_isnil(L, -1)){
+        int ret = lcurl_mime_part_assig(L, part, method);
+        if(ret != 1) return ret;
+      }
+      lua_pop(L, 1);
+
+      assert(top == lua_gettop(L));
+    }
+
+    lua_getfield(L, t, "subparts");
+    if(!lua_isnil(L, -1)){
+      if(IS_FALSE(L, -1) || lcurl_getmimepart_at(L, -1)){
+        int ret = lcurl_mime_part_assig(L, part, "subparts");
+        if(ret != 1) return ret;
+      }
+    }
+    lua_pop(L, 1);
+    assert(top == lua_gettop(L));
+  }
+
+  return 0;
+}
+
 //{ MIME
 
 static lcurl_mime_part_t* lcurl_mime_parts_append(lcurl_mime_t *m, lcurl_mime_part_t *p){
@@ -149,12 +223,22 @@ static int lcurl_mime_free(lua_State *L){
 
 static int lcurl_mime_addpart(lua_State *L){
   lcurl_mime_t *p = lcurl_getmime(L);
-  int ret = lcurl_mime_part_create(L, p->err_mode);
+  int ret;
+
+  lua_settop(L, 2);
+
+  ret = lcurl_mime_part_create(L, p->err_mode);
   if(ret != 1) return ret;
 
   /* store mime part in storage */
   lcurl_storage_preserve_value(L, p->storage, lua_absindex(L, -1));
   lcurl_mime_parts_append(p, lcurl_getmimepart_at(L, -1));
+
+  if(lua_istable(L, 2)){
+    ret = lcurl_mime_part_assing_table(L, 3, 2);
+    if(ret) return ret;
+  }
+
   return 1;
 }
 
@@ -239,72 +323,69 @@ static void lcurl_mime_part_remove_subparts(lua_State *L, lcurl_mime_part_t *p, 
   }
 }
 
-#define IS_NILORSTR(L, i) (lua_type(L, i) == LUA_TSTRING) || (lua_type(L, i) == LUA_TNIL)
-#define IS_TABLE(L, i) lua_type(L, i) == LUA_TTABLE
-#define IS_FALSE(L, i) (lua_type(L, i) == LUA_TBOOLEAN) && (!lua_toboolean(L, i))
-#define IS_OPTSTR(L, i) (IS_FALSE(L, i)) || (IS_NILORSTR(L, i))
+static int lcurl_mime_part_assing_ext(lua_State *L, int part, int i){
+#define UNSET_VALUE (const char*)-1
 
-static int lcurl_mime_part_assing_ext(lua_State *L, lcurl_mime_part_t *p, int i){
-  const char *mime_type = NULL, *mime_name = NULL;
+  const char *mime_type = NULL, *mime_name = NULL, *mime_fname = NULL;
   int headers = 0;
   CURLcode ret;
+  lcurl_mime_part_t *p = lcurl_getmimepart_at(L, part);
 
   if(IS_TABLE(L, i)) headers = i;
   else if (IS_OPTSTR(L, i)) {
-    if (IS_FALSE(L, i)) {
-      ret = curl_mime_type(p->part, NULL);
-      if(ret != CURLE_OK)
-        return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
-    }
-    else{
-      mime_type = lua_tostring(L, i);
-    }
+    mime_type = IS_FALSE(L, i) ? UNSET_VALUE : lua_tostring(L, i);
     if(IS_TABLE(L, i+1)) headers = i+1;
     else if(IS_OPTSTR(L, i+1)){
-      if (IS_FALSE(L, i+1)) {
-        ret = curl_mime_name(p->part, NULL);
-        if(ret != CURLE_OK)
-          return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
-      }
-      else{
-        mime_name = lua_tostring(L, i+1);
-      }
+      mime_name = IS_FALSE(L, i+1) ? UNSET_VALUE : lua_tostring(L, i+1);
       if(IS_TABLE(L, i+2)) headers = i+2;
-      else if(IS_FALSE(L, i + 2)){
-        ret = curl_mime_headers(p->part, NULL, 0);
-        if(ret != CURLE_OK)
-          return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+      else if(IS_OPTSTR(L, i+2)){
+        mime_fname = IS_FALSE(L, i+2) ? UNSET_VALUE : lua_tostring(L, i+2);
+        if(IS_TABLE(L, i+3)) headers = i+3;
+        else if(IS_FALSE(L, i+3)){
+          headers = -1;
+        }
       }
     }
   }
 
   if(mime_type){
-    ret = curl_mime_type(p->part, mime_type);
+    ret = curl_mime_type(p->part, mime_type == UNSET_VALUE ? NULL : mime_type);
     if(ret != CURLE_OK){
       return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
     }
   }
 
   if(mime_name){
-    ret = curl_mime_name(p->part, mime_name);
+    ret = curl_mime_name(p->part, mime_name == UNSET_VALUE ? NULL : mime_name);
+    if(ret != CURLE_OK){
+      return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+    }
+  }
+
+  if(mime_fname){
+    ret = curl_mime_filename(p->part, mime_fname == UNSET_VALUE ? NULL : mime_fname);
     if(ret != CURLE_OK){
       return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
     }
   }
 
   if(headers){
-    struct curl_slist *list = lcurl_util_to_slist(L, headers);
-    ret = curl_mime_headers(p->part, list, 1);
-    if(ret != CURLE_OK){
-      curl_slist_free_all(list);
-      return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+    if(-1 == headers){
+      ret = curl_mime_headers(p->part, NULL, 0);
+      if(ret != CURLE_OK){
+        return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+      }
     }
+    else
+      return lcurl_mime_part_assing_table(L, part, headers);
   }
 
   return 0;
+
+#undef UNSET_VALUE
 }
 
-// part:data(str[, type[, name]][, headers])
+// part:data(str[, type[, name[, filename]]][, headers])
 static int lcurl_mime_part_data(lua_State *L){
   lcurl_mime_part_t *p = lcurl_getmimepart(L);
   size_t len; const char *data;
@@ -312,6 +393,7 @@ static int lcurl_mime_part_data(lua_State *L){
 
   if(IS_FALSE(L, 2)){
     data = NULL;
+    len = 0;
   }
   else{
     data = luaL_checklstring(L, 2, &len);
@@ -328,7 +410,7 @@ static int lcurl_mime_part_data(lua_State *L){
   }
 
   if (lua_gettop(L) > 2){
-    int res = lcurl_mime_part_assing_ext(L, p, 3);
+    int res = lcurl_mime_part_assing_ext(L, 1, 3);
     if (res) return res;
   }
 
@@ -360,7 +442,7 @@ static int lcurl_mime_part_subparts(lua_State *L){
   mime->parent = p;
 
   if (lua_gettop(L) > 2){
-    int res = lcurl_mime_part_assing_ext(L, p, 3);
+    int res = lcurl_mime_part_assing_ext(L, 1, 3);
     if (res) return res;
   }
 
@@ -368,7 +450,7 @@ static int lcurl_mime_part_subparts(lua_State *L){
   return 1;
 }
 
-// part:filedata(path[, type[, name]][, headers])
+// part:filedata(path[, type[, name[, filename]]][, headers])
 static int lcurl_mime_part_filedata(lua_State *L){
   lcurl_mime_part_t *p = lcurl_getmimepart(L);
   const char *data = luaL_checkstring(L, 2);
@@ -380,7 +462,7 @@ static int lcurl_mime_part_filedata(lua_State *L){
   }
 
   if (lua_gettop(L) > 2){
-    int res = lcurl_mime_part_assing_ext(L, p, 3);
+    int res = lcurl_mime_part_assing_ext(L, 1, 3);
     if (res) return res;
   }
 
@@ -458,6 +540,49 @@ static int lcurl_mime_part_name(lua_State *L){
   return 1;
 }
 
+// part:filename(t)
+static int lcurl_mime_part_filename(lua_State *L){
+  lcurl_mime_part_t *p = lcurl_getmimepart(L);
+  const char *mime_name;
+  CURLcode ret;
+
+  if(IS_FALSE(L, 2)){
+    mime_name = NULL;
+  }
+  else{
+    mime_name = luaL_checkstring(L, 2);
+  }
+  ret = curl_mime_filename(p->part, mime_name);
+
+  if(ret != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+  }
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+// part:encoder(t)
+static int lcurl_mime_part_encoder(lua_State *L){
+  lcurl_mime_part_t *p = lcurl_getmimepart(L);
+  const char *mime_encode;
+  CURLcode ret;
+
+  if(IS_FALSE(L, 2)){
+    mime_encode = NULL;
+  }
+  else{
+    mime_encode = luaL_checkstring(L, 2);
+  }
+  ret = curl_mime_encoder(p->part, mime_encode);
+
+  if(ret != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
+  }
+
+  lua_settop(L, 1);
+  return 1;
+}
 
 //}
 
@@ -479,7 +604,10 @@ static const struct luaL_Reg lcurl_mime_part_methods[] = {
   {"filedata",             lcurl_mime_part_filedata                  },
   {"headers",              lcurl_mime_part_headers                   },
   {"name",                 lcurl_mime_part_name                      },
+  {"filename",             lcurl_mime_part_filename                  },
   {"type",                 lcurl_mime_part_type                      },
+  {"encoder",              lcurl_mime_part_encoder                   },
+  
 
   {"free",                 lcurl_mime_part_free                      },
   {"__gc",                 lcurl_mime_part_free                      },

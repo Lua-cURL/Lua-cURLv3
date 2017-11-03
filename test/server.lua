@@ -57,55 +57,46 @@ local function recvFullBody(request, T1)
   return table.concat(body), status
 end
 
-r:get('/get', function(request, response)
+local function buildResponse(request)
   local headers = request:headers()
   local params  = request:params()
   local path    = request:path()
   local ip      = request.ip
+  local host    = headers and headers.Host or '127.0.0.1'
+  local url     = string.format('http://%s%s', host, path)
 
-  local body, status = recvFullBody(request, 15)
-
-  local result = json.encode({
+  return {
     args    = params;
     headers = headers;
     origin  = ip;
-    content = body;
-    url     = 'http://127.0.0.1' .. path;
-  }, {indent = true})
+    url     = url;
+  }
+end
+
+r:get('/get', function(request, response)
+  local result = buildResponse(request)
+  result.body = recvFullBody(request, 15)
 
   response:statusCode(200)
-  response:addHeader('Connection', 'close')
   response:contentType('application/json')
-  response:write(result)
+  response:write(json.encode(result, {indent = true}))
 end)
 
 r:post('/post', function(request, response, params)
-  local headers = request:headers()
-  local params  = request:params()
-  local path    = request:path()
-  local ip      = request.ip
+  local result = buildResponse(request)
 
   local body, status = recvFullBody(request, 15)
 
-  local name, data, form = decode_form(body)
+  local name, data = decode_form(body)
   if name then
-    form = {[name] = data}
+    result.form = {[name] = data}
   else
-    form = decode_params(body)
+    result.form = decode_params(body)
   end
 
-  local result = json.encode({
-    args    = params;
-    headers = headers;
-    origin  = ip;
-    form    = form;
-    url     = 'http://127.0.0.1' .. path;
-  }, {indent = true})
-
   response:statusCode(200)
-  response:addHeader('Connection', 'close')
   response:contentType('application/json')
-  response:write(result)
+  response:write(json.encode(result, {indent = true}))
 end)
 
 r:get('/bytes/:size', function(request, response, params)

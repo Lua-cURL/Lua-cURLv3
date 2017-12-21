@@ -149,6 +149,12 @@ static int lcurl_multi_add_handle(lua_State *L){
   CURLMcode code;
   lua_State *curL;
 
+  // easy handle's lua_State need to be initialized.
+  e->L = L;
+  if (e->post) {
+      e->post->L = L;
+  }
+  
   if(e->multi){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, 
 #if LCURL_CURL_VER_GE(7,32,1)

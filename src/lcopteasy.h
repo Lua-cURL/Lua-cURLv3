@@ -2,6 +2,8 @@
 #undef BUFFERSIZE
 #undef TCP_NODELAY
 #undef TCP_KEEPALIVE
+#undef TCP_KEEPIDLE
+#undef TCP_KEEPINTVL
 
 /* Before version 7.17.0, strings were not copied.
    Instead the user was forced keep them available

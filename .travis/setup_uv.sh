@@ -8,6 +8,8 @@ git clone https://github.com/libuv/libuv.git -b v1.x
 
 cd libuv
 
+git checkout v1.19.0
+
 mkdir -p lib
 mkdir -p build
 git clone https://chromium.googlesource.com/external/gyp build/gyp

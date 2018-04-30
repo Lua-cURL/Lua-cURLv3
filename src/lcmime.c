@@ -14,6 +14,22 @@
 #include "lcerror.h"
 #include "lcutils.h"
 
+/* API Notes.
+ * 1. Each mime can be root or child. If mime is a child (subpart) then curl free it
+ * when parent mime is freed or when remove this part from parent. There no way reuse same mime.
+ * Its not clear is it possible use mime created by one easy handle when do preform in another.
+ * `m=e1:mime() e2:setopt_httpmime(m) e1:close() e2:perform()`
+ * 
+ * // Attach child to root (root also can have parent)
+ * curl_mime_subparts(root, child);
+ *
+ * // curl free `child` and all its childs
+ * curl_mime_subparts(root, other_child_or_null);
+ *
+ * // forbidden
+ * curl_mime_free(child);
+ */
+
 #if LCURL_CURL_VER_GE(7,56,0)
 
 #define LCURL_MIME_NAME LCURL_PREFIX" MIME"
@@ -21,6 +37,8 @@ static const char *LCURL_MIME = LCURL_MIME_NAME;
 
 #define LCURL_MIME_PART_NAME LCURL_PREFIX" MIME Part"
 static const char *LCURL_MIME_PART = LCURL_MIME_PART_NAME;
+
+//{ Free mime and subparts
 
 static void lcurl_mime_part_remove_subparts(lua_State *L, lcurl_mime_part_t *p, int free_it);
 
@@ -66,8 +84,44 @@ static int lcurl_mime_reset(lua_State *L, lcurl_mime_t *p){
   p->parts = p->parent = NULL;
   p->mime = NULL;
 
+  /* remove weak reference to easy */
+  lua_pushnil(L);
+  lua_rawsetp(L, LCURL_MIME_EASY, p);
+
   return 0;
 }
+
+static void lcurl_mime_part_remove_subparts(lua_State *L, lcurl_mime_part_t *p, int free_it){
+  lcurl_mime_t *sub = lcurl_mime_part_get_subparts(L, p);
+  if(sub){
+    assert(LUA_NOREF != p->subpart_ref);
+    /* detach `subpart` mime from current mime part */
+    /* if set `sub->parent = NULL` then gc for mime will try free curl_mime_free. */
+
+    luaL_unref(L, LCURL_LUA_REGISTRY, p->subpart_ref);
+    p->subpart_ref = LUA_NOREF;
+
+    if(p->part && free_it){
+      curl_mime_subparts(p->part, NULL);
+    }
+
+    /* seems curl_mime_subparts(h, NULL) free asubparts.
+      so we have to invalidate all reference to all nested objects (part/mime).
+      NOTE. All resources already feed. So just need set all pointers to NULL
+      and free all Lua resources (like references and storages)
+    */
+    {
+      lcurl_mime_part_t *ptr;
+      /* reset all parts*/
+      for(ptr = sub->parts; ptr; ptr=ptr->next){
+        lcurl_mime_part_remove_subparts(L, p, 0);
+      }
+      lcurl_mime_reset(L, sub);
+    }
+  }
+}
+
+//}
 
 int lcurl_mime_set_lua(lua_State *L, lcurl_mime_t *p, lua_State *v){
   lcurl_mime_part_t *part;
@@ -86,6 +140,7 @@ int lcurl_mime_set_lua(lua_State *L, lcurl_mime_t *p, lua_State *v){
 
 static int lutil_isarray(lua_State *L, int i){
   int ret = 0;
+  i = lua_absindex(L, i);
   lua_pushnil(L);
   if(lua_next(L, i)){
     ret = lua_isnumber(L, -2);
@@ -94,7 +149,7 @@ static int lutil_isarray(lua_State *L, int i){
   return ret;
 }
 
-static int lcurl_mime_part_assig(lua_State *L, int part, const char *method){
+static int lcurl_mime_part_assign(lua_State *L, int part, const char *method){
   int top = lua_gettop(L);
 
   lua_pushvalue(L, part);
@@ -107,7 +162,7 @@ static int lcurl_mime_part_assig(lua_State *L, int part, const char *method){
 }
 
 static const char *lcurl_mime_part_fields[] = {
-  "data", "filedata", "name", "filename", "headers", "encoder", NULL
+  "data", "filedata", "name", "filename", "headers", "encoder", "type", NULL
 };
 
 static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
@@ -120,7 +175,7 @@ static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
   if(lutil_isarray(L, t)){
     int ret;
     lua_pushvalue(L, t);
-    ret = lcurl_mime_part_assig(L, part, "headers");
+    ret = lcurl_mime_part_assign(L, part, "headers");
     if(ret != 1) return ret;
 
     lua_pop(L, 1);
@@ -131,7 +186,7 @@ static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
     for(i=0;method = lcurl_mime_part_fields[i]; ++i){
       lua_getfield(L, t, method);
       if(!lua_isnil(L, -1)){
-        int ret = lcurl_mime_part_assig(L, part, method);
+        int ret = lcurl_mime_part_assign(L, part, method);
         if(ret != 1) return ret;
       }
       lua_pop(L, 1);
@@ -141,8 +196,8 @@ static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
 
     lua_getfield(L, t, "subparts");
     if(!lua_isnil(L, -1)){
-      if(IS_FALSE(L, -1) || lcurl_getmimepart_at(L, -1)){
-        int ret = lcurl_mime_part_assig(L, part, "subparts");
+      if(IS_FALSE(L, -1) || lcurl_getmime_at(L, -1)){
+        int ret = lcurl_mime_part_assign(L, part, "subparts");
         if(ret != 1) return ret;
       }
     }
@@ -189,6 +244,10 @@ int lcurl_mime_create(lua_State *L, int error_mode){
   p->storage = lcurl_storage_init(L);
   p->err_mode = error_mode;
   p->parts = p->parent = NULL;
+
+  /* weak reference from mime to easy handle */
+  lua_pushvalue(L, 1);
+  lua_rawsetp(L, LCURL_MIME_EASY, (void*)p);
 
   return 1;
 }
@@ -242,6 +301,12 @@ static int lcurl_mime_addpart(lua_State *L){
   return 1;
 }
 
+static int lcurl_mime_easy(lua_State *L){
+  lcurl_mime_t *p = lcurl_getmime(L);
+  lua_rawgetp(L, LCURL_MIME_EASY, p);
+  return 1;
+}
+
 //}
 
 //{ MIME Part
@@ -287,40 +352,6 @@ static int lcurl_mime_part_free(lua_State *L){
   lcurl_mime_part_reset(L, p);
 
   return 0;
-}
-
-static void lcurl_mime_part_remove_subparts(lua_State *L, lcurl_mime_part_t *p, int free_it){
-  lcurl_mime_t *sub = lcurl_mime_part_get_subparts(L, p);
-  if(sub){
-    assert(LUA_NOREF != p->subpart_ref);
-    /* detach `subpart` mime from current mime part */
-
-    /* if set `sub->parent = NULL` then gc for mime will try free curl_mime_free. */
-    /* So do not set it unless `curl_mime_subparts(p->part, NULL)` does not free mime */
-
-    luaL_unref(L, LCURL_LUA_REGISTRY, p->subpart_ref);
-    p->subpart_ref = LUA_NOREF;
-
-    if(p->part && free_it){
-      curl_mime_subparts(p->part, NULL);
-    }
-
-    /* issues #1961 */
-
-    /* seems curl_mime_subparts(h, NULL) free asubparts.
-      so we have to invalidate all reference to all nested objects (part/mime).
-      NOTE. All resources already feed. So just need set all pointers to NULL
-      and free all Lua resources (like references and storages)
-    */
-    {
-      lcurl_mime_part_t *ptr;
-      /* reset all parts*/
-      for(ptr = sub->parts; ptr; ptr=ptr->next){
-        lcurl_mime_part_remove_subparts(L, p, 0);
-      }
-      lcurl_mime_reset(L, sub);
-    }
-  }
 }
 
 static int lcurl_mime_part_assing_ext(lua_State *L, int part, int i){
@@ -589,6 +620,7 @@ static int lcurl_mime_part_encoder(lua_State *L){
 static const struct luaL_Reg lcurl_mime_methods[] = {
 
   {"addpart",              lcurl_mime_addpart                   },
+  {"easy",                 lcurl_mime_easy                      },
 
   {"free",                 lcurl_mime_free                      },
   {"__gc",                 lcurl_mime_free                      },
@@ -646,6 +678,7 @@ void lcurl_mime_initlib(lua_State *L, int nup){
   if(!lutil_createmetap(L, LCURL_MIME_PART, lcurl_mime_part_methods, nup))
     lua_pop(L, nup);
   lua_pop(L, 1);
+
 #else
   lua_pop(L, nup);
 #endif

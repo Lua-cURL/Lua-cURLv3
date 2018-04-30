@@ -189,6 +189,21 @@ static volatile int LCURL_INIT = 0;
 
 static const char* LCURL_REGISTRY = "LCURL Registry";
 static const char* LCURL_USERVAL  = "LCURL Uservalues";
+#if LCURL_CURL_VER_GE(7,56,0)
+static const char* LCURL_MIME_EASY_MAP  = "LCURL Mime easy";
+#endif
+
+#if LCURL_CURL_VER_GE(7,56,0)
+#define NUP 3
+#else
+#define NUP 2
+#endif
+
+#if LCURL_CURL_VER_GE(7,56,0)
+#define LCURL_PUSH_NUP(L) lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);
+#else
+#define LCURL_PUSH_NUP(L) lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);
+#endif
 
 static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
   if(!LCURL_INIT){
@@ -214,20 +229,32 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
     lcurl_util_new_weak_table(L, "k");
   }
 
+#if LCURL_CURL_VER_GE(7,56,0)
+  lua_rawgetp(L, LUA_REGISTRYINDEX, LCURL_MIME_EASY_MAP);
+  if(!lua_istable(L, -1)){ /* Mime->Easy */
+    lua_pop(L, 1);
+    lcurl_util_new_weak_table(L, "v");
+  }
+#endif
+
   lua_newtable(L); /* library  */
 
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); luaL_setfuncs(L, func, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_error_initlib(L, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_hpost_initlib(L, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_easy_initlib (L, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_mime_initlib (L, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_multi_initlib(L, 2);
-  lua_pushvalue(L, -3); lua_pushvalue(L, -3); lcurl_share_initlib(L, 2);
+  LCURL_PUSH_NUP(L); luaL_setfuncs(L, func, NUP);
+  LCURL_PUSH_NUP(L); lcurl_error_initlib(L, NUP);
+  LCURL_PUSH_NUP(L); lcurl_hpost_initlib(L, NUP);
+  LCURL_PUSH_NUP(L); lcurl_easy_initlib (L, NUP);
+  LCURL_PUSH_NUP(L); lcurl_mime_initlib (L, NUP);
+  LCURL_PUSH_NUP(L); lcurl_multi_initlib(L, NUP);
+  LCURL_PUSH_NUP(L); lcurl_share_initlib(L, NUP);
 
-  lua_pushvalue(L, -3); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
-  lua_pushvalue(L, -2); lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_USERVAL);
+  LCURL_PUSH_NUP(L);
 
-  lua_remove(L, -2); /* registry */
+#if LCURL_CURL_VER_GE(7,56,0)
+  lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_MIME_EASY_MAP);
+#endif
+
+  lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_USERVAL);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
 
   lcurl_util_set_const(L, lcurl_flags);
 

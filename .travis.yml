@@ -35,8 +35,8 @@ branches:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=$PATH:~/Library/Python/2.7/bin/; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export LCURL_LD_FLAGS="-bundle -undefined dynamic_lookup -all_load --coverage"; fi
-  - pip install --user cpp-coveralls
-  - pip install --user hererocks
+  - pip2 install --user cpp-coveralls
+  - pip2 install --user hererocks
   - hererocks here -r^ --$LUA
   - source here/bin/activate
   - luarocks show lluv > /dev/null 2>&1 || bash .travis/setup_uv.sh

@@ -37,6 +37,9 @@ FLG_ENTRY(SSH_AUTH_PASSWORD               )
 #ifdef CURLSSH_AUTH_HOST
 FLG_ENTRY(SSH_AUTH_HOST                   )
 #endif
+#ifdef CURLSSH_AUTH_GSSAPI
+FLG_ENTRY(SSH_AUTH_GSSAPI                 )
+#endif
 #ifdef CURLSSH_AUTH_KEYBOARD
 FLG_ENTRY(SSH_AUTH_KEYBOARD               )
 #endif

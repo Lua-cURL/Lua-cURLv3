@@ -424,11 +424,17 @@ static int lcurl_opt_set_string_array_(lua_State *L, int opt){
   lcurl_multi_t *p = lcurl_getmulti(L);
   CURLMcode code;
   int n;
-  luaL_argcheck(L, lua_type(L, 2) == LUA_TTABLE, 2, "array expected");
-  n = lua_rawlen(L, 2);
+
+  if (lutil_is_null(L, 2)) {
+    n = 0;
+  }
+  else {
+    luaL_argcheck(L, lua_type(L, 2) == LUA_TTABLE, 2, "array expected");
+    n = lua_rawlen(L, 2);
+  }
+
   if(n == 0){
-    char *val[] = {NULL};
-    code = curl_multi_setopt(p->curl, opt, val);
+    code = curl_multi_setopt(p->curl, opt, 0);
   }
   else{
     int i;

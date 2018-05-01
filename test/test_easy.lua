@@ -1064,11 +1064,12 @@ end
 
 local _ENV = TEST_CASE'set_null'             if ENABLE then
 
-local c
+local c, m
 
 function teardown()
   if c then c:close() end
-  c = nil
+  if m then m:close() end
+  m, c = nil
 end
 
 function test_string()
@@ -1107,6 +1108,14 @@ function test_slist_via_table()
   c:setopt{httpheader = null}
   local body, headers = assert_string(dump_request(c))
   assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_multi_set_array()
+  m = curl.multi()
+  m:setopt_pipelining_site_bl{
+    '127.0.0.1'
+  }
+  assert_equal(m, m:setopt_pipelining_site_bl(null))
 end
 
 end

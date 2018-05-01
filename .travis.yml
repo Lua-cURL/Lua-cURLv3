@@ -67,21 +67,12 @@ script:
   - lua test_pause02.c.lua
   - lua test_multi_callback.lua
   - lua test_multi_nested_callback.lua
-  # - lunit.sh test_easy.lua
-  # - lunit.sh test_safe.lua
-  # - lunit.sh test_form.lua
-  # - lunit.sh test_curl.lua
 
 before_cache:
-  # - cd $TRAVIS_BUILD_DIR/test
-  # - coveralls -b .. -r .. --dump c.report.json
-  # - luacov-coveralls -j c.report.json -v
-  # - luarocks remove lluv-gsmmodem
-  # - rm -f /home/travis/.cache/pip/log/debug.log
-
-after_success:
   - coveralls -b .. -r .. --dump c.report.json
   - luacov-coveralls -j c.report.json -v
+  - luarocks remove lua-curl
+  - rm -f /home/travis/.cache/pip/log/debug.log
 
 notifications:
   email:

@@ -9,23 +9,17 @@ env:
 
 matrix:
   include:
-    - compiler: ": Lua51-osx"
-      env: LUA="lua 5.1"
+    - env: LUA="lua 5.1"
       os: osx
-    - compiler: ": Lua51"
-      env: LUA="lua 5.1"
+    - env: LUA="lua 5.1"
       os: linux
-    - compiler: ": Lua52"
-      env: LUA="lua 5.2"
+    - env: LUA="lua 5.2"
       os: linux
-    - compiler: ": Lua53"
-      env: LUA="lua 5.3"
+    - env: LUA="lua 5.3"
       os: linux
-    - compiler: ": LuaJIT20"
-      env: LUA="luajit 2.0"
+    - env: LUA="luajit 2.0"
       os: linux
-    - compiler: ": LuaJIT21"
-      env: LUA="luajit 2.1"
+    - env: LUA="luajit 2.1"
       os: linux
 
 cache:
@@ -36,25 +30,35 @@ cache:
 branches:
   only:
     - master
+    - curl_mime
 
 before_install:
-  - export CC=gcc
-  - gcc --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=$PATH:~/Library/Python/2.7/bin/; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export LCURL_LD_FLAGS="-bundle -undefined dynamic_lookup -all_load --coverage"; fi
-  - pip install --user cpp-coveralls
-  - pip install --user hererocks
+  - pip2 install --user cpp-coveralls
+  - pip2 install --user hererocks
   - hererocks here -r^ --$LUA
   - source here/bin/activate
+  - luarocks show lluv > /dev/null 2>&1 || bash .travis/setup_uv.sh
 
 install:
   - luarocks make rockspecs/lua-curl-scm-0.rockspec CFLAGS="$LCURL_CC_FLAGS" LIBFLAG="$LCURL_LD_FLAGS"
 
 before_script:
   - luarocks show luacov-coveralls > /dev/null 2>&1 || luarocks install luacov-coveralls
-  - luarocks show lunitx > /dev/null 2>&1           || luarocks install lunitx
-  - luarocks show luafilesystem > /dev/null 2>&1    || luarocks install luafilesystem
-  - luarocks show dkjson > /dev/null 2>&1           || luarocks install dkjson --deps-mode=none
+  - luarocks show lunitx           > /dev/null 2>&1 || luarocks install lunitx
+  - luarocks show luafilesystem    > /dev/null 2>&1 || luarocks install luafilesystem
+  - luarocks show dkjson           > /dev/null 2>&1 || luarocks install dkjson --deps-mode=none
+  - luarocks show pegasus          > /dev/null 2>&1 || luarocks install pegasus http.parser 
+    --server=http://luarocks.org/manifests/moteus
+  - luarocks show pegasus-router   > /dev/null 2>&1 || luarocks install pegasus-router 
+    --server=http://luarocks.org/dev
+  - luarocks show lluv             > /dev/null 2>&1 || luarocks install lluv UV_DIR=$TRAVIS_BUILD_DIR/libuv
+    --server=http://luarocks.org/dev
+  - luarocks show lluv-pegasus     > /dev/null 2>&1 || luarocks install lluv-pegasus 
+    --server=http://luarocks.org/dev --deps-mode=none
+  - lua test/server.lua &
+  - curl -s http://127.0.0.1:7090/get
 
 script:
   - cd test
@@ -63,14 +67,12 @@ script:
   - lua test_pause02.c.lua
   - lua test_multi_callback.lua
   - lua test_multi_nested_callback.lua
-  # - lunit.sh test_easy.lua
-  # - lunit.sh test_safe.lua
-  # - lunit.sh test_form.lua
-  # - lunit.sh test_curl.lua
 
-after_success:
+before_cache:
   - coveralls -b .. -r .. --dump c.report.json
   - luacov-coveralls -j c.report.json -v
+  - luarocks remove lua-curl
+  - rm -f /home/travis/.cache/pip/log/debug.log
 
 notifications:
   email:

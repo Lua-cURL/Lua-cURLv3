@@ -44,6 +44,19 @@ static const char *LCURL_HTTPPOST = LCURL_HTTPPOST_NAME;
 # define LCURL_LEN_TYPE long
 #endif
 
+/* 7.56.0 changed code for `curl_formget` if callback abort write.
+ *
+ * https://github.com/curl/curl/issues/1987#issuecomment-336139060
+ * ... not sure its worth the effort to document its return codes to 
+ * any further extent then it currently is. This function is very 
+ * rarely used, and the new mime API doesn't even have a version of it.
+ **/
+#if LCURL_CURL_VER_GE(7,56,0)
+#  define LCURL_GET_CB_ERROR CURLE_READ_ERROR
+#else
+#  define LCURL_GET_CB_ERROR (CURLcode)-1
+#endif
+
 //{ stream
 
 static lcurl_hpost_stream_t *lcurl_hpost_stream_add(lua_State *L, lcurl_hpost_t *p){
@@ -525,7 +538,7 @@ static int lcurl_hpost_get(lua_State *L){
     return lua_error(L);
   }
 
-  if((CURLcode)-1 == code){
+  if(LCURL_GET_CB_ERROR == code){
     if(((lua_gettop(L) == top+1))&&(lua_isstring(L, -1))){
       return lua_error(L);
     }

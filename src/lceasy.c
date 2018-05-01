@@ -1,7 +1,7 @@
 /******************************************************************************
 * Author: Alexey Melnichuk <mimir@newmail.ru>
 *
-* Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+* Copyright (C) 2014-2018 Alexey Melnichuk <mimir@newmail.ru>
 *
 * Licensed according to the included 'LICENSE' document
 *
@@ -15,6 +15,7 @@
 #include "lchttppost.h"
 #include "lcshare.h"
 #include "lcmulti.h"
+#include "lcmime.h"
 #include <memory.h>
 
 static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
@@ -29,7 +30,7 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
 #endif
 
 /* Before call curl_XXX function which can call any callback
- * need set Curren Lua thread pointer in easy/multi contexts.
+ * need set Current Lua thread pointer in easy/multi contexts.
  * But it also possible that we already in callback call.
  * E.g. `curl_easy_pause` function may be called from write callback.
  * and it even may be called in different thread.
@@ -41,7 +42,7 @@ static const char *LCURL_EASY = LCURL_EASY_NAME;
  * ```
  * So we have to restore previews Lua state in callback contexts.
  * But if previews Lua state is NULL then we can just do not set it back.
- * But set it to NULL make esier debug code.
+ * But set it to NULL make easier to debug code.
  */
 void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi){
   if(p->multi && assign_multi){
@@ -52,6 +53,11 @@ void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int
     if(p->post){
       p->post->L = value;
     }
+#if LCURL_CURL_VER_GE(7,56,0)
+    if(p->mime){
+      lcurl_mime_set_lua(L, p->mime, value);
+    }
+#endif
   }
 }
 
@@ -74,6 +80,9 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   p->L                = NULL;
   p->post             = NULL;
   p->multi            = NULL;
+#if LCURL_CURL_VER_GE(7,56,0)
+  p->mime             = NULL;
+#endif
   p->storage          = lcurl_storage_init(L);
   p->wr.cb_ref        = p->wr.ud_ref    = LUA_NOREF;
   p->rd.cb_ref        = p->rd.ud_ref    = LUA_NOREF;
@@ -125,6 +134,8 @@ static int lcurl_easy_cleanup(lua_State *L){
 
     // In my tests when I cleanup some easy handle. 
     // timerfunction called only for single multi handle.
+    // Also may be this function may call `close` callback
+    // for `curl_mimepart` structure.
     curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
     curl_easy_cleanup(p->curl);
 #ifndef LCURL_RESET_NULL_LUA
@@ -134,6 +145,11 @@ static int lcurl_easy_cleanup(lua_State *L){
 
     p->curl = NULL;
   }
+
+  p->post = NULL;
+#if LCURL_CURL_VER_GE(7,56,0)
+  p->mime = NULL;
+#endif
 
   if(p->storage != LUA_NOREF){
     p->storage = lcurl_storage_free(L, p->storage);
@@ -265,6 +281,15 @@ static int lcurl_easy_reset(lua_State *L){
 
   return 1;
 }
+
+#if LCURL_CURL_VER_GE(7,56,0)
+
+static int lcurl_easy_mime(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  return lcurl_mime_create(L, p->err_mode);
+}
+
+#endif
 
 //{ OPTIONS
 
@@ -443,6 +468,26 @@ static int lcurl_easy_set_STREAM_DEPENDS(lua_State *L){
 
 static int lcurl_easy_set_STREAM_DEPENDS_E(lua_State *L){
   return lcurl_easy_set_STREAM_DEPENDS_impl(L, CURLOPT_STREAM_DEPENDS_E);
+}
+
+#endif
+
+#if LCURL_CURL_VER_GE(7,56,0)
+
+static int lcurl_easy_set_MIMEPOST(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lcurl_mime_t *mime = lcurl_getmime_at(L, 2);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_MIMEPOST, mime->mime);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_MIMEPOST, 2);
+
+  p->mime = mime;
+
+  lua_settop(L, 1);
+  return 1;
 }
 
 #endif
@@ -775,6 +820,25 @@ static int lcurl_easy_unset_STREAM_DEPENDS_E(lua_State *L){
 
 #endif
 
+#if LCURL_CURL_VER_GE(7,56,0)
+
+static int lcurl_easy_unset_MIMEPOST(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_MIMEPOST, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_MIMEPOST);
+
+  p->mime = NULL;
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
+
 //}
 
 //}
@@ -1004,7 +1068,7 @@ static int lcurl_easy_set_WRITEFUNCTION(lua_State *L){
 
 //{ Reader
 
-static size_t lcurl_read_callback(lua_State *L,
+size_t lcurl_read_callback(lua_State *L,
   lcurl_callback_t *rd, lcurl_read_buffer_t *rbuffer,
   char *buffer, size_t size, size_t nitems
 ){
@@ -1478,6 +1542,9 @@ static int lcurl_easy_setopt(lua_State *L){
     OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
     OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
 #endif
+#if LCURL_CURL_VER_GE(7,56,0)
+    OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
   }
 #undef OPT_ENTRY
 
@@ -1511,6 +1578,9 @@ static int lcurl_easy_unsetopt(lua_State *L){
 #if LCURL_CURL_VER_GE(7,46,0)
     OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
     OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,56,0)
+    OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
 #endif
   }
 #undef OPT_ENTRY
@@ -1582,13 +1652,16 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
 #if LCURL_CURL_VER_GE(7,21,0)
-  OPT_ENTRY(fnmatch_function,  FNMATCH_FUNCTION, TTT, 0, 0)
+  OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
   OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
   OPT_ENTRY(chunk_end_function, CHUNK_END_FUNCTION, TTT, 0, 0)
 #endif
 #if LCURL_CURL_VER_GE(7,46,0)
   OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
   OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,56,0)
+  OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
 #endif
 #undef OPT_ENTRY
 
@@ -1604,7 +1677,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
 #if LCURL_CURL_VER_GE(7,21,0)
-  OPT_ENTRY(fnmatch_function,  FNMATCH_FUNCTION, TTT, 0, 0)
+  OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
   OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
   OPT_ENTRY(chunk_end_function, CHUNK_END_FUNCTION, TTT, 0, 0)
 #endif
@@ -1612,11 +1685,18 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
   OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
 #endif
+#if LCURL_CURL_VER_GE(7,56,0)
+  OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
 #undef OPT_ENTRY
 
 #define OPT_ENTRY(L, N, T, S) { "getinfo_"#L, lcurl_easy_get_##N },
   #include "lcinfoeasy.h"
 #undef OPT_ENTRY
+
+#if LCURL_CURL_VER_GE(7,56,0)
+  { "mime",       lcurl_easy_mime           },
+#endif
 
   { "pause",      lcurl_easy_pause          },
   { "reset",      lcurl_easy_reset          },
@@ -1658,6 +1738,9 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 #if LCURL_CURL_VER_GE(7,46,0)
   OPT_ENTRY(stream_depends,    STREAM_DEPENDS,   TTT, 0, 0)
   OPT_ENTRY(stream_depends_e,  STREAM_DEPENDS_E, TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,56,0)
+  OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
 #endif
 #undef OPT_ENTRY
 #undef FLG_ENTRY

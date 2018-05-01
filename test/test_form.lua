@@ -12,6 +12,11 @@ end
 local TEST_CASE  = assert(lunit.TEST_CASE)
 local skip       = lunit.skip or function() end
 
+local utils = require "utils"
+
+-- Bug. libcurl 7.56.0 does not add `Content-Type: text/plain`
+local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
+
 local curl      = require "lcurl"
 
 local _ENV = TEST_CASE'add_content' do
@@ -42,11 +47,11 @@ function test_01()
 end
 
 function test_02()
-  assert_equal(post, post:add_content('name02', 'value02', "text/plain"))
+  assert_equal(post, post:add_content('name02', 'value02', text_plain))
   local data = assert_string(post:get())
   assert_match("\r\n\r\nvalue02\r\n", data)
   assert_match('name="name02"', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_03()
@@ -58,12 +63,12 @@ function test_03()
 end
 
 function test_04()
-  assert_equal(post, post:add_content('name04', 'value04', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('name04', 'value04', text_plain, {"Content-Encoding: gzip"}))
   local data = assert_string(post:get())
   assert_match("\r\n\r\nvalue04\r\n", data)
   assert_match('name="name04"', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_error()
@@ -97,12 +102,12 @@ function test_01()
 end
 
 function test_02()
-  assert_equal(post, post:add_buffer('name02', 'file02', 'value02', "text/plain"))
+  assert_equal(post, post:add_buffer('name02', 'file02', 'value02', text_plain))
   local data = assert_string(post:get())
   assert_match("\r\n\r\nvalue02\r\n", data)
   assert_match('name="name02"', data)
   assert_match('filename="file02"', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
 end
 
@@ -117,12 +122,12 @@ function test_03()
 end
 
 function test_04()
-  assert_equal(post, post:add_buffer('name04', 'file04', 'value04', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_buffer('name04', 'file04', 'value04', text_plain, {"Content-Encoding: gzip"}))
   local data = assert_string(post:get())
   assert_match("\r\n\r\nvalue04\r\n", data)
   assert_match('name="name04"', data)
   assert_match('filename="file04"', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
 end
@@ -180,19 +185,19 @@ function test_02()
 end
 
 function test_03()
-  assert_equal(post, post:add_stream('name03', 'file03', 'text/plain', stream()))
+  assert_equal(post, post:add_stream('name03', 'file03', text_plain, stream()))
   local data = assert_string(post:get())
   assert_match('name="name03"', data)
   assert_match('filename="file03"', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_04()
-  assert_equal(post, post:add_stream('name04', 'file04', 'text/plain', {"Content-Encoding: gzip"}, stream()))
+  assert_equal(post, post:add_stream('name04', 'file04', text_plain, {"Content-Encoding: gzip"}, stream()))
   local data = assert_string(post:get())
   assert_match('name="name04"', data)
   assert_match('filename="file04"', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
 end
 
@@ -290,21 +295,21 @@ function test_01()
 end
 
 function test_02()
-  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain'))
+  assert_equal(post, post:add_file('nameXX', form_path, text_plain))
   local data = assert_string(post:get())
   check_form(data)
   assert_match('filename="' .. form_file .. '"', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_03()
-  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', 'renamedfile'))
+  assert_equal(post, post:add_file('nameXX', form_path, text_plain, 'renamedfile'))
   local data = assert_string(post:get())
   check_form(data)
   assert_match('filename="' .. 'renamedfile' .. '"', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_04()
@@ -316,22 +321,22 @@ function test_04()
 end
 
 function test_05()
-  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', 'renamedfile', {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_file('nameXX', form_path, text_plain, 'renamedfile', {"Content-Encoding: gzip"}))
   local data = assert_string(post:get())
   check_form(data)
   assert_match('filename="' .. 'renamedfile' .. '"', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
 end
 
 function test_05()
-  assert_equal(post, post:add_file('nameXX', form_path, 'text/plain', {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_file('nameXX', form_path, text_plain, {"Content-Encoding: gzip"}))
   local data = assert_string(post:get())
   check_form(data)
   assert_match('filename="' .. form_file .. '"', data)
   assert_not_match('Content%-Type: application/octet%-stream\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
 end
 
@@ -364,7 +369,7 @@ end
 
 function test_error()
   assert_error(function()
-    assert_equal(post, post:add_file('nameXX', 'text/plain', form_path))
+    assert_equal(post, post:add_file('nameXX', text_plain, form_path))
     post:get()
   end)
 end
@@ -388,7 +393,7 @@ local function check_form(data)
   assert_match("\r\n\r\nvalueXX\r\n", data)
   assert_match('name="nameXX"', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_writer_01()
@@ -397,7 +402,7 @@ function test_writer_01()
     assert_equal(0, select("#", ...))
     t[#t+1] = str
   end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   assert_equal(post, post:get(writer))
   check_form(table.concat(t))
 end
@@ -409,7 +414,7 @@ function test_writer_02()
     t[#t+1] = str
     return true
   end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   assert_equal(post, post:get(writer))
   check_form(table.concat(t))
 end
@@ -421,7 +426,7 @@ function test_writer_03()
     t[#t+1] = str
     return #str
   end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   assert_equal(post, post:get(writer))
   check_form(table.concat(t))
 end
@@ -433,40 +438,40 @@ function test_writer_context()
     assert_equal(0, select("#", ...))
     T[#T+1] = str
   end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   assert_equal(post, post:get(writer, t))
   local data = table.concat(t)
   assert_match("\r\n\r\nvalueXX\r\n", data)
   assert_match('name="nameXX"', data)
   assert_match('Content%-Encoding: gzip\r\n', data)
-  assert_match('Content%-Type: text/plain\r\n', data)
+  assert_match('Content%-Type: ' .. text_plain .. '\r\n', data)
 end
 
 function test_abort_01()
   local err = {}
   local function writer() return nil, err end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   local _, e = assert_nil(post:get(writer))
   assert_equal(err, e)
 end
 
 function test_abort_02()
   local function writer() return 0 end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   local _, e = assert_nil(post:get(writer))
   assert_nil(e)
 end
 
 function test_abort_03()
   local function writer() return nil end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   local _, e = assert_nil(post:get(writer))
   assert_nil(e)
 end
 
 function test_abort_04()
   local function writer() return false end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   local _, e = assert_nil(post:get(writer))
   assert_nil(e)
 end
@@ -474,7 +479,7 @@ end
 function test_error()
   local err = {}
   local function writer() error("WRITEERROR") end
-  assert_equal(post, post:add_content('nameXX', 'valueXX', "text/plain", {"Content-Encoding: gzip"}))
+  assert_equal(post, post:add_content('nameXX', 'valueXX', text_plain, {"Content-Encoding: gzip"}))
   assert_error_match("WRITEERROR", function()
     post:get(writer)
   end)

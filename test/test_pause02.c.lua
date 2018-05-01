@@ -6,7 +6,8 @@ local curl = require "lcurl"
 local WAIT_COUNT   = 15
 
 local SIZE         = 10 * 1024
-local RESOURCE_URL = "http://httpbin.org/bytes/" .. SIZE
+-- local RESOURCE_URL = "http://httpbin.org/bytes/" .. SIZE
+local RESOURCE_URL = "http://127.0.0.1:7090/bytes/" .. SIZE
 
 local State = {
   PAUSE   = 0, -- write function should return CURL_WRITEFUNC_PAUSE

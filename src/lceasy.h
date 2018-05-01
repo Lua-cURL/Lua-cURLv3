@@ -1,7 +1,7 @@
 /******************************************************************************
 * Author: Alexey Melnichuk <mimir@newmail.ru>
 *
-* Copyright (C) 2014 Alexey Melnichuk <mimir@newmail.ru>
+* Copyright (C) 2014-2017 Alexey Melnichuk <mimir@newmail.ru>
 *
 * Licensed according to the included 'LICENSE' document
 *
@@ -37,9 +37,16 @@ enum {
 
 #if LCURL_CC_SUPPORT_FORWARD_TYPEDEF
 typedef struct lcurl_multi_tag lcurl_multi_t;
+#if LCURL_CURL_VER_GE(7,56,0)
+typedef struct lcurl_mime_tag lcurl_mime_t;
+#endif
 #else
 struct lcurl_multi_tag;
 #define lcurl_multi_t struct lcurl_multi_tag
+#if LCURL_CURL_VER_GE(7,56,0)
+struct lcurl_mime_tag;
+#define lcurl_mime_t struct lcurl_mime_tag;
+#endif
 #endif
 
 typedef struct lcurl_easy_tag{
@@ -52,6 +59,10 @@ typedef struct lcurl_easy_tag{
   lcurl_hpost_t *post;
 
   lcurl_multi_t *multi;
+
+#if LCURL_CURL_VER_GE(7,56,0)
+  lcurl_mime_t *mime;
+#endif
 
   CURL *curl;
   int storage;
@@ -77,8 +88,16 @@ void lcurl_easy_initlib(lua_State *L, int nup);
 
 void lcurl__easy_assign_lua(lua_State *L, lcurl_easy_t *p, lua_State *value, int assign_multi);
 
+size_t lcurl_read_callback(lua_State *L,
+  lcurl_callback_t *rd, lcurl_read_buffer_t *rbuffer,
+  char *buffer, size_t size, size_t nitems
+);
+
 #if !LCURL_CC_SUPPORT_FORWARD_TYPEDEF
 #undef lcurl_multi_t
+#ifdef lcurl_mime_t
+#undef lcurl_mime_t
+#endif
 #endif
 
 #endif

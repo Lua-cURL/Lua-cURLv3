@@ -401,6 +401,10 @@ OPT_ENTRY( request_target,           REQUEST_TARGET,           STR, 0, LCURL_DEF
 OPT_ENTRY( socks5_auth,              SOCKS5_AUTH,              LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,56,0)
+OPT_ENTRY( ssh_compression,          SSH_COMPRESSION,          LNG, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 #ifdef LCURL__TCP_FASTOPEN
 #  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
 #  undef LCURL__TCP_FASTOPEN

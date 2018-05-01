@@ -24,6 +24,7 @@
 #include "lcerror.h"
 #include "lcutils.h"
 #include "lchttppost.h"
+#include <stdio.h>
 
 #define LCURL_MULTI_NAME LCURL_PREFIX" Multi"
 static const char *LCURL_MULTI = LCURL_MULTI_NAME;
@@ -433,17 +434,21 @@ static int lcurl_opt_set_string_array_(lua_State *L, int opt){
     n = lua_rawlen(L, 2);
   }
 
+  fprintf(stderr, "\n>>> array size %d\n", n);
+
   if(n == 0){
     code = curl_multi_setopt(p->curl, opt, 0);
   }
   else{
     int i;
     char const* *val = malloc(sizeof(char*) * (n + 1));
+    fprintf(stderr, ">>> allocate size %d: %p\n", sizeof(char*) * (n + 1), val);
     if(!*val){
       return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, CURLM_OUT_OF_MEMORY);
     }
     for(i = 1; i <= n; ++i){
       lua_rawgeti(L, 2, i);
+      fprintf(stderr, ">>> add string %s\n", lua_tostring(L, -1));
       val[i-1] = lua_tostring(L, -1);
       lua_pop(L, 1);
     }
@@ -451,6 +456,7 @@ static int lcurl_opt_set_string_array_(lua_State *L, int opt){
     code = curl_multi_setopt(p->curl, opt, val);
     free((void*)val);
   }
+  fprintf(stderr, ">>> setopt result %d\n", code);
 
   if(code != CURLM_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_MULTI, code);

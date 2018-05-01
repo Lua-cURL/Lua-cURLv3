@@ -323,6 +323,25 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
   return 1;
 }
 
+#if LCURL_CURL_VER_GE(7,59,0)
+
+static int lcurl_opt_set_off_(lua_State *L, int opt){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  curl_off_t val; CURLcode code;
+
+  luaL_argcheck(L, lua_type(L, 2) == LUA_TNUMBER, 2, "number expected");
+  val = lutil_checkint64(L, 2);
+
+  code = curl_easy_setopt(p->curl, opt, val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
+
 static int lcurl_opt_set_string_(lua_State *L, int opt, int store){
   lcurl_easy_t *p = lcurl_geteasy(L);
   CURLcode code;
@@ -378,6 +397,10 @@ static int lcurl_opt_set_slist_(lua_State *L, int opt, int list_no){
   return lcurl_opt_set_long_(L, CURLOPT_##N);\
 }
 
+#define LCURL_OFF_OPT(N, S) static int lcurl_easy_set_##N(lua_State *L){\
+  return lcurl_opt_set_off_(L, CURLOPT_##N);\
+}
+
 #define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_OPT(N, S)
 
 #include "lcopteasy.h"
@@ -409,6 +432,7 @@ static int lcurl_easy_set_POSTFIELDS(lua_State *L){
 #undef LCURL_STR_OPT
 #undef LCURL_LST_OPT
 #undef LCURL_LNG_OPT
+#undef LCURL_OFF_OPT
 
 static size_t lcurl_hpost_read_callback(char *buffer, size_t size, size_t nitems, void *arg);
 
@@ -508,6 +532,22 @@ static int lcurl_opt_unset_long_(lua_State *L, int opt, long val){
   return 1;
 }
 
+#if LCURL_CURL_VER_GE(7,59,0)
+
+static int lcurl_opt_unset_off_(lua_State *L, int opt, curl_off_t val){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code;
+
+  code = curl_easy_setopt(p->curl, opt, val);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
+
 static int lcurl_opt_unset_string_(lua_State *L, int opt, const char *val){
   lcurl_easy_t *p = lcurl_geteasy(L);
   CURLcode code;
@@ -556,6 +596,10 @@ static int lcurl_opt_unset_slist_(lua_State *L, int opt, int list_no){
   return lcurl_opt_unset_long_(L, CURLOPT_##N, (D));\
 }
 
+#define LCURL_OFF_OPT(N, S, D) static int lcurl_easy_unset_##N(lua_State *L){\
+  return lcurl_opt_unset_off_(L, CURLOPT_##N, (D));\
+}
+
 #define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_OPT(N, S, D)
 
 #include "lcopteasy.h"
@@ -565,6 +609,7 @@ static int lcurl_opt_unset_slist_(lua_State *L, int opt, int list_no){
 #undef LCURL_STR_OPT
 #undef LCURL_LST_OPT
 #undef LCURL_LNG_OPT
+#undef LCURL_OFF_OPT
 
 static int lcurl_easy_unset_HTTPPOST(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);

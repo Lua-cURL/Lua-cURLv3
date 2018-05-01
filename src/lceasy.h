@@ -18,6 +18,7 @@
 #define LCURL_LST_INDEX(N) LCURL_##N##_LIST,
 #define LCURL_STR_INDEX(N)
 #define LCURL_LNG_INDEX(N)
+#define LCURL_OFF_INDEX(N)
 #define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_INDEX(N)
 
 enum {
@@ -28,6 +29,7 @@ enum {
   LCURL_LIST_COUNT,
 };
 
+#undef LCURL_OFF_INDEX
 #undef LCURL_LST_INDEX
 #undef LCURL_STR_INDEX
 #undef LCURL_LNG_INDEX

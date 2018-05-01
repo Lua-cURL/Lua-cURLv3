@@ -117,6 +117,9 @@ static int lcurl_version_info(lua_State *L){
 #ifdef CURL_VERSION_MULTI_SSL
     lua_pushliteral(L, "MULTI_SSL");    lua_pushboolean(L, data->features & CURL_VERSION_MULTI_SSL   ); lua_rawset(L, -3);
 #endif
+#ifdef CURL_VERSION_BROTLI
+    lua_pushliteral(L, "BROTLI");       lua_pushboolean(L, data->features & CURL_VERSION_BROTLI      ); lua_rawset(L, -3);
+#endif
 
   lua_setfield(L, -2, "features");         /* bitmask, see defines below */
 
@@ -140,10 +143,19 @@ static int lcurl_version_info(lua_State *L){
     if(data->libidn){lua_pushstring(L, data->libidn); lua_setfield(L, -2, "libidn");}
   }
 
-  if(data->age >= CURLVERSION_FOURTH){ /* added in 7.16.1 */
+#if LCURL_CURL_VER_GE(7,16,1)
+  if(data->age >= CURLVERSION_FOURTH){
     lua_pushnumber(L, data->iconv_ver_num); lua_setfield(L, -2, "iconv_ver_num");
     if(data->libssh_version){lua_pushstring(L, data->libssh_version);lua_setfield(L, -2, "libssh_version");}
   }
+#endif
+
+#if LCURL_CURL_VER_GE(7,57,0)
+  if(data->age >= CURLVERSION_FOURTH){
+    lua_pushnumber(L, data->brotli_ver_num); lua_setfield(L, -2, "brotli_ver_num");
+    if(data->brotli_version){lua_pushstring(L, data->brotli_version);lua_setfield(L, -2, "brotli_version");}
+  }
+#endif
 
   if(lua_isstring(L, 1)){
     lua_pushvalue(L, 1); lua_rawget(L, -2);

@@ -405,6 +405,11 @@ OPT_ENTRY( socks5_auth,              SOCKS5_AUTH,              LNG, 0, LCURL_DEF
 OPT_ENTRY( ssh_compression,          SSH_COMPRESSION,          LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,59,0)
+OPT_ENTRY( happy_eyeballs_timeout_ms,HAPPY_EYEBALLS_TIMEOUT_MS,LNG, 0, CURL_HET_DEFAULT)
+OPT_ENTRY( timevalue_large,          TIMEVALUE_LARGE          ,OFF, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 #ifdef LCURL__TCP_FASTOPEN
 #  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
 #  undef LCURL__TCP_FASTOPEN

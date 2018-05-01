@@ -63,6 +63,10 @@ OPT_ENTRY( speed_download_t,          SPEED_DOWNLOAD_T,          OFF, 0)
 OPT_ENTRY( speed_upload_t,            SPEED_UPLOAD_T,            OFF, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,59,0)
+OPT_ENTRY( filetime_t,              FILETIME_T,              OFF, 0)
+#endif
+
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( TLS_SSL_PTR,             struct curl_tlssessioninfo **
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

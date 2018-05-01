@@ -19,6 +19,8 @@ local weak_ptr, gc_collect, dump_mime_ = utils.import('weak_ptr', 'gc_collect', 
 
 local GET_URL = 'http://127.0.0.1:7090/get'
 
+local null = curl.null
+
 local function is_freed(c)
   return not not string.find(tostring(c), '%(freed%)')
 end
@@ -313,8 +315,25 @@ function test_unset_name()
   assert_not_match('Content%-Disposition:.-name="test"', info)
 end
 
+function test_unset_name_by_null()
+  mime:addpart():data('hello', 'test/html', 'test'):name(null)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+test/html', info)
+  assert_not_match('Content%-Disposition:.-name="test"', info)
+end
+
 function test_unset_type()
   mime:addpart():data('hello', 'test/html'):type(false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_not_match('Content%-Type:%s+test/html', info)
+end
+
+function test_unset_type_by_null()
+  mime:addpart():data('hello', 'test/html'):type(null)
 
   local info = assert_string(dump_mime(mime))
   assert_match('\r\n\r\nhello', info)
@@ -331,8 +350,37 @@ function test_unset_headers()
   assert_not_match('X%-Custom%-Header:%s*hello', info)
 end
 
+function test_unset_headers_by_null()
+  mime:addpart():data('hello', 'test/html',{
+    'X-Custom-Header: hello'
+  }):headers(null)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_not_match('X%-Custom%-Header:%s*hello', info)
+end
+
+function test_unset_headers_by_empty_array()
+  mime:addpart():data('hello', 'test/html',{
+    'X-Custom-Header: hello'
+  }):headers({})
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_not_match('X%-Custom%-Header:%s*hello', info)
+end
+
 function test_unset_data()
   mime:addpart():data('hello', 'test/html', 'test'):data(false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_not_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+test/html', info)
+  assert_match('Content%-Disposition:.-name="test"', info)
+end
+
+function test_unset_data_by_null()
+  mime:addpart():data('hello', 'test/html', 'test'):data(null)
 
   local info = assert_string(dump_mime(mime))
   assert_not_match('\r\n\r\nhello', info)
@@ -344,6 +392,18 @@ function test_unset_data_type_1()
   local part = mime:addpart():data('hello', 'test/html', 'test', {
     'X-Custom-Header: hello'
   }):data('hello', false)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_not_match('Content%-Type:%s+test/html', info)
+  assert_match('Content%-Disposition:.-name="test"', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
+end
+
+function test_unset_data_type_1_by_null()
+  local part = mime:addpart():data('hello', 'test/html', 'test', {
+    'X-Custom-Header: hello'
+  }):data('hello', null)
 
   local info = assert_string(dump_mime(mime))
   assert_match('\r\n\r\nhello', info)
@@ -376,6 +436,18 @@ function test_unset_data_name_1()
   assert_match('X%-Custom%-Header:%s*hello', info)
 end
 
+function test_unset_data_name_1_by_null()
+  local part = mime:addpart():data('hello', 'test/html', 'test', {
+    'X-Custom-Header: hello'
+  }):data('hello', nil, null)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+test/html', info)
+  assert_not_match('Content%-Disposition:.-name="test"', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
+end
+
 function test_unset_data_name_2()
   local part = mime:addpart():data('hello', 'test/html', 'test', {
     'X-Custom-Header: hello'
@@ -400,6 +472,18 @@ function test_unset_data_header()
   assert_not_match('X%-Custom%-Header:%s*hello', info)
 end
 
+function test_unset_data_header_by_null()
+  local part = mime:addpart():data('hello', 'test/html', 'test', {
+    'X-Custom-Header: hello'
+  }):data('hello', nil, nil, nil, null)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+test/html', info)
+  assert_match('Content%-Disposition:.-name="test"', info)
+  assert_not_match('X%-Custom%-Header:%s*hello', info)
+end
+
 function test_unset_data_filename_1()
   local part = mime:addpart():data('hello', 'test/html', 'test', 'test.html', {
     'X-Custom-Header: hello'
@@ -409,7 +493,20 @@ function test_unset_data_filename_1()
   assert_match('\r\n\r\nhello', info)
   assert_match('Content%-Type:%s+test/html', info)
   assert_match('Content%-Disposition:.-%sname="test"', info)
-  assert_not_match('Content%-Disposition:.-%sname="test%.html"', info)
+  assert_not_match('Content%-Disposition:.-%sfilename="test%.html"', info)
+  assert_match('X%-Custom%-Header:%s*hello', info)
+end
+
+function test_unset_data_filename_1_by_null()
+  local part = mime:addpart():data('hello', 'test/html', 'test', 'test.html', {
+    'X-Custom-Header: hello'
+  }):data('hello', nil, nil, null)
+
+  local info = assert_string(dump_mime(mime))
+  assert_match('\r\n\r\nhello', info)
+  assert_match('Content%-Type:%s+test/html', info)
+  assert_match('Content%-Disposition:.-%sname="test"', info)
+  assert_not_match('Content%-Disposition:.-%sfilename="test%.html"', info)
   assert_match('X%-Custom%-Header:%s*hello', info)
 end
 

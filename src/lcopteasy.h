@@ -1,8 +1,3 @@
-#undef INTERFACE
-#undef BUFFERSIZE
-#undef TCP_NODELAY
-#undef TCP_KEEPALIVE
-
 /* Before version 7.17.0, strings were not copied.
    Instead the user was forced keep them available
    until libcurl no longer needed them.
@@ -30,10 +25,44 @@
 #  define LCURL_DEFAULT_VALUE 0
 #endif
 
+//{ Reset system macros
+
 #ifdef TCP_FASTOPEN
 #  define LCURL__TCP_FASTOPEN TCP_FASTOPEN
 #  undef TCP_FASTOPEN
 #endif
+
+#ifdef TCP_KEEPIDLE
+#  define LCURL__TCP_KEEPIDLE TCP_KEEPIDLE
+#  undef TCP_KEEPIDLE
+#endif
+
+#ifdef TCP_KEEPINTVL
+#  define LCURL__TCP_KEEPINTVL TCP_KEEPINTVL
+#  undef TCP_KEEPINTVL
+#endif
+
+#ifdef TCP_NODELAY
+#  define LCURL__TCP_NODELAY TCP_NODELAY
+#  undef TCP_NODELAY
+#endif
+
+#ifdef TCP_KEEPALIVE
+#  define LCURL__TCP_KEEPALIVE TCP_KEEPALIVE
+#  undef TCP_KEEPALIVE
+#endif
+
+#ifdef BUFFERSIZE
+#  define LCURL__BUFFERSIZE BUFFERSIZE
+#  undef BUFFERSIZE
+#endif
+
+#ifdef INTERFACE
+#  define LCURL__INTERFACE INTERFACE
+#  undef INTERFACE
+#endif
+
+//}
 
 OPT_ENTRY( verbose,                VERBOSE,                  LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( header,                 HEADER,                   LNG, 0,                  LCURL_DEFAULT_VALUE )
@@ -410,10 +439,44 @@ OPT_ENTRY( happy_eyeballs_timeout_ms,HAPPY_EYEBALLS_TIMEOUT_MS,LNG, 0, CURL_HET_
 OPT_ENTRY( timevalue_large,          TIMEVALUE_LARGE          ,OFF, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+//{ Restore system macros
+
 #ifdef LCURL__TCP_FASTOPEN
 #  define TCP_FASTOPEN LCURL__TCP_FASTOPEN
 #  undef LCURL__TCP_FASTOPEN
 #endif
+
+#ifdef LCURL__TCP_KEEPIDLE
+#  define TCP_KEEPIDLE LCURL__TCP_KEEPIDLE
+#  undef LCURL__TCP_KEEPIDLE
+#endif
+
+#ifdef LCURL__TCP_KEEPINTVL
+#  define TCP_KEEPINTVL LCURL__TCP_KEEPINTVL
+#  undef LCURL__TCP_KEEPINTVL
+#endif
+
+#ifdef LCURL__TCP_NODELAY
+#  define TCP_NODELAY LCURL__TCP_NODELAY
+#  undef LCURL__TCP_NODELAY
+#endif
+
+#ifdef LCURL__TCP_KEEPALIVE
+#  define TCP_KEEPALIVE LCURL__TCP_KEEPALIVE
+#  undef LCURL__TCP_KEEPALIVE
+#endif
+
+#ifdef LCURL__BUFFERSIZE
+#  define BUFFERSIZE LCURL__BUFFERSIZE
+#  undef LCURL__BUFFERSIZE
+#endif
+
+#ifdef LCURL__INTERFACE
+#  define INTERFACE LCURL__INTERFACE
+#  undef LCURL__INTERFACE
+#endif
+
+//}
 
 #ifdef OPT_ENTRY_IS_NULL
 #  undef OPT_ENTRY

@@ -365,7 +365,7 @@ static int lcurl_opt_set_slist_(lua_State *L, int opt, int list_no){
   CURLcode code;
   int ref = p->lists[list_no];
 
-  luaL_argcheck(L, list, 2, "array expected");
+  luaL_argcheck(L, list || lua_istable(L, 2), 2, "array expected");
 
   if(ref != LUA_NOREF){
     struct curl_slist *tmp = lcurl_storage_remove_slist(L, p->storage, ref);
@@ -380,7 +380,10 @@ static int lcurl_opt_set_slist_(lua_State *L, int opt, int list_no){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  p->lists[list_no] = lcurl_storage_preserve_slist(L, p->storage, list);
+  if (list) {
+    p->lists[list_no] = lcurl_storage_preserve_slist(L, p->storage, list);
+  }
+
   lua_settop(L, 1);
   return 1;
 }

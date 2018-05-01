@@ -32,8 +32,8 @@ local POST_URL = "http://127.0.0.1:7090/post"
 -- print("------------------------------------")
 -- print("")
 
-local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream =
-  utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream')
+local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream, dump_request =
+  utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream', 'dump_request')
 
 local ENABLE = true
 
@@ -1023,6 +1023,40 @@ function test_debug()     test_cb('debugfunction')      end
 function test_fnmatch()   test_cb('fnmatch_function')   end
 function test_chunk_bgn() test_cb('chunk_bgn_function') end
 function test_chunk_end() test_cb('chunk_end_function') end
+
+end
+
+local _ENV = TEST_CASE'set_slist'            if ENABLE then
+
+local c
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+function test_set()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  local body, headers = assert_string(dump_request(c))
+  assert_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_unset()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:unsetopt_httpheader()
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_set_empty_array()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:setopt_httpheader({})
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
 
 end
 

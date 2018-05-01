@@ -93,16 +93,49 @@ local function easy_dump_mime(easy, mime, url)
   return table.concat(buffer)
 end
 
+local function easy_dump_request(easy, url)
+  local buffer = {}
+  local headers = {}
+
+  local function dump_mime(type, data)
+    if type == curl.INFO_DATA_OUT then
+      buffer[#buffer + 1] = data
+    end
+
+    if type == curl.INFO_HEADER_OUT then
+      headers[#headers + 1] = data
+    end
+  end
+
+  local ok, err = easy:setopt{
+    url            = url or "http://127.0.0.1:7090";
+    customrequest  = "GET";
+    mimepost       = mime;
+    verbose        = true;
+    debugfunction  = dump_mime;
+    writefunction  = function()end;
+  }
+
+  if not ok then return nil, err end
+
+  ok, err = easy:perform()
+
+  if not ok then return nil, err end
+
+  return table.concat(buffer), table.concat(headers) 
+end
+
 local utils = {
-  weak_ptr   = weak_ptr;
-  gc_collect = gc_collect;
-  is_curl_ge = is_curl_ge;
-  is_curl_eq = is_curl_eq;
-  get_bin_by = get_bin_by;
-  read_file  = read_file;
-  dump_mime  = easy_dump_mime;
-  stream     = stream;
-  Stream     = Stream;
+  weak_ptr      = weak_ptr;
+  gc_collect    = gc_collect;
+  is_curl_ge    = is_curl_ge;
+  is_curl_eq    = is_curl_eq;
+  get_bin_by    = get_bin_by;
+  read_file     = read_file;
+  dump_mime     = easy_dump_mime;
+  dump_request  = easy_dump_request;
+  stream        = stream;
+  Stream        = Stream;
 }
 
 utils.import = function(...)

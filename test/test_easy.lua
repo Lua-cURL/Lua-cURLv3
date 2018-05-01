@@ -35,6 +35,8 @@ local POST_URL = "http://127.0.0.1:7090/post"
 local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream, dump_request =
   utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream', 'dump_request')
 
+local null = curl.null
+
 local ENABLE = true
 
 local _ENV = TEST_CASE'curl error'           if ENABLE then
@@ -1054,6 +1056,55 @@ function test_set_empty_array()
   c = curl.easy()
   c:setopt_httpheader({'X-Custom: value'})
   c:setopt_httpheader({})
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+end
+
+local _ENV = TEST_CASE'set_null'             if ENABLE then
+
+local c
+
+function teardown()
+  if c then c:close() end
+  c = nil
+end
+
+function test_string()
+  c = curl.easy()
+  c:setopt_accept_encoding('gzip')
+  local body, headers = assert_string(dump_request(c))
+  assert_match("Accept%-Encoding:%s*gzip", headers)
+
+  c:setopt_accept_encoding(null)
+  body, headers = assert_string(dump_request(c))
+  assert_not_match("Accept%-Encoding:%s*gzip", headers)
+end
+
+function test_string_via_table()
+  c = curl.easy()
+  c:setopt_accept_encoding('gzip')
+  local body, headers = assert_string(dump_request(c))
+  assert_match("Accept%-Encoding:%s*gzip", headers)
+
+  c:setopt{ accept_encoding = null }
+  body, headers = assert_string(dump_request(c))
+  assert_not_match("Accept%-Encoding:%s*gzip", headers)
+end
+
+function test_slist()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:setopt_httpheader(null)
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_slist_via_table()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:setopt{httpheader = null}
   local body, headers = assert_string(dump_request(c))
   assert_not_match("X%-Custom:%s*value\r\n", headers)
 end

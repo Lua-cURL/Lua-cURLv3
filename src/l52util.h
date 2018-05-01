@@ -88,4 +88,8 @@ int64_t lutil_optint64(lua_State *L, int idx, int64_t v);
 
 void lutil_pushnvalues(lua_State *L, int n);
 
+int lutil_is_null(lua_State *L, int i);
+
+void lutil_push_null(lua_State *L);
+
 #endif

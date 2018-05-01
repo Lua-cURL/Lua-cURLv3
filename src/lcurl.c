@@ -270,6 +270,9 @@ static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
 
   lcurl_util_set_const(L, lcurl_flags);
 
+  lutil_push_null(L);
+  lua_setfield(L, -2, "null");
+
   return 1;
 }
 

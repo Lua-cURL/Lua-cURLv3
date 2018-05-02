@@ -153,9 +153,16 @@ function test_reset_write_callback()
   assert_equal(c, c:setopt_writefunction(f))
   assert_equal(c, c:setopt_writefunction(f.write, f))
   assert_equal(c, c:setopt_writefunction(print))
+  assert_equal(c, c:setopt_writefunction(print, null))
+  assert_equal(c, c:setopt_writefunction(null))
+  assert_equal(c, c:setopt_writefunction(null, nil))
+  assert_equal(c, c:setopt_writefunction(null, null))
   assert_error(function()c:setopt_writefunction()end)
   assert_error(function()c:setopt_writefunction(nil)end)
   assert_error(function()c:setopt_writefunction(nil, f)end)
+  assert_error(function()c:setopt_writefunction(null, {})end)
+  assert_error(function()c:setopt_writefunction(print, {}, nil)end)
+  assert_error(function()c:setopt_writefunction(print, {}, null)end)
 end
 
 function test_write_pass_01()
@@ -208,6 +215,38 @@ function test_write_coro()
   coroutine.resume(co2)
 
   assert_equal(co2, called)
+end
+
+function test_write_pass_null_context()
+  c = assert(curl.easy{
+    url = GET_URL;
+  })
+
+  local context
+  assert_equal(c, c:setopt_writefunction(function(ctx)
+    context = ctx
+    return true
+  end, null))
+
+  assert_equal(c, c:perform())
+  assert_equal(null, context)
+end
+
+function test_write_pass_nil_context()
+  c = assert(curl.easy{
+    url = GET_URL;
+  })
+
+  local context, called
+  assert_equal(c, c:setopt_writefunction(function(ctx)
+    context = ctx
+    called = true
+    return true
+  end, nil))
+
+  assert_equal(c, c:perform())
+  assert_true(called)
+  assert_nil(context)
 end
 
 end
@@ -381,9 +420,14 @@ function test_reset_header_callback()
   assert_equal(c, c:setopt_headerfunction(f))
   assert_equal(c, c:setopt_headerfunction(f.header, f))
   assert_equal(c, c:setopt_headerfunction(print))
+  assert_equal(c, c:setopt_headerfunction(null))
+  assert_equal(c, c:setopt_headerfunction(null, nil))
+  assert_equal(c, c:setopt_headerfunction(null, null))
   assert_error(function()c:setopt_headerfunction()end)
   assert_error(function()c:setopt_headerfunction(nil)end)
   assert_error(function()c:setopt_headerfunction(nil, f)end)
+  assert_error(function()c:setopt_headerfunction(null, {})end)
+  assert_error(function()c:setopt_headerfunction(print, {}, nil)end)
 end
 
 function test_header_pass_01()

@@ -171,8 +171,6 @@ int lcurl_set_callback(lua_State *L, lcurl_callback_t *c, int i, const char *met
   luaL_argcheck(L, !lua_isnoneornil(L, i), i, "no function present");
   luaL_argcheck(L, (top < (i + 2)), i + 2, "no arguments expected");
 
-  // if(top > (i + 1)) lua_settop(L, i + 1); // this for force ignore other arguments
-
   assert((top == i)||(top == (i + 1)));
 
   if(c->ud_ref != LUA_NOREF){
@@ -183,6 +181,19 @@ int lcurl_set_callback(lua_State *L, lcurl_callback_t *c, int i, const char *met
   if(c->cb_ref != LUA_NOREF){
     luaL_unref(L, LCURL_LUA_REGISTRY, c->cb_ref);
     c->cb_ref = LUA_NOREF;
+  }
+
+  if(lutil_is_null(L, i)){
+    if(top == (i + 1)){
+      // Do we can just ignore this?
+      luaL_argcheck(L, 
+        lua_isnoneornil(L, i + 1) || lutil_is_null(L, i + 1)
+        ,i + 1, "no context allowed when set callback to null"
+      );
+    }
+    lua_pop(L, top - i + 1);
+
+    return 1;
   }
 
   if(lua_gettop(L) == (i + 1)){// function + context

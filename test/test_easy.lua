@@ -35,6 +35,8 @@ local POST_URL = "http://127.0.0.1:7090/post"
 local weak_ptr, gc_collect, is_curl_ge, read_file, stream, Stream, dump_request =
   utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'read_file', 'stream', 'Stream', 'dump_request')
 
+local null = curl.null
+
 local ENABLE = true
 
 local _ENV = TEST_CASE'curl error'           if ENABLE then
@@ -151,9 +153,16 @@ function test_reset_write_callback()
   assert_equal(c, c:setopt_writefunction(f))
   assert_equal(c, c:setopt_writefunction(f.write, f))
   assert_equal(c, c:setopt_writefunction(print))
+  assert_equal(c, c:setopt_writefunction(print, null))
+  assert_equal(c, c:setopt_writefunction(null))
+  assert_equal(c, c:setopt_writefunction(null, nil))
+  assert_equal(c, c:setopt_writefunction(null, null))
   assert_error(function()c:setopt_writefunction()end)
   assert_error(function()c:setopt_writefunction(nil)end)
   assert_error(function()c:setopt_writefunction(nil, f)end)
+  assert_error(function()c:setopt_writefunction(null, {})end)
+  assert_error(function()c:setopt_writefunction(print, {}, nil)end)
+  assert_error(function()c:setopt_writefunction(print, {}, null)end)
 end
 
 function test_write_pass_01()
@@ -206,6 +215,38 @@ function test_write_coro()
   coroutine.resume(co2)
 
   assert_equal(co2, called)
+end
+
+function test_write_pass_null_context()
+  c = assert(curl.easy{
+    url = GET_URL;
+  })
+
+  local context
+  assert_equal(c, c:setopt_writefunction(function(ctx)
+    context = ctx
+    return true
+  end, null))
+
+  assert_equal(c, c:perform())
+  assert_equal(null, context)
+end
+
+function test_write_pass_nil_context()
+  c = assert(curl.easy{
+    url = GET_URL;
+  })
+
+  local context, called
+  assert_equal(c, c:setopt_writefunction(function(ctx)
+    context = ctx
+    called = true
+    return true
+  end, nil))
+
+  assert_equal(c, c:perform())
+  assert_true(called)
+  assert_nil(context)
 end
 
 end
@@ -379,9 +420,14 @@ function test_reset_header_callback()
   assert_equal(c, c:setopt_headerfunction(f))
   assert_equal(c, c:setopt_headerfunction(f.header, f))
   assert_equal(c, c:setopt_headerfunction(print))
+  assert_equal(c, c:setopt_headerfunction(null))
+  assert_equal(c, c:setopt_headerfunction(null, nil))
+  assert_equal(c, c:setopt_headerfunction(null, null))
   assert_error(function()c:setopt_headerfunction()end)
   assert_error(function()c:setopt_headerfunction(nil)end)
   assert_error(function()c:setopt_headerfunction(nil, f)end)
+  assert_error(function()c:setopt_headerfunction(null, {})end)
+  assert_error(function()c:setopt_headerfunction(print, {}, nil)end)
 end
 
 function test_header_pass_01()
@@ -1056,6 +1102,64 @@ function test_set_empty_array()
   c:setopt_httpheader({})
   local body, headers = assert_string(dump_request(c))
   assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+end
+
+local _ENV = TEST_CASE'set_null'             if ENABLE then
+
+local c, m
+
+function teardown()
+  if c then c:close() end
+  if m then m:close() end
+  m, c = nil
+end
+
+function test_string()
+  c = curl.easy()
+  c:setopt_accept_encoding('gzip')
+  local body, headers = assert_string(dump_request(c))
+  assert_match("Accept%-Encoding:%s*gzip", headers)
+
+  c:setopt_accept_encoding(null)
+  body, headers = assert_string(dump_request(c))
+  assert_not_match("Accept%-Encoding:%s*gzip", headers)
+end
+
+function test_string_via_table()
+  c = curl.easy()
+  c:setopt_accept_encoding('gzip')
+  local body, headers = assert_string(dump_request(c))
+  assert_match("Accept%-Encoding:%s*gzip", headers)
+
+  c:setopt{ accept_encoding = null }
+  body, headers = assert_string(dump_request(c))
+  assert_not_match("Accept%-Encoding:%s*gzip", headers)
+end
+
+function test_slist()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:setopt_httpheader(null)
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_slist_via_table()
+  c = curl.easy()
+  c:setopt_httpheader({'X-Custom: value'})
+  c:setopt{httpheader = null}
+  local body, headers = assert_string(dump_request(c))
+  assert_not_match("X%-Custom:%s*value\r\n", headers)
+end
+
+function test_multi_set_array()
+  m = curl.multi()
+  m:setopt_pipelining_site_bl{
+    '127.0.0.1'
+  }
+  assert_equal(m, m:setopt_pipelining_site_bl(null))
 end
 
 end

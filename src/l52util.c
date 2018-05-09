@@ -156,3 +156,11 @@ int64_t lutil_optint64(lua_State *L, int idx, int64_t v){
 void lutil_pushnvalues(lua_State *L, int n){
   for(;n;--n) lua_pushvalue(L, -n);
 }
+
+int lutil_is_null(lua_State *L, int i){
+  return lua_islightuserdata(L, i) && 0 == lua_touserdata(L, i);
+}
+
+void lutil_push_null(lua_State *L){
+  lua_pushlightuserdata(L, (void*)0);
+}

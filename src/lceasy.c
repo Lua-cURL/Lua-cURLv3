@@ -344,16 +344,22 @@ static int lcurl_opt_set_off_(lua_State *L, int opt){
 
 static int lcurl_opt_set_string_(lua_State *L, int opt, int store){
   lcurl_easy_t *p = lcurl_geteasy(L);
-  CURLcode code;
+  CURLcode code; const char *value;
 
-  luaL_argcheck(L, lua_type(L, 2) == LUA_TSTRING, 2, "string expected");
+  luaL_argcheck(L, lua_type(L, 2) == LUA_TSTRING || lutil_is_null(L, 2), 2, "string expected");
 
-  code = curl_easy_setopt(p->curl, opt, lua_tostring(L, 2));
+  value = lua_tostring(L, 2);
+  code = curl_easy_setopt(p->curl, opt, value);
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
 
-  if(store)lcurl_storage_preserve_iv(L, p->storage, opt, 2);
+  if(store){
+    if(value)
+      lcurl_storage_preserve_iv(L, p->storage, opt, 2);
+    else
+      lcurl_storage_remove_i(L, p->storage, opt);
+  }
 
   lua_settop(L, 1);
   return 1;
@@ -365,7 +371,7 @@ static int lcurl_opt_set_slist_(lua_State *L, int opt, int list_no){
   CURLcode code;
   int ref = p->lists[list_no];
 
-  luaL_argcheck(L, list || lua_istable(L, 2), 2, "array expected");
+  luaL_argcheck(L, list || lua_istable(L, 2) || lutil_is_null(L, 2), 2, "array expected");
 
   if(ref != LUA_NOREF){
     struct curl_slist *tmp = lcurl_storage_remove_slist(L, p->storage, ref);

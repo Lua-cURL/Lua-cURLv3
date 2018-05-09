@@ -14,11 +14,14 @@ OPT_ENTRY(unshare,              UNSHARE,                   LNG,     0 )
 FLG_ENTRY( LOCK_DATA_COOKIE                  )
 FLG_ENTRY( LOCK_DATA_DNS                     )
 FLG_ENTRY( LOCK_DATA_SSL_SESSION             )
+FLG_ENTRY( LOCK_DATA_CONNECT                 )
 
 #ifdef OPT_ENTRY_IS_NULL
 #  undef OPT_ENTRY
+#  undef OPT_ENTRY_IS_NULL
 #endif
 
 #ifdef FLG_ENTRY_IS_NULL
 #  undef FLG_ENTRY
+#  undef FLG_ENTRY_IS_NULL
 #endif

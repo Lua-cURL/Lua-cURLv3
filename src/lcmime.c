@@ -135,7 +135,7 @@ int lcurl_mime_set_lua(lua_State *L, lcurl_mime_t *p, lua_State *v){
 
 #define IS_NILORSTR(L, i) (lua_type(L, i) == LUA_TSTRING) || (lua_type(L, i) == LUA_TNIL)
 #define IS_TABLE(L, i) lua_type(L, i) == LUA_TTABLE
-#define IS_FALSE(L, i) (lua_type(L, i) == LUA_TBOOLEAN) && (!lua_toboolean(L, i))
+#define IS_FALSE(L, i) ((lua_type(L, i) == LUA_TBOOLEAN) && (!lua_toboolean(L, i))) || lutil_is_null(L,i)
 #define IS_OPTSTR(L, i) (IS_FALSE(L, i)) || (IS_NILORSTR(L, i))
 
 static int lutil_isarray(lua_State *L, int i){
@@ -512,13 +512,13 @@ static int lcurl_mime_part_headers(lua_State *L){
   }
   else{
     list = lcurl_util_to_slist(L, 2);
-    luaL_argcheck(L, list, 2, "array or nil expected");
+    luaL_argcheck(L, list || IS_TABLE(L, 2), 2, "array or null expected");
   }
 
   ret = curl_mime_headers(p->part, list, 1);
 
   if(ret != CURLE_OK){
-    curl_slist_free_all(list);
+    if(list) curl_slist_free_all(list);
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, ret);
   }
 

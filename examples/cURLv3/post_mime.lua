@@ -1,10 +1,6 @@
 local curl = require "cURL"
 
-local null = curl.null
-
--- make first request
-
--- Documentation does not restrict use same mime with different easy handle.
+-- Documentation does not restrict using the same mime with different easy handle.
 -- In fact it does not mention this case at all. But in my experiments it works.
 local easy = curl.easy()
 

@@ -5,8 +5,6 @@ local curl = require "cURL"
 local easy = curl.easy()
 
 -- Create new mime object.
--- cURL documentation doesn not mentioned that
--- this mime object can be used only 
 local mime = easy:mime()
 
 -- Add part. Source of data is file on disk.
@@ -41,12 +39,9 @@ end
 
 easy:close()
 
--- E.g. it does not send filedata second time.
 -- Lua-cURL does not free mime when close `parent` easy.
 
 -- Explicitly free mime object and all its parts
--- There no way to reuse only some parts.
+-- There no way to reuse only some parts or submimes.
+-- but it possible reuse entire mime again.
 mime:free()
-
--- Subparts become also freed
-print(part)

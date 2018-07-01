@@ -20,6 +20,16 @@ local fname      = "./test.download"
 
 local utils = require "utils"
 
+local function weak_ptr(val)
+  return setmetatable({value = val},{__mode = 'v'})
+end
+
+local function gc_collect()
+  for i = 1, 5 do
+    collectgarbage("collect")
+  end
+end
+
 -- Bug. libcurl 7.56.0 does not add `Content-Type: text/plain`
 local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
 
@@ -209,6 +219,38 @@ function test_info_read()
 
   local h, ok, err = m:info_read()
   assert_equal(0, h)
+end
+
+end
+
+local _ENV = TEST_CASE'multi memory leak' if ENABLE then
+
+local m
+
+function teardown()
+  if m then m:close() end
+  m = nil
+end
+
+function test_basic()
+  local ptr do 
+    local multi = assert(scurl.multi())
+    ptr = weak_ptr(multi)
+  end
+  gc_collect()
+
+  assert_nil(ptr.value)
+end
+
+function test_socket_action()
+  local ptr do 
+    local multi = assert(scurl.multi())
+    multi:setopt_socketfunction(function() end)
+    ptr = weak_ptr(multi)
+  end
+  gc_collect()
+
+  assert_nil(ptr.value)
 end
 
 end

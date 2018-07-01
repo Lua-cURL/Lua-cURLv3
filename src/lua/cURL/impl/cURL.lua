@@ -670,8 +670,9 @@ local function wrap_callback(...)
 end
 
 local function wrap_socketfunction(self, cb)
+  local ptr = setmetatable({value = self},{__mode = 'v'})
   return function(h, ...)
-    local e = self._easy[h]
+    local e = ptr.value._easy[h]
     if e then return cb(e, ...) end
     return 0
   end

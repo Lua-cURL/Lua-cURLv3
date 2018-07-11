@@ -47,7 +47,7 @@ struct lcurl_multi_tag;
 #define lcurl_multi_t struct lcurl_multi_tag
 #if LCURL_CURL_VER_GE(7,56,0)
 struct lcurl_mime_tag;
-#define lcurl_mime_t struct lcurl_mime_tag;
+#define lcurl_mime_t struct lcurl_mime_tag
 #endif
 #endif
 

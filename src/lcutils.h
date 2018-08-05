@@ -25,11 +25,19 @@
 #  define LCURL_CC_SUPPORT_FORWARD_TYPEDEF 0
 #endif
 
+#ifdef __GNUC__
+  #define LCURL_UNUSED_TYPEDEF __attribute__ ((unused))
+#else
+  #define LCURL_UNUSED_TYPEDEF
+#endif
+
+#define LCURL_UNUSED_VAR LCURL_UNUSED_TYPEDEF
+
 #define LCURL_MAKE_VERSION(MIN, MAJ, PAT) ((MIN<<16) + (MAJ<<8) + PAT)
 #define LCURL_CURL_VER_GE(MIN, MAJ, PAT) (LIBCURL_VERSION_NUM >= LCURL_MAKE_VERSION(MIN, MAJ, PAT))
 
 #define LCURL_CONCAT_STATIC_ASSERT_IMPL_(x, y) LCURL_CONCAT1_STATIC_ASSERT_IMPL_ (x, y)
-#define LCURL_CONCAT1_STATIC_ASSERT_IMPL_(x, y) x##y
+#define LCURL_CONCAT1_STATIC_ASSERT_IMPL_(x, y) LCURL_UNUSED_TYPEDEF x##y
 #define LCURL_STATIC_ASSERT(expr) typedef char LCURL_CONCAT_STATIC_ASSERT_IMPL_(static_assert_failed_at_line_, __LINE__) [(expr) ? 1 : -1]
 
 #define LCURL_ASSERT_SAME_SIZE(a, b) LCURL_STATIC_ASSERT( sizeof(a) == sizeof(b) )

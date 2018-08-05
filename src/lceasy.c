@@ -124,7 +124,7 @@ static int lcurl_easy_cleanup(lua_State *L){
   int i;
 
   if(p->multi){
-    CURLMcode code = lcurl__multi_remove_handle(L, p->multi, p);
+    LCURL_UNUSED_VAR CURLMcode code = lcurl__multi_remove_handle(L, p->multi, p);
 
     //! @todo what I can do if I can not remove it???
   }

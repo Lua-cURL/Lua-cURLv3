@@ -444,6 +444,12 @@ OPT_ENTRY(dns_shuffle_addresses, DNS_SHUFFLE_ADDRESSES, LNG, 0, LCURL_DEFAULT_VA
 OPT_ENTRY(haproxyprotocol, HAPROXYPROTOCOL, LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,61,0)
+OPT_ENTRY(disallow_username_in_url, DISALLOW_USERNAME_IN_URL, LNG, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY(proxy_tls13_ciphers,      PROXY_TLS13_CIPHERS,      STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY(tls13_ciphers,            TLS13_CIPHERS,            STR, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 //{ Restore system macros
 
 #ifdef LCURL__TCP_FASTOPEN

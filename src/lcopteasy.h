@@ -439,6 +439,11 @@ OPT_ENTRY( happy_eyeballs_timeout_ms,HAPPY_EYEBALLS_TIMEOUT_MS,LNG, 0, CURL_HET_
 OPT_ENTRY( timevalue_large,          TIMEVALUE_LARGE          ,OFF, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,60,0)
+OPT_ENTRY(dns_shuffle_addresses, DNS_SHUFFLE_ADDRESSES, LNG, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY(haproxyprotocol, HAPROXYPROTOCOL, LNG, 0, LCURL_DEFAULT_VALUE)
+#endif
+
 //{ Restore system macros
 
 #ifdef LCURL__TCP_FASTOPEN

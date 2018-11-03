@@ -21,6 +21,9 @@ FLG_ENTRY(AUTH_ANYSAFE                    )
 #if LCURL_CURL_VER_GE(7,55,0)
 FLG_ENTRY(AUTH_GSSAPI                     )
 #endif
+#if LCURL_CURL_VER_GE(7,61,0)
+FLG_ENTRY(AUTH_BEARER                     )
+#endif
 
 #ifdef CURLSSH_AUTH_ANY
 FLG_ENTRY(SSH_AUTH_ANY                    )

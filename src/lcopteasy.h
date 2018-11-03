@@ -450,6 +450,13 @@ OPT_ENTRY(proxy_tls13_ciphers,      PROXY_TLS13_CIPHERS,      STR, 0, LCURL_DEFA
 OPT_ENTRY(tls13_ciphers,            TLS13_CIPHERS,            STR, 0, LCURL_DEFAULT_VALUE)
 #endif
 
+#if LCURL_CURL_VER_GE(7,61,0)
+OPT_ENTRY(upkeep_interval_ms,       UPKEEP_INTERVAL_MS,       LNG, 0, CURL_UPKEEP_INTERVAL_DEFAULT)
+OPT_ENTRY(doh_url,                  DOH_URL,                  STR, 0, LCURL_DEFAULT_VALUE)
+// thre no named value for default value. It just defined as 64kB in documentation
+OPT_ENTRY(upload_buffersize,        UPLOAD_BUFFERSIZE,        LNG, 0, 64 * 1024)
+#endif
+
 //{ Restore system macros
 
 #ifdef LCURL__TCP_FASTOPEN

@@ -291,6 +291,20 @@ static int lcurl_easy_mime(lua_State *L){
 
 #endif
 
+#if LCURL_CURL_VER_GE(7,62,0)
+
+static int lcurl_easy_upkeep(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_upkeep(p->curl);
+  if(code == CURLE_OK){
+    lua_settop(L, 1);
+    return 1;
+  }
+  return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+}
+
+#endif
+
 //{ OPTIONS
 
 //{ set
@@ -1760,6 +1774,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   { "escape",     lcurl_easy_escape         },
   { "unescape",   lcurl_easy_unescape       },
   { "perform",    lcurl_easy_perform        },
+  { "upkeep",     lcurl_easy_upkeep         },
   { "close",      lcurl_easy_cleanup        },
   { "__gc",       lcurl_easy_cleanup        },
   { "__tostring", lcurl_easy_to_s           },

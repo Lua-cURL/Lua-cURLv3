@@ -20,6 +20,7 @@ static const char *LCURL_ERROR = LCURL_ERROR_NAME;
 #define LCURL_ERROR_MULTI_NAME "CURL-MULTI"
 #define LCURL_ERROR_SHARE_NAME "CURL-SHARE"
 #define LCURL_ERROR_FORM_NAME  "CURL-FORM"
+#define LCURL_ERROR_URL_NAME   "CURL-URL"
 
 typedef struct lcurl_error_tag{
   int tp;
@@ -72,12 +73,24 @@ static const char* lcurl_err_form_mnemo(int err){
 #undef ERR_ENTRY
 }
 
+static const char* lcurl_err_url_mnemo(int err){
+#define ERR_ENTRY(E) case CURLUE_##E: return #E;
+
+  switch (err){
+    #include "lcerr_url.h"
+  }
+  return "UNKNOWN";
+
+#undef ERR_ENTRY
+}
+
 static const char* _lcurl_err_mnemo(int tp, int err){
   switch(tp){
     case LCURL_ERROR_EASY : return lcurl_err_easy_mnemo (err);
     case LCURL_ERROR_MULTI: return lcurl_err_multi_mnemo(err);
     case LCURL_ERROR_SHARE: return lcurl_err_share_mnemo(err);
     case LCURL_ERROR_FORM : return lcurl_err_form_mnemo (err);
+    case LCURL_ERROR_URL  : return lcurl_err_url_mnemo  (err);
   }
   assert(0);
   return "<UNSUPPORTED ERROR TYPE>";
@@ -89,6 +102,7 @@ static const char* _lcurl_err_msg(int tp, int err){
     case LCURL_ERROR_MULTI: return curl_multi_strerror(err);
     case LCURL_ERROR_SHARE: return curl_share_strerror(err);
     case LCURL_ERROR_FORM : return lcurl_err_form_mnemo(err);
+    case LCURL_ERROR_URL  : return lcurl_err_url_mnemo(err);
   }
   assert(0);
   return "<UNSUPPORTED ERROR TYPE>";
@@ -100,6 +114,7 @@ static const char* _lcurl_err_category_name(int tp){
     (tp == LCURL_ERROR_MULTI) ||
     (tp == LCURL_ERROR_SHARE) ||
     (tp == LCURL_ERROR_FORM ) ||
+    (tp == LCURL_ERROR_URL  ) ||
     0
   );
 
@@ -118,6 +133,10 @@ static const char* _lcurl_err_category_name(int tp){
     }
     case LCURL_ERROR_FORM: {
       static const char *name = LCURL_ERROR_FORM_NAME;
+      return name;
+    }
+    case LCURL_ERROR_URL: {
+      static const char *name = LCURL_ERROR_URL_NAME;
       return name;
     }
   }
@@ -147,6 +166,7 @@ int lcurl_error_create(lua_State *L, int error_type, int no){
     (error_type == LCURL_ERROR_MULTI) ||
     (error_type == LCURL_ERROR_SHARE) ||
     (error_type == LCURL_ERROR_FORM ) ||
+    (error_type == LCURL_ERROR_URL  ) ||
     0
   );
 
@@ -233,6 +253,7 @@ static const int ERROR_CATEGORIES[] = {
   LCURL_ERROR_MULTI,
   LCURL_ERROR_SHARE,
   LCURL_ERROR_FORM,
+  LCURL_ERROR_URL,
 };
 
 static const char* ERROR_CATEGORIES_NAME[] = {
@@ -240,6 +261,7 @@ static const char* ERROR_CATEGORIES_NAME[] = {
   LCURL_ERROR_MULTI_NAME,
   LCURL_ERROR_SHARE_NAME,
   LCURL_ERROR_FORM_NAME,
+  LCURL_ERROR_URL_NAME,
   NULL
 };
 
@@ -297,6 +319,10 @@ static const lcurl_const_t lcurl_error_codes[] = {
 
 #define ERR_ENTRY(N) { "E_FORM_"#N, CURL_FORMADD_##N },
 #include "lcerr_form.h"
+#undef ERR_ENTRY
+
+#define ERR_ENTRY(N) { "E_URL_"#N, CURLUE_##N },
+#include "lcerr_url.h"
 #undef ERR_ENTRY
 
   {NULL, 0}

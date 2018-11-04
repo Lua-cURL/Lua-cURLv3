@@ -1774,7 +1774,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   { "escape",     lcurl_easy_escape         },
   { "unescape",   lcurl_easy_unescape       },
   { "perform",    lcurl_easy_perform        },
+#if LCURL_CURL_VER_GE(7,62,0)
   { "upkeep",     lcurl_easy_upkeep         },
+#endif
   { "close",      lcurl_easy_cleanup        },
   { "__gc",       lcurl_easy_cleanup        },
   { "__tostring", lcurl_easy_to_s           },

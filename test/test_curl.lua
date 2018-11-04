@@ -186,7 +186,11 @@ function test_add_handle()
       c = nil
 
       if i == 3 then
-        assert_equal(curl.error(curl.ERROR_EASY, curl.E_UNSUPPORTED_PROTOCOL), data)
+        if is_curl_ge(7, 62,0) then
+          assert_equal(curl.error(curl.ERROR_EASY, curl.E_URL_MALFORMAT), data)
+        else
+          assert_equal(curl.error(curl.ERROR_EASY, curl.E_UNSUPPORTED_PROTOCOL), data)
+        end
       else
         local data = json_data()
         assert_table(data.args)

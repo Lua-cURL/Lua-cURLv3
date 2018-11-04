@@ -136,6 +136,31 @@ static int lcurl_url_get(lua_State *L, CURLUPart what, CURLUcode empty) {
   return 1;
 }
 
+static int lcurl_url_to_s(lua_State *L) {
+  lcurl_url_t *p = lcurl_geturl(L);
+  char *part = NULL;
+
+  CURLUcode code = curl_url_get(p->url, CURLUPART_URL, &part, 0);
+
+  if (code != CURLUE_OK) {
+    if (part) {
+      curl_free(part);
+    }
+
+    return lcurl_fail_ex(L, LCURL_ERROR_RAISE, LCURL_ERROR_URL, code);
+  }
+
+  if (part == NULL) {
+    lua_pushliteral(L, "");
+  }
+  else {
+    lua_pushstring(L, part);
+    curl_free(part);
+  }
+
+  return 1;
+}
+
 #define ENTRY_PART(N, S, E) static int lcurl_url_set_##N(lua_State *L){\
   return lcurl_url_set(L, CURL##S);\
 }
@@ -172,7 +197,7 @@ static const struct luaL_Reg lcurl_url_methods[] = {
   { "dup",        lcurl_url_dup     },
   { "cleanup",    lcurl_url_cleanup },
   { "__gc",       lcurl_url_cleanup },
-  { "__tostring", lcurl_url_get_url },
+  { "__tostring", lcurl_url_to_s    },
 
   { NULL,NULL }
 };

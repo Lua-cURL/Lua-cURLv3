@@ -183,6 +183,18 @@ it('should raise error for invalid url', function()
   assert_match('CURL%-URL', tostring(err))
 end)
 
+it('should raise error for tostring', function()
+  url = curl.url()
+  local _, err = assert_false(pcall(tostring, url))
+  assert_match('CURL%-URL', tostring(err))
+end)
+
+it('should raise error for tostring in safe mode', function()
+  url = scurl.url()
+  local _, err = assert_false(pcall(tostring, url))
+  assert_match('CURL%-URL', tostring(err))
+end)
+
 -- it('should set encoded query', function()
 --   url = U"http://example.com"
 --   assert_equal(url, url:set_query("a=hello world", curl.U_URLENCODE))

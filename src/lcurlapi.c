@@ -194,5 +194,7 @@ void lcurl_url_initlib(lua_State *L, int nup){
   lua_pop(L, 1);
 
   lcurl_util_set_const(L, lcurl_url_opt);
+#else
+  lua_pop(L, nup);
 #endif
 }

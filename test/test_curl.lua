@@ -20,6 +20,8 @@ local fname      = "./test.download"
 
 local utils = require "utils"
 
+local is_curl_ge = utils.is_curl_ge
+
 local function weak_ptr(val)
   return setmetatable({value = val},{__mode = 'v'})
 end

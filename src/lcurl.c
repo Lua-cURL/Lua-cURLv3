@@ -41,9 +41,13 @@ static int lcurl_hpost_new_safe(lua_State *L) {
   return lcurl_hpost_create(L, LCURL_ERROR_RETURN);
 }
 
+#if LCURL_CURL_VER_GE(7,62,0)
+
 static int lcurl_url_new_safe(lua_State *L) {
   return lcurl_url_create(L, LCURL_ERROR_RETURN);
 }
+
+#endif
 
 static int lcurl_easy_new(lua_State *L){
   return lcurl_easy_create(L, LCURL_ERROR_RAISE);
@@ -61,9 +65,13 @@ static int lcurl_hpost_new(lua_State *L){
   return lcurl_hpost_create(L, LCURL_ERROR_RAISE);
 }
 
+#if LCURL_CURL_VER_GE(7,62,0)
+
 static int lcurl_url_new(lua_State *L) {
   return lcurl_url_create(L, LCURL_ERROR_RAISE);
 }
+
+#endif
 
 static int lcurl_version(lua_State *L){
   lua_pushstring(L, curl_version());
@@ -179,7 +187,9 @@ static const struct luaL_Reg lcurl_functions[] = {
   {"easy",            lcurl_easy_new         },
   {"multi",           lcurl_multi_new        },
   {"share",           lcurl_share_new        },
+#if LCURL_CURL_VER_GE(7,62,0)
   {"url",             lcurl_url_new          },
+#endif
   {"version",         lcurl_version          },
   {"version_info",    lcurl_version_info     },
   
@@ -192,7 +202,9 @@ static const struct luaL_Reg lcurl_functions_safe[] = {
   {"easy",            lcurl_easy_new_safe         },
   {"multi",           lcurl_multi_new_safe        },
   {"share",           lcurl_share_new_safe        },
+#if LCURL_CURL_VER_GE(7,62,0)
   {"url",             lcurl_url_new_safe          },
+#endif
   {"version",         lcurl_version               },
   {"version_info",    lcurl_version_info          },
 

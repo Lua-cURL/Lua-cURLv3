@@ -67,6 +67,16 @@ OPT_ENTRY( speed_upload_t,            SPEED_UPLOAD_T,            OFF, 0)
 OPT_ENTRY( filetime_t,              FILETIME_T,              OFF, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,61,0)
+OPT_ENTRY(appconnect_time_t,        APPCONNECT_TIME_T,       OFF, 0)
+OPT_ENTRY(connect_time_t,           CONNECT_TIME_T,          OFF, 0)
+OPT_ENTRY(namelookup_time_t,        NAMELOOKUP_TIME_T,       OFF, 0)
+OPT_ENTRY(pretransfer_time_t,       PRETRANSFER_TIME_T,      OFF, 0)
+OPT_ENTRY(redirect_time_t,          REDIRECT_TIME_T,         OFF, 0)
+OPT_ENTRY(starttransfer_time_t,     STARTTRANSFER_TIME_T,    OFF, 0)
+OPT_ENTRY(total_time_t,             TOTAL_TIME_T,            OFF, 0)
+#endif
+
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( TLS_SSL_PTR,             struct curl_tlssessioninfo **
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

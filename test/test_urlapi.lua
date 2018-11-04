@@ -16,13 +16,15 @@ local curl        = require "cURL"
 local scurl       = require "cURL.safe"
 local utils       = require "utils"
 
-local tostring    = tostring
+local tostring, pcall = tostring, pcall
+
+local function skip_case(msg) return function() skip(msg) end end
 
 local ENABLE = true
 
 local _ENV = TEST_CASE'urlapi' if ENABLE then
 
-if not curl.E_URL_OK then skip('URL API avaliable since libcurl 7.62.0') else
+if not curl.E_URL_OK then test = skip_case('URL API avaliable since libcurl 7.62.0') else
 
 local it = setmetatable(_ENV or _M, {__call = function(self, describe, fn)
   self["test " .. describe] = fn
@@ -177,7 +179,8 @@ end)
 
 it('should raise error for invalid url', function()
   url = curl.url()
-  assert_error_match('CURL%-URL', function() url:get_url() end)
+  local _, err = assert_false(pcall(url.get_url, url))
+  assert_match('CURL%-URL', tostring(err))
 end)
 
 -- it('should set encoded query', function()

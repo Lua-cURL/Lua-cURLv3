@@ -24,7 +24,6 @@ static const char *LCURL_URL = LCURL_URL_NAME;
 typedef struct lcurl_url_tag{
   CURLU *url;
 
-  int storage;
   int err_mode;
 }lcurl_url_t;
 

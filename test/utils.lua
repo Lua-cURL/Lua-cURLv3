@@ -4,9 +4,10 @@ local function weak_ptr(val)
   return setmetatable({value = val},{__mode = 'v'})
 end
 
-local function gc_collect()
-  collectgarbage("collect")
-  collectgarbage("collect")
+local function gc_collect(n)
+  for i = 1, (n or 2) do
+    collectgarbage("collect")
+  end
 end
 
 local function cver(min, maj, pat)

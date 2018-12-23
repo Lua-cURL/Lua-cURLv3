@@ -38,17 +38,24 @@ enum {
 #define LCURL_EASY_MAGIC 0xEA
 
 #if LCURL_CC_SUPPORT_FORWARD_TYPEDEF
-typedef struct lcurl_multi_tag lcurl_multi_t;
-#if LCURL_CURL_VER_GE(7,56,0)
-typedef struct lcurl_mime_tag lcurl_mime_t;
-#endif
+  typedef struct lcurl_multi_tag lcurl_multi_t;
+  #if LCURL_CURL_VER_GE(7,56,0)
+    typedef struct lcurl_mime_tag lcurl_mime_t;
+  #endif
+  #if LCURL_CURL_VER_GE(7,63,0)
+    typedef struct lcurl_url_tag lcurl_url_t;
+  #endif
 #else
-struct lcurl_multi_tag;
-#define lcurl_multi_t struct lcurl_multi_tag
-#if LCURL_CURL_VER_GE(7,56,0)
-struct lcurl_mime_tag;
-#define lcurl_mime_t struct lcurl_mime_tag
-#endif
+  struct lcurl_multi_tag;
+  #define lcurl_multi_t struct lcurl_multi_tag
+  #if LCURL_CURL_VER_GE(7,56,0)
+    struct lcurl_mime_tag;
+    #define lcurl_mime_t struct lcurl_mime_tag
+  #endif
+  #if LCURL_CURL_VER_GE(7,63,0)
+    struct lcurl_url_tag;
+    #define lcurl_url_t struct lcurl_url_tag
+  #endif
 #endif
 
 typedef struct lcurl_easy_tag{
@@ -64,6 +71,10 @@ typedef struct lcurl_easy_tag{
 
 #if LCURL_CURL_VER_GE(7,56,0)
   lcurl_mime_t *mime;
+#endif
+
+#if LCURL_CURL_VER_GE(7,63,0)
+  lcurl_url_t *url;
 #endif
 
   CURL *curl;

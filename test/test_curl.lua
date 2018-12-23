@@ -20,20 +20,11 @@ local fname      = "./test.download"
 
 local utils = require "utils"
 
-local is_curl_ge = utils.is_curl_ge
-
-local function weak_ptr(val)
-  return setmetatable({value = val},{__mode = 'v'})
-end
-
-local function gc_collect()
-  for i = 1, 5 do
-    collectgarbage("collect")
-  end
-end
+local weak_ptr, gc_collect, is_curl_ge, is_curl_eq, read_file, stream, Stream, dump_request =
+  utils.import('weak_ptr', 'gc_collect', 'is_curl_ge', 'is_curl_eq', 'read_file', 'stream', 'Stream', 'dump_request')
 
 -- Bug. libcurl 7.56.0 does not add `Content-Type: text/plain`
-local text_plain = utils.is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
+local text_plain = is_curl_eq(7,56,0) and 'test/plain' or 'text/plain'
 
 local GET_URL = "http://127.0.0.1:7090/get"
 

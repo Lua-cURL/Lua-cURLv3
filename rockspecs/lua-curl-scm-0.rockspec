@@ -61,9 +61,10 @@ build = {
 
     lcurl = {
       sources = {
-        "src/l52util.c",    "src/lceasy.c", "src/lcerror.c",
-        "src/lchttppost.c", "src/lcurl.c",  "src/lcutils.c",
-        "src/lcmulti.c",    "src/lcshare.c","src/lcmime.c",
+        "src/l52util.c",    "src/lceasy.c",  "src/lcerror.c",
+        "src/lchttppost.c", "src/lcurl.c",   "src/lcutils.c",
+        "src/lcmulti.c",    "src/lcshare.c", "src/lcmime.c",
+        "src/lcurlapi.c",
       },
       incdirs   = { "$(CURL_INCDIR)" },
       libdirs   = { "$(CURL_LIBDIR)" }

@@ -29,5 +29,6 @@ require "test_easy"
 require "test_form"
 require "test_mime"
 require "test_curl"
+require "test_urlapi"
 
 RUN()

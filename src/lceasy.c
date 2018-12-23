@@ -1865,7 +1865,7 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 #if LCURL_CURL_VER_GE(7,56,0)
   OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
 #endif
-#if LCURL_CURL_VER_GE(7,56,0)
+#if LCURL_CURL_VER_GE(7,63,0)
   OPT_ENTRY(curlu,             CURLU,            TTT, 0, 0)
 #endif
 #undef OPT_ENTRY

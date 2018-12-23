@@ -17,6 +17,18 @@
 
 void lcurl_url_initlib(lua_State *L, int nup);
 
+#if LCURL_CURL_VER_GE(7,62,0)
+
+typedef struct lcurl_url_tag {
+  CURLU *url;
+
+  int err_mode;
+}lcurl_url_t;
+
 int lcurl_url_create(lua_State *L, int error_mode);
+
+lcurl_url_t *lcurl_geturl_at(lua_State *L, int i);
+
+#endif
 
 #endif

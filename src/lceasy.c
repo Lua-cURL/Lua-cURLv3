@@ -16,6 +16,7 @@
 #include "lcshare.h"
 #include "lcmulti.h"
 #include "lcmime.h"
+#include "lcurlapi.h"
 #include <memory.h>
 
 static const char *LCURL_ERROR_TAG = "LCURL_ERROR_TAG";
@@ -83,6 +84,9 @@ int lcurl_easy_create(lua_State *L, int error_mode){
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime             = NULL;
 #endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  p->url              = NULL;
+#endif
   p->storage          = lcurl_storage_init(L);
   p->wr.cb_ref        = p->wr.ud_ref    = LUA_NOREF;
   p->rd.cb_ref        = p->rd.ud_ref    = LUA_NOREF;
@@ -149,6 +153,10 @@ static int lcurl_easy_cleanup(lua_State *L){
   p->post = NULL;
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime = NULL;
+#endif
+
+#if LCURL_CURL_VER_GE(7,63,0)
+  p->url = NULL;
 #endif
 
   if(p->storage != LUA_NOREF){
@@ -539,6 +547,25 @@ static int lcurl_easy_set_MIMEPOST(lua_State *L){
 
 #endif
 
+#if LCURL_CURL_VER_GE(7,63,0)
+
+static int lcurl_easy_set_CURLU(lua_State *L) {
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  lcurl_url_t *url = lcurl_geturl_at(L, 2);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_CURLU, url->url);
+  if (code != CURLE_OK) {
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_preserve_iv(L, p->storage, CURLOPT_CURLU, 2);
+
+  p->url = url;
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
 //}
 
 //{ unset
@@ -900,6 +927,25 @@ static int lcurl_easy_unset_MIMEPOST(lua_State *L){
   lcurl_storage_remove_i(L, p->storage, CURLOPT_MIMEPOST);
 
   p->mime = NULL;
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
+
+#if LCURL_CURL_VER_GE(7,63,0)
+
+static int lcurl_easy_unset_CURLU(lua_State *L) {
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_CURLU, NULL);
+  if (code != CURLE_OK) {
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+
+  lcurl_storage_remove_i(L, p->storage, CURLOPT_CURLU);
+
+  p->url = NULL;
 
   lua_settop(L, 1);
   return 1;
@@ -1731,6 +1777,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 #if LCURL_CURL_VER_GE(7,56,0)
   OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
 #endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  OPT_ENTRY(curlu,             CURLU,            TTT, 0, 0)
+#endif
 #undef OPT_ENTRY
 
 #define OPT_ENTRY(L, N, T, S, D) { "unsetopt_"#L, lcurl_easy_unset_##N },
@@ -1755,6 +1804,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 #endif
 #if LCURL_CURL_VER_GE(7,56,0)
   OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  OPT_ENTRY(curlu,             CURLU,            TTT, 0, 0)
 #endif
 #undef OPT_ENTRY
 
@@ -1812,6 +1864,9 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 #endif
 #if LCURL_CURL_VER_GE(7,56,0)
   OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  OPT_ENTRY(curlu,             CURLU,            TTT, 0, 0)
 #endif
 #undef OPT_ENTRY
 #undef FLG_ENTRY

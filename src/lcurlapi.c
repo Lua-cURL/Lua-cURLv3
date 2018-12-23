@@ -21,12 +21,6 @@ static const char *LCURL_URL = LCURL_URL_NAME;
 
 #define lcurl_geturl(L) lcurl_geturl_at(L, 1)
 
-typedef struct lcurl_url_tag{
-  CURLU *url;
-
-  int err_mode;
-}lcurl_url_t;
-
 int lcurl_url_create(lua_State *L, int error_mode){
   lcurl_url_t *p;
 
@@ -55,7 +49,7 @@ int lcurl_url_create(lua_State *L, int error_mode){
   return 1;
 }
 
-static lcurl_url_t *lcurl_geturl_at(lua_State *L, int i){
+lcurl_url_t *lcurl_geturl_at(lua_State *L, int i){
   lcurl_url_t *p = (lcurl_url_t *)lutil_checkudatap (L, i, LCURL_URL);
   luaL_argcheck (L, p != NULL, 1, LCURL_URL_NAME" object expected");
   return p;

@@ -15,6 +15,12 @@ local skip        = lunit.skip or function() end
 local curl        = require "cURL"
 local scurl       = require "cURL.safe"
 local utils       = require "utils"
+local json        = require "dkjson"
+local table       = table
+
+local weak_ptr, gc_collect, is_curl_eq = utils.import('weak_ptr', 'gc_collect', 'is_curl_eq')
+
+local GET_URL  = "http://127.0.0.1:7090/get"
 
 local tostring, pcall = tostring, pcall
 
@@ -150,7 +156,11 @@ end)
 it('should append only one parameter in query per call', function()
   url = U"http://example.com"
   assert_equal(url, url:set_query("a=hello world&b=A&B", curl.U_APPENDQUERY + curl.U_URLENCODE))
-  assert_equal("http://example.com/?a=hello+world%26b=A%26B", url:get_url())
+  if is_curl_eq(7, 62, 0) then
+    assert_equal("http://example.com/?a=hello+world%26b=A%26B", url:get_url())
+  else
+    assert_equal("http://example.com/?a=hello+world%26b%3dA%26B", url:get_url())
+  end
 end)
 
 it('should set encoded query', function()
@@ -200,6 +210,89 @@ end)
 --   assert_equal(url, url:set_query("a=hello world", curl.U_URLENCODE))
 --   assert_equal("http://example.com/?a=hello+world", url:get_url())
 -- end)
+
+end end
+
+local _ENV = TEST_CASE'curlu parameter' if ENABLE then
+
+if not curl.OPT_CURLU then test = skip_case('CURLU option avaliable since libcurl 7.63.0') else
+
+local it = setmetatable(_ENV or _M, {__call = function(self, describe, fn)
+  self["test " .. describe] = fn
+end})
+
+local url, easy, buffer
+
+local function writer(chunk)
+  table.insert(buffer, chunk)
+end
+
+local function json_data()
+  return json.decode(table.concat(buffer))
+end
+
+local function U(u)
+  url = assert_userdata(curl.url())
+  assert_equal(url, url:set_url(u))
+  return url
+end
+
+function setup()
+  buffer = {}
+end
+
+function teardown()
+  if url then url:cleanup() end
+  if easy then easy:close() end
+  url = nil
+end
+
+it('easy should prevent url from gc', function()
+  local purl
+  do 
+    easy = curl.easy()
+    local url = U(GET_URL)
+    assert_equal(easy, easy:setopt_curlu(url))
+    purl = weak_ptr(url)
+  end
+
+  gc_collect()
+  assert_not_nil(purl.value)
+
+  assert_equal(easy, easy:unsetopt_curlu())
+
+  gc_collect()
+  assert_not_nil(purl.value)
+end)
+
+it('should use url from curlu parameter', function()
+  url = U(GET_URL)
+  easy = curl.easy {curlu = url, writefunction = writer}
+  assert_equal(easy, easy:perform())
+  local response = assert_table(json_data())
+  assert_equal(GET_URL, response.url)
+end)
+
+it('should be possible reset url', function()
+  url = U("http://example.com")
+  easy = curl.easy {curlu = url, writefunction = writer}
+  url:set_url(GET_URL)
+
+  assert_equal(easy, easy:perform())
+  local response = assert_table(json_data())
+  assert_equal(GET_URL, response.url)
+end)
+
+it('should be possible reuse url', function()
+  url = U(GET_URL)
+  for i = 1, 5 do
+    local easy = curl.easy {curlu = url, writefunction = writer}
+    assert_equal(easy, easy:perform())
+    local response = assert_table(json_data())
+    assert_equal(GET_URL, response.url)
+    gc_collect()
+  end
+end)
 
 end end
 

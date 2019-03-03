@@ -19,11 +19,20 @@ void lcurl_url_initlib(lua_State *L, int nup);
 
 #if LCURL_CURL_VER_GE(7,62,0)
 
+#if LCURL_CC_SUPPORT_FORWARD_TYPEDEF
 typedef struct lcurl_url_tag {
   CURLU *url;
 
   int err_mode;
 }lcurl_url_t;
+#else
+struct lcurl_url_tag {
+  CURLU *url;
+
+  int err_mode;
+};
+#define lcurl_url_t struct lcurl_url_tag
+#endif
 
 int lcurl_url_create(lua_State *L, int error_mode);
 

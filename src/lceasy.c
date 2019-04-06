@@ -334,10 +334,12 @@ static int lcurl_opt_set_long_(lua_State *L, int opt){
   if(lua_isboolean(L, 2)){
     val = lua_toboolean(L, 2);
     if( val
-      && (opt == CURLOPT_SSL_VERIFYHOST)
+      && (
+        (opt == CURLOPT_SSL_VERIFYHOST)
 #if LCURL_CURL_VER_GE(7,52,0)
-      && (opt == CURLOPT_PROXY_SSL_VERIFYHOST)
+        || (opt == CURLOPT_PROXY_SSL_VERIFYHOST)
 #endif
+      )
     ){
       val = 2;
     }

@@ -975,7 +975,7 @@ static int lcurl_easy_unset_TRAILERFUNCTION(lua_State *L){
   if(code != CURLE_OK){
     return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
   }
-  curl_easy_setopt(p->curl, CURLOPT_TRAILERFUNCTION, NULL);
+  curl_easy_setopt(p->curl, CURLOPT_TRAILERDATA, NULL);
 
   luaL_unref(L, LCURL_LUA_REGISTRY, p->trailer.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->trailer.ud_ref);

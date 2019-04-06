@@ -111,6 +111,9 @@ size_t lcurl_read_callback(lua_State *L,
 #ifdef lcurl_mime_t
 #undef lcurl_mime_t
 #endif
+#ifdef lcurl_url_t
+#undef lcurl_url_t
+#endif
 #endif
 
 #endif

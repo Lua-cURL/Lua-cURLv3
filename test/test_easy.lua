@@ -18,7 +18,6 @@ local json       = require "dkjson"
 local path       = require "path"
 local upath      = require "path".new('/')
 local utils      = require "utils"
--- local url        = "http://127.0.0.1:7090/get"
 local fname      = "./test.download"
 
 -- local GET_URL  = "http://example.com"
@@ -1160,6 +1159,112 @@ function test_multi_set_array()
     '127.0.0.1'
   }
   assert_equal(m, m:setopt_pipelining_site_bl(null))
+end
+
+end
+
+local _ENV = TEST_CASE'trailer_callback'     if ENABLE and is_curl_ge(7,64,0) then
+
+local url = POST_URL
+
+local m, c, t
+
+local function json_data()
+  return json.decode(table.concat(t))
+end
+
+local treader = function(t)
+  local i = 0
+  return function()
+    i = i + 1
+    return t[i]
+  end
+end
+
+function setup()
+  t = {}
+  c = assert(scurl.easy{
+    url           = url,
+    post          = true,
+    httpheader    = {"Transfer-Encoding: chunked"},
+    readfunction  = treader {'a=1&', 'b=2&'},
+    timeout       = 60,
+  })
+  assert_equal(c, c:setopt_writefunction(table.insert, t))
+end
+
+function teardown()
+  if c then c:close() end
+  if m then m:close() end
+  t, c, m = nil
+end
+
+local empty_responses = {
+  {'no_response',   function()                  end},
+  {'nil_response',  function() return nil       end},
+  {'null_response', function() return curl.null end},
+  {'true_response', function() return true      end},
+  {'empty_array',   function() return {}        end},
+}
+
+local abort_responses = {
+  {'false_response',          function() return false end},
+  {'nil_with_error_response', function() return nil, 'error message' end},
+  {'numeric_response_0',      function() return 0 end},
+  {'numeric_response_1',      function() return 1 end},
+}
+
+for _, response in ipairs(empty_responses) do
+  _ENV[ 'test_' .. response[1] ] = function()
+    local trailer_called = 0
+    assert_equal(c, c:setopt_trailerfunction(function()
+      trailer_called = trailer_called + 1
+      return response[2]()
+    end))
+
+    assert_equal(c, c:perform())
+
+    assert_equal(1, trailer_called)
+
+    assert_equal(200, c:getinfo_response_code())
+    local data = assert_table(json_data())
+
+    assert_equal('1', data.form.a)
+    assert_equal('2', data.form.b)
+  end
+end
+
+for _, response in ipairs(abort_responses) do
+  _ENV[ 'test_' .. response[1] ] = function()
+    local trailer_called = 0
+    assert_equal(c, c:setopt_trailerfunction(function()
+      trailer_called = trailer_called + 1
+      return response[2]()
+    end))
+
+    local ok, err = assert_nil(c:perform())
+    assert_equal(1, trailer_called)
+    assert_equal(curl.error(curl.ERROR_EASY, curl.E_ABORTED_BY_CALLBACK), err)
+  end
+end
+
+function test_send_header()
+  local trailer_called = 0
+  assert_equal(c, c:setopt_trailerfunction(function()
+    trailer_called = trailer_called + 1
+    return {'x-trailer-header: value'}
+  end))
+
+  assert_equal(c, c:perform())
+
+  assert_equal(1, trailer_called)
+
+  assert_equal(200, c:getinfo_response_code())
+  local data = assert_table(json_data())
+
+  assert_equal('1', data.form.a)
+  assert_equal('2', data.form.b)
+  assert_equal('value', data.headers['x-trailer-header'])
 end
 
 end

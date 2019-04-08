@@ -457,6 +457,10 @@ OPT_ENTRY(doh_url,                  DOH_URL,                  STR, 0, LCURL_DEFA
 OPT_ENTRY(upload_buffersize,        UPLOAD_BUFFERSIZE,        LNG, 0, 64 * 1024)
 #endif
 
+#if LCURL_CURL_VER_GE(7,64,0)
+OPT_ENTRY(http09_allowed,           HTTP09_ALLOWED,           LNG, 0, 0)
+#endif
+
 //{ Restore system macros
 
 #ifdef LCURL__TCP_FASTOPEN

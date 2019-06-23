@@ -88,7 +88,11 @@ OPT_ENTRY( interface,              INTERFACE,                STR, LCURL_STORE_ST
 OPT_ENTRY( localport,              LOCALPORT,                LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( localportrange,         LOCALPORTRANGE,           LNG, 0,                  1 )
 OPT_ENTRY( dns_cache_timeout,      DNS_CACHE_TIMEOUT,        LNG, 0,                  60 )
+
+#if !LCURL_CURL_VER_GE(7,65,0)
 OPT_ENTRY( dns_use_global_cache,   DNS_USE_GLOBAL_CACHE,     LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+
 #if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( dns_servers,            DNS_SERVERS,              STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
 #endif
@@ -455,6 +459,10 @@ OPT_ENTRY(upkeep_interval_ms,       UPKEEP_INTERVAL_MS,       LNG, 0, CURL_UPKEE
 OPT_ENTRY(doh_url,                  DOH_URL,                  STR, 0, LCURL_DEFAULT_VALUE)
 // thre no named value for default value. It just defined as 64kB in documentation
 OPT_ENTRY(upload_buffersize,        UPLOAD_BUFFERSIZE,        LNG, 0, 64 * 1024)
+#endif
+
+#if LCURL_CURL_VER_GE(7,65,0)
+OPT_ENTRY(maxage_conn,              MAXAGE_CONN,              LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
 //{ Restore system macros

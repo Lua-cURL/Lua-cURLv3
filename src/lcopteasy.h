@@ -88,7 +88,11 @@ OPT_ENTRY( interface,              INTERFACE,                STR, LCURL_STORE_ST
 OPT_ENTRY( localport,              LOCALPORT,                LNG, 0,                  LCURL_DEFAULT_VALUE )
 OPT_ENTRY( localportrange,         LOCALPORTRANGE,           LNG, 0,                  1 )
 OPT_ENTRY( dns_cache_timeout,      DNS_CACHE_TIMEOUT,        LNG, 0,                  60 )
+
+#if !LCURL_CURL_VER_GE(7,65,0)
 OPT_ENTRY( dns_use_global_cache,   DNS_USE_GLOBAL_CACHE,     LNG, 0,                  LCURL_DEFAULT_VALUE )
+#endif
+
 #if LCURL_CURL_VER_GE(7,25,0)
 OPT_ENTRY( dns_servers,            DNS_SERVERS,              STR, LCURL_STORE_STRING, LCURL_DEFAULT_VALUE )
 #endif
@@ -459,6 +463,10 @@ OPT_ENTRY(upload_buffersize,        UPLOAD_BUFFERSIZE,        LNG, 0, 64 * 1024)
 
 #if LCURL_CURL_VER_GE(7,64,0)
 OPT_ENTRY(http09_allowed,           HTTP09_ALLOWED,           LNG, 0, 0)
+#endif
+
+#if LCURL_CURL_VER_GE(7,65,0)
+OPT_ENTRY(maxage_conn,              MAXAGE_CONN,              LNG, 0, LCURL_DEFAULT_VALUE)
 #endif
 
 //{ Restore system macros

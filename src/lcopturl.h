@@ -8,6 +8,7 @@ ENTRY_PART(query,         UPART_QUERY    , CURLUE_NO_QUERY        )
 ENTRY_PART(scheme,        UPART_SCHEME   , CURLUE_NO_SCHEME       )
 ENTRY_PART(url,           UPART_URL      , CURLUE_OK              )
 ENTRY_PART(user,          UPART_USER     , CURLUE_NO_USER         )
+ENTRY_PART(zoneid,        UPART_ZONEID   , CURLUE_UNKNOWN_PART    )
 
 ENTRY_FLAG(DEFAULT_PORT        )
 ENTRY_FLAG(NO_DEFAULT_PORT     )

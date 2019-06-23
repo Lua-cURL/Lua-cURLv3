@@ -89,6 +89,9 @@ typedef struct lcurl_easy_tag{
   lcurl_callback_t match;
   lcurl_callback_t chunk_bgn;
   lcurl_callback_t chunk_end;
+#if LCURL_CURL_VER_GE(7,64,0)
+  lcurl_callback_t trailer;
+#endif
 }lcurl_easy_t;
 
 int lcurl_easy_create(lua_State *L, int error_mode);
@@ -110,6 +113,9 @@ size_t lcurl_read_callback(lua_State *L,
 #undef lcurl_multi_t
 #ifdef lcurl_mime_t
 #undef lcurl_mime_t
+#endif
+#ifdef lcurl_url_t
+#undef lcurl_url_t
 #endif
 #endif
 

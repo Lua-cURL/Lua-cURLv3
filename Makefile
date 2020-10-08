@@ -54,13 +54,21 @@ CF                = $(INCLUDES) $(DEFINES) $(COMMONFLAGS) $(WARN) -DPTHREADS $(C
 
 SCR               = src/lua/*.lua src/lua/cURL/*.lua src/lua/cURL/impl/*.lua
 SRCS              = src/*.c
+OBJS              = $(subst src/,,$(subst .c,.o,$(SRCS)))
 
 BIN               = $(T).so
+STATIC_LIB        = $(T).a
 
 all: $(BIN)
 
 $(BIN): $(SRCS)
 	$(CC) $(CF) -o $@ $^ $(LF)
+
+$(OBJS): $(SRCS)
+	$(CC) $(CF) -c $^ $(LF)
+
+$(STATIC_LIB): $(OBJS)
+	ar rcs $@ $^
 
 install: all
 	$(INSTALL) -d $(DESTDIR)$(LUA_CMOD) $(DESTDIR)$(LUA_LMOD)/cURL/impl
@@ -71,4 +79,4 @@ install: all
 	$(INSTALL) src/lua/cURL/impl/cURL.lua $(DESTDIR)$(LUA_LMOD)/cURL/impl
 
 clean:
-	$(RM) -f $(BIN)
+	$(RM) -f $(BIN) $(OBJS) $(STATIC_LIB)

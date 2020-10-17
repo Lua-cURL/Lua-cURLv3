@@ -168,6 +168,11 @@ end
 --- Curl error object
 -- @type error
 --
+-- !!!NOTE!!!: Always use cURL.safe in order to be able to use the error class functions.
+--             perform() returns true/false and err contains the error message or nil if no error.
+-- @usage
+-- ok, err = context:perform()
+--
 do
 
 --- Get the error category.

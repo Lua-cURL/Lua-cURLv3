@@ -292,6 +292,10 @@ static int lcurl_easy_reset(lua_State *L){
   lua_settop(L, 1);
 
   if(p->storage != LUA_NOREF){
+    int i;
+    for (i = 0; i < LCURL_LIST_COUNT; ++i) {
+      p->lists[i] = LUA_NOREF;
+    }
     lcurl_storage_free(L, p->storage);
     p->storage = lcurl_storage_init(L);
     lua_settop(L, 1);

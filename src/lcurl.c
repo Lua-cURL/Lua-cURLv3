@@ -25,6 +25,18 @@
 #  define LCURL_EXPORT_API LUALIB_API
 #endif
 
+static const char* LCURL_REGISTRY = "LCURL Registry";
+static const char* LCURL_USERVAL = "LCURL Uservalues";
+#if LCURL_CURL_VER_GE(7,56,0)
+static const char* LCURL_MIME_EASY_MAP = "LCURL Mime easy";
+#endif
+
+#if LCURL_CURL_VER_GE(7,56,0)
+#define NUP 3
+#else
+#define NUP 2
+#endif
+
 static int lcurl_easy_new_safe(lua_State *L){
   return lcurl_easy_create(L, LCURL_ERROR_RETURN);
 }
@@ -163,6 +175,11 @@ static int lcurl_easy_option_iter(lua_State *L) {
 
 static int lcurl_version(lua_State *L){
   lua_pushstring(L, curl_version());
+  return 1;
+}
+
+static int lcurl_debug_getregistry(lua_State *L) {
+  lua_rawgetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);
   return 1;
 }
 
@@ -322,6 +339,8 @@ static const struct luaL_Reg lcurl_functions[] = {
   {"easy_option_by_id",   lcurl_easy_option_by_id   },
   {"easy_option_by_name", lcurl_easy_option_by_name },
 #endif
+ 
+  {"__getregistry",   lcurl_debug_getregistry},
 
   {NULL,NULL}
 };
@@ -343,6 +362,8 @@ static const struct luaL_Reg lcurl_functions_safe[] = {
   {"easy_option_by_name", lcurl_easy_option_by_name },
 #endif
 
+  { "__getregistry",   lcurl_debug_getregistry },
+
   {NULL,NULL}
 };
 
@@ -357,17 +378,6 @@ static const lcurl_const_t lcurl_flags[] = {
 
 static volatile int LCURL_INIT = 0;
 
-static const char* LCURL_REGISTRY = "LCURL Registry";
-static const char* LCURL_USERVAL  = "LCURL Uservalues";
-#if LCURL_CURL_VER_GE(7,56,0)
-static const char* LCURL_MIME_EASY_MAP  = "LCURL Mime easy";
-#endif
-
-#if LCURL_CURL_VER_GE(7,56,0)
-#define NUP 3
-#else
-#define NUP 2
-#endif
 
 #if LCURL_CURL_VER_GE(7,56,0)
 #define LCURL_PUSH_NUP(L) lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);

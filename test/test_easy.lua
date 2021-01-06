@@ -1103,6 +1103,23 @@ function test_set_empty_array()
   assert_not_match("X%-Custom:%s*value\r\n", headers)
 end
 
+function test_reset_slist()
+  c = curl.easy {
+    httpheader = {'X-Foo: 1'},
+    resolve    = {'example.com:80:127.0.0.1'}
+  }
+
+  c:reset()
+
+  c:setopt{
+    httpheader = {'X-Foo: 2'},
+    resolve    = {'example.com:80:127.0.0.1'}
+  }
+
+  local body, headers = assert_string(dump_request(c))
+  assert_match("X%-Foo:%s2\r\n", headers)
+end
+
 end
 
 local _ENV = TEST_CASE'set_null'             if ENABLE then

@@ -80,6 +80,8 @@ int   lutil_createmetap   (lua_State *L, const void *p, const luaL_Reg *methods,
 
 void *lutil_newudatap_impl     (lua_State *L, size_t size, const void *p);
 
+void lutil_pushuint(lua_State *L, unsigned int v);
+
 void lutil_pushint64(lua_State *L, int64_t v);
 
 int64_t lutil_checkint64(lua_State *L, int idx);

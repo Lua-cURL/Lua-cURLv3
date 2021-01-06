@@ -141,6 +141,14 @@ void lutil_pushint64(lua_State *L, int64_t v){
   lua_pushnumber(L, (lua_Number)v);
 }
 
+void lutil_pushuint(lua_State *L, unsigned int v){
+#if LUA_VERSION_NUM >= 503
+  lua_pushinteger(L, (lua_Integer)v);
+#else
+  lua_pushnumber(L, (lua_Number)v);
+#endif
+}
+
 int64_t lutil_checkint64(lua_State *L, int idx){
   if(sizeof(lua_Integer) >= sizeof(int64_t))
     return luaL_checkinteger(L, idx);

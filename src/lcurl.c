@@ -73,6 +73,94 @@ static int lcurl_url_new(lua_State *L) {
 
 #endif
 
+#if LCURL_CURL_VER_GE(7,73,0)
+
+static void lcurl_easy_option_push(lua_State *L, const struct curl_easyoption *opt) {
+  lua_newtable(L);
+  lua_pushliteral(L, "id");    lutil_pushuint(L, opt->id);    lua_rawset(L, -3);
+  lua_pushliteral(L, "name");  lua_pushstring(L, opt->name);  lua_rawset(L, -3);
+  lua_pushliteral(L, "type");  lutil_pushuint(L, opt->type);  lua_rawset(L, -3);
+  lua_pushliteral(L, "flags"); lutil_pushuint(L, opt->flags); lua_rawset(L, -3);
+  lua_pushliteral(L, "flags_set"); lua_newtable(L);
+    lua_pushliteral(L, "alias"); lua_pushboolean(L, opt->flags & CURLOT_FLAG_ALIAS); lua_rawset(L, -3);
+  lua_rawset(L, -3);
+  lua_pushliteral(L, "type_name");
+    switch(opt->type){
+      case CURLOT_LONG    : lua_pushliteral(L, "LONG"    ); break;
+      case CURLOT_VALUES  : lua_pushliteral(L, "VALUES"  ); break;
+      case CURLOT_OFF_T   : lua_pushliteral(L, "OFF_T"   ); break;
+      case CURLOT_OBJECT  : lua_pushliteral(L, "OBJECT"  ); break;
+      case CURLOT_STRING  : lua_pushliteral(L, "STRING"  ); break;
+      case CURLOT_SLIST   : lua_pushliteral(L, "SLIST"   ); break;
+      case CURLOT_CBPTR   : lua_pushliteral(L, "CBPTR"   ); break;
+      case CURLOT_BLOB    : lua_pushliteral(L, "BLOB"    ); break;
+      case CURLOT_FUNCTION: lua_pushliteral(L, "FUNCTION"); break;
+      default: lua_pushliteral(L, "UNKNOWN");
+    }
+  lua_rawset(L, -3);
+}
+
+static int lcurl_easy_option_next(lua_State *L) {
+  const struct curl_easyoption *opt;
+
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_settop(L, 1);
+
+  lua_rawgeti(L, 1, 1);
+  opt = lua_touserdata(L, -1);
+  lua_settop(L, 1);
+
+  opt = curl_easy_option_next(opt);
+  if (!opt) {
+    return 0;
+  }
+
+  lcurl_easy_option_push(L, opt);
+
+  lua_pushlightuserdata(L, (void*)opt);
+  lua_rawseti(L, 1, 1);
+
+  return 1;
+}
+
+static int lcurl_easy_option_by_id(lua_State *L) {
+  const struct curl_easyoption *opt = NULL;
+  lua_Integer id = luaL_checkinteger(L, 1);
+
+  lua_settop(L, 0);
+  opt = curl_easy_option_by_id(id);
+  if (!opt) {
+    return 0;
+  }
+
+  lcurl_easy_option_push(L, opt);
+
+  return 1;
+}
+
+static int lcurl_easy_option_by_name(lua_State *L) {
+  const struct curl_easyoption *opt = NULL;
+  const char *name = luaL_checkstring(L, 1);
+
+  lua_settop(L, 0);
+  opt = curl_easy_option_by_name(name);
+  if (!opt) {
+    return 0;
+  }
+
+  lcurl_easy_option_push(L, opt);
+
+  return 1;
+}
+
+static int lcurl_easy_option_iter(lua_State *L) {
+  lua_pushcfunction(L, lcurl_easy_option_next);
+  lua_newtable(L);
+  return 2;
+}
+
+#endif
+
 static int lcurl_version(lua_State *L){
   lua_pushstring(L, curl_version());
   return 1;
@@ -137,11 +225,26 @@ static int lcurl_version_info(lua_State *L){
 #ifdef CURL_VERSION_BROTLI
     lua_pushliteral(L, "BROTLI");       lua_pushboolean(L, data->features & CURL_VERSION_BROTLI      ); lua_rawset(L, -3);
 #endif
+#ifdef CURL_VERSION_ALTSVC
+    lua_pushliteral(L, "ALTSVC");       lua_pushboolean(L, data->features & CURL_VERSION_ALTSVC      ); lua_rawset(L, -3);
+#endif
+#ifdef CURL_VERSION_HTTP3
+    lua_pushliteral(L, "HTTP3");        lua_pushboolean(L, data->features & CURL_VERSION_HTTP3       ); lua_rawset(L, -3);
+#endif
+#ifdef CURL_VERSION_ZSTD
+    lua_pushliteral(L, "ZSTD");         lua_pushboolean(L, data->features & CURL_VERSION_ZSTD        ); lua_rawset(L, -3);
+#endif
+#ifdef CURL_VERSION_UNICODE
+    lua_pushliteral(L, "UNICODE");      lua_pushboolean(L, data->features & CURL_VERSION_UNICODE     ); lua_rawset(L, -3);
+#endif
+#ifdef CURL_VERSION_HSTS
+    lua_pushliteral(L, "HSTS");         lua_pushboolean(L, data->features & CURL_VERSION_HSTS        ); lua_rawset(L, -3);
+#endif
 
   lua_setfield(L, -2, "features");         /* bitmask, see defines below */
 
   if(data->ssl_version){lua_pushstring(L, data->ssl_version); lua_setfield(L, -2, "ssl_version");}      /* human readable string */
-  lua_pushnumber(L, data->ssl_version_num); lua_setfield(L, -2, "ssl_version_num");  /* not used anymore, always 0 */
+  lutil_pushuint(L, data->ssl_version_num); lua_setfield(L, -2, "ssl_version_num");  /* not used anymore, always 0 */
   if(data->libz_version){lua_pushstring(L, data->libz_version); lua_setfield(L, -2, "libz_version");}   /* human readable string */
 
   /* protocols is terminated by an entry with a NULL protoname */
@@ -153,7 +256,7 @@ static int lcurl_version_info(lua_State *L){
 
   if(data->age >= CURLVERSION_SECOND){
     if(data->ares){lua_pushstring(L, data->ares); lua_setfield(L, -2, "ares");}
-    lua_pushnumber(L, data->ares_num);      lua_setfield(L, -2, "ares_num");
+    lutil_pushuint(L, data->ares_num);      lua_setfield(L, -2, "ares_num");
   }
 
   if(data->age >= CURLVERSION_THIRD){ /* added in 7.12.0 */
@@ -162,15 +265,37 @@ static int lcurl_version_info(lua_State *L){
 
 #if LCURL_CURL_VER_GE(7,16,1)
   if(data->age >= CURLVERSION_FOURTH){
-    lua_pushnumber(L, data->iconv_ver_num); lua_setfield(L, -2, "iconv_ver_num");
+    lutil_pushuint(L, data->iconv_ver_num); lua_setfield(L, -2, "iconv_ver_num");
     if(data->libssh_version){lua_pushstring(L, data->libssh_version);lua_setfield(L, -2, "libssh_version");}
   }
 #endif
 
 #if LCURL_CURL_VER_GE(7,57,0)
   if(data->age >= CURLVERSION_FOURTH){
-    lua_pushnumber(L, data->brotli_ver_num); lua_setfield(L, -2, "brotli_ver_num");
+    lutil_pushuint(L, data->brotli_ver_num); lua_setfield(L, -2, "brotli_ver_num");
     if(data->brotli_version){lua_pushstring(L, data->brotli_version);lua_setfield(L, -2, "brotli_version");}
+  }
+#endif
+
+#if LCURL_CURL_VER_GE(7,66,0)
+  if(data->age >= CURLVERSION_SIXTH){
+    lutil_pushuint(L, data->nghttp2_ver_num); lua_setfield(L, -2, "nghttp2_ver_num");
+    if(data->nghttp2_version){lua_pushstring(L, data->nghttp2_version);lua_setfield(L, -2, "nghttp2_version");}
+    if(data->quic_version){lua_pushstring(L, data->quic_version);lua_setfield(L, -2, "quic_version");}
+  }
+#endif
+
+#if LCURL_CURL_VER_GE(7,70,0)
+  if(data->age >= CURLVERSION_SEVENTH){
+    if(data->cainfo){lua_pushstring(L, data->cainfo);lua_setfield(L, -2, "cainfo");}
+    if(data->capath){lua_pushstring(L, data->capath);lua_setfield(L, -2, "capath");}
+  }
+#endif
+
+#if LCURL_CURL_VER_GE(7,72,0)
+  if(data->age >= CURLVERSION_EIGHTH){
+    lutil_pushuint(L, data->zstd_ver_num); lua_setfield(L, -2, "zstd_ver_num");
+    if(data->zstd_version){lua_pushstring(L, data->zstd_version);lua_setfield(L, -2, "zstd_version");}
   }
 #endif
 
@@ -192,7 +317,12 @@ static const struct luaL_Reg lcurl_functions[] = {
 #endif
   {"version",         lcurl_version          },
   {"version_info",    lcurl_version_info     },
-  
+#if LCURL_CURL_VER_GE(7,73,0)
+  {"ieasy_options",       lcurl_easy_option_iter    },
+  {"easy_option_by_id",   lcurl_easy_option_by_id   },
+  {"easy_option_by_name", lcurl_easy_option_by_name },
+#endif
+
   {NULL,NULL}
 };
 
@@ -207,6 +337,11 @@ static const struct luaL_Reg lcurl_functions_safe[] = {
 #endif
   {"version",         lcurl_version               },
   {"version_info",    lcurl_version_info          },
+#if LCURL_CURL_VER_GE(7,73,0)
+  {"ieasy_options",       lcurl_easy_option_iter    },
+  {"easy_option_by_id",   lcurl_easy_option_by_id   },
+  {"easy_option_by_name", lcurl_easy_option_by_name },
+#endif
 
   {NULL,NULL}
 };

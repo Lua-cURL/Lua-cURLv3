@@ -132,3 +132,15 @@ ERR_ENTRY ( HTTP2_STREAM             )
 #if LCURL_CURL_VER_GE(7,59,0)
 ERR_ENTRY ( RECURSIVE_API_CALL       )
 #endif
+#if LCURL_CURL_VER_GE(7,66,0)
+ERR_ENTRY ( AUTH_ERROR               )
+#endif
+#if LCURL_CURL_VER_GE(7,68,0)
+ERR_ENTRY ( HTTP3                    )
+#endif
+#if LCURL_CURL_VER_GE(7,69,0)
+ERR_ENTRY ( QUIC_CONNECT_ERROR       )
+#endif
+#if LCURL_CURL_VER_GE(7,73,0)
+ERR_ENTRY ( PROXY                    )
+#endif

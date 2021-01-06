@@ -128,7 +128,6 @@ static int lcurl_easy_to_s(lua_State *L){
 }
 
 static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
-  int top = lua_gettop(L);
   int i;
 
   if(p->storage != LUA_NOREF){
@@ -191,8 +190,6 @@ static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   for(i = 0; i < LCURL_LIST_COUNT; ++i){
     p->lists[i] = LUA_NOREF;
   }
-
-  assert(lua_gettop(L) == top);
 }
 
 static int lcurl_easy_cleanup(lua_State *L){

@@ -36,7 +36,7 @@ install:
     )
   - if not exist c:\hererocks (
       pip install hererocks &&
-      hererocks c:\hererocks --%LUA% --target %HR_TARGET% -rlatest
+      hererocks c:\hererocks --%LUA% --target %HR_TARGET% -r2.4.4
     )
   - call c:\hererocks\bin\activate
   - luarocks show luarocks-fetch-gitrec >nul 2>&1 || luarocks install luarocks-fetch-gitrec

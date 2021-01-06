@@ -214,12 +214,12 @@ end)
 if curl.UPART_ZONEID then
 
 it('should returns zoneid', function()
-  url = scurl.url('http://[fe80:3438:7667:5c77:ce27%18]:3800')
+  url = assert_userdata(scurl.url('http://[::1%18]:3800'))
   assert_equal('18', url:get_zoneid())
 end)
 
 it('should returns empty on missing zoneid', function()
-  url = scurl.url('http://[fe80:3438:7667:5c77:ce27]:3800')
+  url = assert_userdata(scurl.url('http://[::1]:3800'))
   assert_equal(curl.null, url:get_zoneid())
 end)
 

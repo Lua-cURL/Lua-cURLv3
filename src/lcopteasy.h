@@ -332,6 +332,9 @@ FLG_ENTRY( HTTP_VERSION_2TLS  )
 #if LCURL_CURL_VER_GE(7,49,0)
 FLG_ENTRY( HTTP_VERSION_2_PRIOR_KNOWLEDGE )
 #endif
+#if LCURL_CURL_VER_GE(7,66,0)
+FLG_ENTRY( HTTP_VERSION_3 )
+#endif
 
 FLG_ENTRY( READFUNC_PAUSE     ) /*7.18.0*/
 FLG_ENTRY( WRITEFUNC_PAUSE    ) /*7.18.0*/
@@ -465,8 +468,45 @@ OPT_ENTRY(upload_buffersize,        UPLOAD_BUFFERSIZE,        LNG, 0, 64 * 1024)
 OPT_ENTRY(http09_allowed,           HTTP09_ALLOWED,           LNG, 0, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,64,1)
+OPT_ENTRY(altsvc,                   ALTSVC,                   STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY(altsvc_ctrl,              ALTSVC_CTRL,              LNG, 0, 0)
+#endif
+
 #if LCURL_CURL_VER_GE(7,65,0)
 OPT_ENTRY(maxage_conn,              MAXAGE_CONN,              LNG, 0, LCURL_DEFAULT_VALUE)
+#endif
+
+#if LCURL_CURL_VER_GE(7,66,0)
+OPT_ENTRY(sasl_authzid,            SASL_AUTHZID,              STR, 0, LCURL_DEFAULT_VALUE)
+#endif
+
+#if LCURL_CURL_VER_GE(7,68,0)
+FLG_ENTRY( PROGRESSFUNC_CONTINUE )
+#endif
+
+#if LCURL_CURL_VER_GE(7,69,0)
+OPT_ENTRY(mail_rcpt_alllowfails,   MAIL_RCPT_ALLLOWFAILS,     LNG, 0, 1)
+#endif
+
+#if LCURL_CURL_VER_GE(7,71,0)
+OPT_ENTRY(sslcert_blob,       SSLCERT_BLOB,       BLB, 0, 0)
+OPT_ENTRY(sslkey_blob,        SSLKEY_BLOB,        BLB, 0, 0)
+OPT_ENTRY(proxy_sslcert_blob, PROXY_SSLCERT_BLOB, BLB, 0, 0)
+OPT_ENTRY(proxy_sslkey_blob,  PROXY_SSLKEY_BLOB,  BLB, 0, 0)
+OPT_ENTRY(issuercert_blob,    ISSUERCERT_BLOB,    BLB, 0, 0)
+
+OPT_ENTRY(proxy_issuercert,      PROXY_ISSUERCERT,      STR, 0, LCURL_DEFAULT_VALUE)
+OPT_ENTRY(proxy_issuercert_blob, PROXY_ISSUERCERT_BLOB, BLB, 0, 0)
+#endif
+
+#if LCURL_CURL_VER_GE(7,73,0)
+OPT_ENTRY(ssl_ec_curves,      SSL_EC_CURVES,      STR, 0, LCURL_DEFAULT_VALUE)
+#endif
+
+#if LCURL_CURL_VER_GE(7,74,0)
+OPT_ENTRY(hsts_ctrl,          HSTS_CTRL,          LNG, 0, 0)
+OPT_ENTRY(hsts,               HSTS,               STR, 0, LCURL_DEFAULT_VALUE)
 #endif
 
 //{ Restore system macros

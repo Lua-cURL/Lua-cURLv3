@@ -77,6 +77,15 @@ OPT_ENTRY(starttransfer_time_t,     STARTTRANSFER_TIME_T,    OFF, 0)
 OPT_ENTRY(total_time_t,             TOTAL_TIME_T,            OFF, 0)
 #endif
 
+#if LCURL_CURL_VER_GE(7,66,0)
+OPT_ENTRY(retry_after,              RETRY_AFTER,             OFF, 0)
+OPT_ENTRY(effective_method,         EFFECTIVE_METHOD,        STR, 0)
+#endif
+
+#if LCURL_CURL_VER_GE(7,73,0)
+OPT_ENTRY(proxy_error,              PROXY_ERROR,             LNG, 0)
+#endif
+
 // OPT_ENTRY( PRIVATE,                 void     ) 
 // OPT_ENTRY( TLS_SSL_PTR,             struct curl_tlssessioninfo **
 // OPT_ENTRY( TLS_SESSION,             struct curl_tlssessioninfo *

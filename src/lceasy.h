@@ -19,6 +19,7 @@
 #define LCURL_STR_INDEX(N)
 #define LCURL_LNG_INDEX(N)
 #define LCURL_OFF_INDEX(N)
+#define LCURL_BLB_INDEX(N)
 #define OPT_ENTRY(L, N, T, S, D) LCURL_##T##_INDEX(N)
 
 enum {
@@ -29,6 +30,7 @@ enum {
   LCURL_LIST_COUNT,
 };
 
+#undef LCURL_BLB_INDEX
 #undef LCURL_OFF_INDEX
 #undef LCURL_LST_INDEX
 #undef LCURL_STR_INDEX
@@ -91,6 +93,10 @@ typedef struct lcurl_easy_tag{
   lcurl_callback_t chunk_end;
 #if LCURL_CURL_VER_GE(7,64,0)
   lcurl_callback_t trailer;
+#endif
+#if LCURL_CURL_VER_GE(7,74,0)
+  lcurl_callback_t hstsread;
+  lcurl_callback_t hstswrite;
 #endif
 }lcurl_easy_t;
 

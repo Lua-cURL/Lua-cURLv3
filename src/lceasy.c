@@ -84,9 +84,6 @@ int lcurl_easy_create(lua_State *L, int error_mode){
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime             = NULL;
 #endif
-#if LCURL_CURL_VER_GE(7,63,0)
-  p->url              = NULL;
-#endif
   p->storage          = lcurl_storage_init(L);
   p->wr.cb_ref        = p->wr.ud_ref    = LUA_NOREF;
   p->rd.cb_ref        = p->rd.ud_ref    = LUA_NOREF;
@@ -141,10 +138,6 @@ static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   p->post = NULL;
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime = NULL;
-#endif
-
-#if LCURL_CURL_VER_GE(7,63,0)
-  p->url = NULL;
 #endif
 
   luaL_unref(L, LCURL_LUA_REGISTRY, p->wr.cb_ref);
@@ -622,8 +615,6 @@ static int lcurl_easy_set_CURLU(lua_State *L) {
 
   lcurl_storage_preserve_iv(L, p->storage, CURLOPT_CURLU, 2);
 
-  p->url = url;
-
   lua_settop(L, 1);
   return 1;
 }
@@ -1030,8 +1021,6 @@ static int lcurl_easy_unset_CURLU(lua_State *L) {
   }
 
   lcurl_storage_remove_i(L, p->storage, CURLOPT_CURLU);
-
-  p->url = NULL;
 
   lua_settop(L, 1);
   return 1;

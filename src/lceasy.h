@@ -75,10 +75,6 @@ typedef struct lcurl_easy_tag{
   lcurl_mime_t *mime;
 #endif
 
-#if LCURL_CURL_VER_GE(7,63,0)
-  lcurl_url_t *url;
-#endif
-
   CURL *curl;
   int storage;
   int lists[LCURL_LIST_COUNT];

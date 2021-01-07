@@ -84,9 +84,6 @@ int lcurl_easy_create(lua_State *L, int error_mode){
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime             = NULL;
 #endif
-#if LCURL_CURL_VER_GE(7,63,0)
-  p->url              = NULL;
-#endif
   p->storage          = lcurl_storage_init(L);
   p->wr.cb_ref        = p->wr.ud_ref    = LUA_NOREF;
   p->rd.cb_ref        = p->rd.ud_ref    = LUA_NOREF;
@@ -130,45 +127,17 @@ static int lcurl_easy_to_s(lua_State *L){
   return 1;
 }
 
-static int lcurl_easy_cleanup(lua_State *L){
-  lcurl_easy_t *p = lcurl_geteasy(L);
+static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   int i;
 
-  if(p->multi){
-    LCURL_UNUSED_VAR CURLMcode code = lcurl__multi_remove_handle(L, p->multi, p);
-
-    //! @todo what I can do if I can not remove it???
-  }
-
-  if(p->curl){
-    lua_State *curL;
-
-    // In my tests when I cleanup some easy handle. 
-    // timerfunction called only for single multi handle.
-    // Also may be this function may call `close` callback
-    // for `curl_mimepart` structure.
-    curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
-    curl_easy_cleanup(p->curl);
-#ifndef LCURL_RESET_NULL_LUA
-    if(curL != NULL)
-#endif
-    lcurl__easy_assign_lua(L, p, curL, 1);
-
-    p->curl = NULL;
+  if(p->storage != LUA_NOREF){
+    p->storage = lcurl_storage_free(L, p->storage);
   }
 
   p->post = NULL;
 #if LCURL_CURL_VER_GE(7,56,0)
   p->mime = NULL;
 #endif
-
-#if LCURL_CURL_VER_GE(7,63,0)
-  p->url = NULL;
-#endif
-
-  if(p->storage != LUA_NOREF){
-    p->storage = lcurl_storage_free(L, p->storage);
-  }
 
   luaL_unref(L, LCURL_LUA_REGISTRY, p->wr.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->wr.ud_ref);
@@ -221,8 +190,37 @@ static int lcurl_easy_cleanup(lua_State *L){
   for(i = 0; i < LCURL_LIST_COUNT; ++i){
     p->lists[i] = LUA_NOREF;
   }
+}
 
+static int lcurl_easy_cleanup(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
   lua_settop(L, 1);
+
+  if(p->multi){
+    LCURL_UNUSED_VAR CURLMcode code = lcurl__multi_remove_handle(L, p->multi, p);
+
+    //! @todo what I can do if I can not remove it???
+  }
+
+  if(p->curl){
+    lua_State *curL;
+
+    // In my tests when I cleanup some easy handle. 
+    // timerfunction called only for single multi handle.
+    // Also may be this function may call `close` callback
+    // for `curl_mimepart` structure.
+    curL = p->L; lcurl__easy_assign_lua(L, p, L, 1);
+    curl_easy_cleanup(p->curl);
+#ifndef LCURL_RESET_NULL_LUA
+    if(curL != NULL)
+#endif
+    lcurl__easy_assign_lua(L, p, curL, 1);
+
+    p->curl = NULL;
+  }
+
+  lcurl_easy_cleanup_storage(L, p);
+
   lua_pushnil(L);
   lua_rawset(L, LCURL_USERVALUES);
 
@@ -305,15 +303,8 @@ static int lcurl_easy_reset(lua_State *L){
   curl_easy_reset(p->curl);
   lua_settop(L, 1);
 
-  if(p->storage != LUA_NOREF){
-    int i;
-    for (i = 0; i < LCURL_LIST_COUNT; ++i) {
-      p->lists[i] = LUA_NOREF;
-    }
-    lcurl_storage_free(L, p->storage);
-    p->storage = lcurl_storage_init(L);
-    lua_settop(L, 1);
-  }
+  lcurl_easy_cleanup_storage(L, p);
+  p->storage = lcurl_storage_init(L);
 
   return 1;
 }
@@ -620,8 +611,6 @@ static int lcurl_easy_set_CURLU(lua_State *L) {
   }
 
   lcurl_storage_preserve_iv(L, p->storage, CURLOPT_CURLU, 2);
-
-  p->url = url;
 
   lua_settop(L, 1);
   return 1;
@@ -1029,8 +1018,6 @@ static int lcurl_easy_unset_CURLU(lua_State *L) {
   }
 
   lcurl_storage_remove_i(L, p->storage, CURLOPT_CURLU);
-
-  p->url = NULL;
 
   lua_settop(L, 1);
   return 1;

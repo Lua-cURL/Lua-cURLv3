@@ -207,6 +207,27 @@ function test_mimepost_does_not_ref_to_easy()
   assert_nil(peasy.value)
 end
 
+function test_cleanup_on_easy_reset()
+
+  local mime do
+    mime = weak_ptr(easy:mime())
+    easy:setopt_mimepost(mime.value)
+  end
+
+  gc_collect()
+
+  assert_not_nil(mime.value)
+
+  easy:reset()
+
+  gc_collect(10)
+
+  assert_nil(mime.value)
+
+  easy:setopt{url = GET_URL, writefunction = function() end}
+  easy:perform()
+end
+
 end
 
 local _ENV = TEST_CASE'mime basic' if not curl.OPT_MIMEPOST then
@@ -571,6 +592,38 @@ function test_pass_args()
   assert_not_match('Content%-Disposition:.-%sname="test%.html"', info)
   assert_match('X%-Custom%-Header:%s*hello', info)
   assert_match('Content%-Transfer%-Encoding:%s*base64', info)
+end
+
+local function easy_dump_mime(easy, mime, url)
+  assert(mime:addpart{
+    data = 'hello';
+    encoder = 'base64';
+    name = 'test';
+    filename = 'test.html';
+    type = 'test/html';
+    headers = {
+      'X-Custom-Header: hello';
+    }
+  })
+
+  easy:setopt{
+    mimepost       = mime;
+  }
+
+  assert(easy:setopt{
+    url            = GET_URL;
+    customrequest  = "GET";
+    
+    writefunction  = function()end;
+  })
+
+  if not ok then return nil, err end
+
+  ok, err = easy:perform()
+
+  if not ok then return nil, err end
+
+  return table.concat(buffer)
 end
 
 end

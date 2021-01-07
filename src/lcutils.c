@@ -115,8 +115,8 @@ int lcurl_storage_free(lua_State *L, int storage){
       lua_pop(L, 1);
     }
   }
-  lua_pop(L, 1);
   luaL_unref(L, LCURL_LUA_REGISTRY, storage);
+  lua_pop(L, 2);
   return LUA_NOREF;
 }
 

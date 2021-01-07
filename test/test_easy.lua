@@ -889,16 +889,16 @@ function test_reset()
   do
     local form = curl.form()
     e = curl.easy{httppost = form}
-    pfrom = weak_ptr(form)
+    pform = weak_ptr(form)
   end
 
   gc_collect()
-  assert(pfrom.value)
+  assert(pform.value)
 
   assert_equal(e, e:reset())
 
   gc_collect()
-  assert(not pfrom.value)
+  assert(not pform.value)
 end
 
 end
@@ -1027,6 +1027,8 @@ end
 
 local _ENV = TEST_CASE'unset_callback_ctx'   if ENABLE then
 
+local HSTS = curl.version_info().features.HSTS
+
 local c
 
 function setup()
@@ -1057,6 +1059,19 @@ local function test_cb(name)
 
   gc_collect()
   assert_nil(pctx.value)
+
+  do local ctx = {}
+    pctx = weak_ptr(ctx)
+    assert(set(c, function() end, ctx))
+  end
+
+  gc_collect()
+  assert_table(pctx.value)
+
+  c:reset()
+
+  gc_collect()
+  assert_nil(pctx.value)
 end
 
 function test_read()      test_cb('readfunction')       end
@@ -1068,6 +1083,11 @@ function test_debug()     test_cb('debugfunction')      end
 function test_fnmatch()   test_cb('fnmatch_function')   end
 function test_chunk_bgn() test_cb('chunk_bgn_function') end
 function test_chunk_end() test_cb('chunk_end_function') end
+
+if curl.OPT_HSTSREADFUNCTION and HSTS then
+function test_hstsreadfunction()  test_cb('hstsreadfunction')  end
+function test_hstswritefunction() test_cb('hstswritefunction') end
+end
 
 end
 

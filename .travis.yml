@@ -17,6 +17,8 @@ matrix:
       os: linux
     - env: LUA="lua 5.3"
       os: linux
+    - env: LUA="lua 5.4"
+      os: linux
     - env: LUA="luajit 2.0"
       os: linux
     - env: LUA="luajit 2.1"

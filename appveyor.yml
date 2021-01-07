@@ -59,6 +59,7 @@ before_test:
   - luarocks show dkjson >nul 2>&1 || luarocks install dkjson
   - luarocks show luafilesystem >nul 2>&1 || luarocks install luafilesystem
   - luarocks show lua-path >nul 2>&1 || luarocks install lua-path
+  - luarocks show luarocks-fetch-gitrec > /dev/null 2>&1 || luarocks install luarocks-fetch-gitrec
   - luarocks show lua-http-parser  > /dev/null 2>&1 || luarocks install lua-http-parser || luarocks install test/deps/lua-http-parser-v2.7-1.rockspec
   - luarocks show pegasus >nul 2>&1 || luarocks install pegasus http.parser 
     --server=http://luarocks.org/manifests/moteus

@@ -51,6 +51,7 @@ before_script:
   - luarocks show lunitx           > /dev/null 2>&1 || luarocks install lunitx
   - luarocks show luafilesystem    > /dev/null 2>&1 || luarocks install luafilesystem
   - luarocks show dkjson           > /dev/null 2>&1 || luarocks install dkjson --deps-mode=none
+  - luarocks show luarocks-fetch-gitrec > /dev/null 2>&1 || luarocks install luarocks-fetch-gitrec
   - luarocks show lua-http-parser  > /dev/null 2>&1 || luarocks install lua-http-parser || luarocks install test/deps/lua-http-parser-v2.7-1.rockspec
   - luarocks show pegasus          > /dev/null 2>&1 || luarocks install pegasus http.parser 
     --server=http://luarocks.org/manifests/moteus

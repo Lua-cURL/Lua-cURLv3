@@ -1057,6 +1057,19 @@ local function test_cb(name)
 
   gc_collect()
   assert_nil(pctx.value)
+
+  do local ctx = {}
+    pctx = weak_ptr(ctx)
+    assert(set(c, function() end, ctx))
+  end
+
+  gc_collect()
+  assert_table(pctx.value)
+
+  c:reset()
+
+  gc_collect()
+  assert_nil(pctx.value)
 end
 
 function test_read()      test_cb('readfunction')       end
@@ -1068,6 +1081,11 @@ function test_debug()     test_cb('debugfunction')      end
 function test_fnmatch()   test_cb('fnmatch_function')   end
 function test_chunk_bgn() test_cb('chunk_bgn_function') end
 function test_chunk_end() test_cb('chunk_end_function') end
+
+if curl.OPT_HSTSREADFUNCTION then
+function test_hstsreadfunction()  test_cb('hstsreadfunction')  end
+function test_hstswritefunction() test_cb('hstswritefunction') end
+end
 
 end
 

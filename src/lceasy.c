@@ -2084,7 +2084,9 @@ static int lcurl_ssh_key_callback(
     lua_settop(L, top);
 
     switch (ret) 
+#if LCURL_CURL_VER_GE(7,73,0)
       case CURLKHSTAT_FINE_REPLACE:
+#endif
       case CURLKHSTAT_FINE_ADD_TO_FILE:
       case CURLKHSTAT_FINE:
       case CURLKHSTAT_REJECT:

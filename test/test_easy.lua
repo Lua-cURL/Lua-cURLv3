@@ -889,16 +889,16 @@ function test_reset()
   do
     local form = curl.form()
     e = curl.easy{httppost = form}
-    pfrom = weak_ptr(form)
+    pform = weak_ptr(form)
   end
 
   gc_collect()
-  assert(pfrom.value)
+  assert(pform.value)
 
   assert_equal(e, e:reset())
 
   gc_collect()
-  assert(not pfrom.value)
+  assert(not pform.value)
 end
 
 end

@@ -1027,6 +1027,8 @@ end
 
 local _ENV = TEST_CASE'unset_callback_ctx'   if ENABLE then
 
+local HSTS = curl.version_info().features.HSTS
+
 local c
 
 function setup()
@@ -1082,7 +1084,7 @@ function test_fnmatch()   test_cb('fnmatch_function')   end
 function test_chunk_bgn() test_cb('chunk_bgn_function') end
 function test_chunk_end() test_cb('chunk_end_function') end
 
-if curl.OPT_HSTSREADFUNCTION then
+if curl.OPT_HSTSREADFUNCTION and HSTS then
 function test_hstsreadfunction()  test_cb('hstsreadfunction')  end
 function test_hstswritefunction() test_cb('hstswritefunction') end
 end

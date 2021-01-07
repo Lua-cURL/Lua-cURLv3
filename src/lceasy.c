@@ -94,10 +94,13 @@ int lcurl_easy_create(lua_State *L, int error_mode){
   p->match.cb_ref     = p->match.ud_ref = LUA_NOREF;
   p->chunk_bgn.cb_ref = p->chunk_bgn.ud_ref = LUA_NOREF;
   p->chunk_end.cb_ref = p->chunk_end.ud_ref = LUA_NOREF;
+#if LCURL_CURL_VER_GE(7,19,6)
+  p->ssh_key.cb_ref   = p->ssh_key.ud_ref   = LUA_NOREF;
+#endif
 #if LCURL_CURL_VER_GE(7,64,0)
   p->trailer.cb_ref   = p->trailer.ud_ref   = LUA_NOREF;
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   p->hstsread.cb_ref  = p->hstsread.ud_ref  = LUA_NOREF;
   p->hstswrite.cb_ref = p->hstswrite.ud_ref = LUA_NOREF;
 #endif
@@ -155,11 +158,15 @@ static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   luaL_unref(L, LCURL_LUA_REGISTRY, p->chunk_bgn.ud_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->chunk_end.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->chunk_end.ud_ref);
+#if LCURL_CURL_VER_GE(7,19,6)
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->ssh_key.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->ssh_key.ud_ref);
+#endif
 #if LCURL_CURL_VER_GE(7,64,0)
   luaL_unref(L, LCURL_LUA_REGISTRY, p->trailer.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->trailer.ud_ref);
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   luaL_unref(L, LCURL_LUA_REGISTRY, p->hstsread.cb_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->hstsread.ud_ref);
   luaL_unref(L, LCURL_LUA_REGISTRY, p->hstswrite.cb_ref);
@@ -178,10 +185,13 @@ static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   p->match.cb_ref     = p->match.ud_ref     = LUA_NOREF;
   p->chunk_bgn.cb_ref = p->chunk_bgn.ud_ref = LUA_NOREF;
   p->chunk_end.cb_ref = p->chunk_end.ud_ref = LUA_NOREF;
+#if LCURL_CURL_VER_GE(7,19,6)
+  p->ssh_key.cb_ref   = p->ssh_key.ud_ref   = LUA_NOREF;
+#endif
 #if LCURL_CURL_VER_GE(7,64,0)
   p->trailer.cb_ref   = p->trailer.ud_ref   = LUA_NOREF;
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   p->hstsread.cb_ref  = p->hstsread.ud_ref  = LUA_NOREF;
   p->hstswrite.cb_ref = p->hstswrite.ud_ref = LUA_NOREF;
 #endif
@@ -897,6 +907,27 @@ static int lcurl_easy_unset_DEBUGFUNCTION(lua_State *L){
   return 1;
 }
 
+#if LCURL_CURL_VER_GE(7,19,6)
+
+static int lcurl_easy_unset_SSH_KEYFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+
+  CURLcode code = curl_easy_setopt(p->curl, CURLOPT_SSH_KEYFUNCTION, NULL);
+  if(code != CURLE_OK){
+    return lcurl_fail_ex(L, p->err_mode, LCURL_ERROR_EASY, code);
+  }
+  curl_easy_setopt(p->curl, CURLOPT_SSH_KEYDATA, NULL);
+
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->ssh_key.cb_ref);
+  luaL_unref(L, LCURL_LUA_REGISTRY, p->ssh_key.ud_ref);
+  p->ssh_key.cb_ref = p->ssh_key.ud_ref = LUA_NOREF;
+
+  lua_settop(L, 1);
+  return 1;
+}
+
+#endif
+
 #if LCURL_CURL_VER_GE(7,21,0)
 
 static int lcurl_easy_unset_FNMATCH_FUNCTION(lua_State *L){
@@ -935,6 +966,7 @@ static int lcurl_easy_unset_CHUNK_BGN_FUNCTION(lua_State *L){
   lua_settop(L, 1);
   return 1;
 }
+
 static int lcurl_easy_unset_CHUNK_END_FUNCTION(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
 
@@ -1046,7 +1078,7 @@ static int lcurl_easy_unset_TRAILERFUNCTION(lua_State *L){
 
 #endif
 
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
 
 static int lcurl_easy_unset_HSTSREADFUNCTION (lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
@@ -1818,7 +1850,7 @@ static int lcurl_easy_set_TRAILERFUNCTION (lua_State *L){
 
 //{ HSTS Reader
 
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
 
 #define LCURL_HSTS_EXPIRE_LEN 18
 
@@ -1924,7 +1956,7 @@ static int lcurl_easy_set_HSTSREADFUNCTION(lua_State *L){
 
 //{ HSTS Writer
 
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
 
 static int lcurl_hstswrite_callback(CURL *easy, struct curl_hstsentry *sts, struct curl_index *count, void *arg) {
   lcurl_easy_t *p = arg;
@@ -1996,6 +2028,85 @@ static int lcurl_easy_set_HSTSWRITEFUNCTION(lua_State *L){
 
 //}
 
+//{ SSH key
+
+#if LCURL_CURL_VER_GE(7,19,6)
+
+static void lcurl_ssh_key_push(lua_State *L, const struct curl_khkey *key){
+  if (!key) {
+    lua_pushnil(L);
+    return;
+  }
+
+  lua_newtable(L);
+
+  if(key->len){
+    lua_pushliteral(L, "raw");
+    lua_pushlstring(L, key->key, key->len);
+  } else {
+    lua_pushliteral(L, "base64");
+    lua_pushstring(L, key->key);
+  }
+  lua_rawset(L, -3);
+
+  lua_pushliteral(L, "type");
+  lutil_pushuint(L, key->keytype);
+  lua_rawset(L, -3);
+}
+
+static int lcurl_ssh_key_callback(
+  CURL *easy,
+  const struct curl_khkey *knownkey,
+  const struct curl_khkey *foundkey,
+  enum curl_khmatch khmatch,
+  void *arg
+) {
+  lcurl_easy_t *p = arg;
+  lua_State *L = p->L;
+  int top = lua_gettop(L);
+  int n   = lcurl_util_push_cb(L, &p->ssh_key);
+
+  assert(NULL != p->L);
+
+  lcurl_ssh_key_push(L, knownkey);
+  lcurl_ssh_key_push(L, foundkey);
+  lutil_pushuint(L, khmatch);
+
+  if (lua_pcall(L, n + 2, LUA_MULTRET, 0)) {
+    assert(lua_gettop(L) >= top);
+    lua_pushlightuserdata(L, (void*)LCURL_ERROR_TAG);
+    lua_insert(L, top + 1);
+    return CURLKHSTAT_REJECT;
+  }
+
+  if (lua_gettop(L) > top) {
+    int ret = lua_tointeger(L, top + 1);
+    lua_settop(L, top);
+
+    switch (ret) 
+      case CURLKHSTAT_FINE_REPLACE:
+      case CURLKHSTAT_FINE_ADD_TO_FILE:
+      case CURLKHSTAT_FINE:
+      case CURLKHSTAT_REJECT:
+      case CURLKHSTAT_DEFER:
+        return ret;
+  }
+
+  return CURLKHSTAT_REJECT;
+}
+
+static int lcurl_easy_set_SSH_KEYFUNCTION(lua_State *L){
+  lcurl_easy_t *p = lcurl_geteasy(L);
+  return lcurl_easy_set_callback(L, p, &p->ssh_key,
+    CURLOPT_SSH_KEYFUNCTION, CURLOPT_SSH_KEYDATA,
+    "ssh_key", lcurl_ssh_key_callback
+  );
+}
+
+#endif
+
+//}
+
 static int lcurl_easy_setopt(lua_State *L){
   lcurl_easy_t *p = lcurl_geteasy(L);
   long opt;
@@ -2023,8 +2134,11 @@ static int lcurl_easy_setopt(lua_State *L){
     OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
     OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
     OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,19,6)
+  OPT_ENTRY(ssh_keyfunction,     SSH_KEYFUNCTION,  TTT, 0, 0)
+#endif
 #if LCURL_CURL_VER_GE(7,21,0)
-    OPT_ENTRY(fnmatch_function,  FNMATCH_FUNCTION, TTT, 0, 0)
+    OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
     OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
     OPT_ENTRY(chunk_end_function, CHUNK_END_FUNCTION, TTT, 0, 0)
 #endif
@@ -2034,6 +2148,16 @@ static int lcurl_easy_setopt(lua_State *L){
 #endif
 #if LCURL_CURL_VER_GE(7,56,0)
     OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  OPT_ENTRY(curlu,               CURLU,            TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,64,0)
+  OPT_ENTRY(trailerfunction,     TRAILERFUNCTION,  TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
+  OPT_ENTRY(hstsreadfunction,    HSTSREADFUNCTION, TTT, 0, 0)
+  OPT_ENTRY(hstswritefunction,   HSTSWRITEFUNCTION,TTT, 0, 0)
 #endif
   }
 #undef OPT_ENTRY
@@ -2060,8 +2184,11 @@ static int lcurl_easy_unsetopt(lua_State *L){
     OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
     OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
     OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,19,6)
+  OPT_ENTRY(ssh_keyfunction,     SSH_KEYFUNCTION,  TTT, 0, 0)
+#endif
 #if LCURL_CURL_VER_GE(7,21,0)
-    OPT_ENTRY(fnmatch_function,  FNMATCH_FUNCTION, TTT, 0, 0)
+    OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
     OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
     OPT_ENTRY(chunk_end_function, CHUNK_END_FUNCTION, TTT, 0, 0)
 #endif
@@ -2071,6 +2198,16 @@ static int lcurl_easy_unsetopt(lua_State *L){
 #endif
 #if LCURL_CURL_VER_GE(7,56,0)
     OPT_ENTRY(mimepost,          MIMEPOST,         TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,63,0)
+  OPT_ENTRY(curlu,               CURLU,            TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,64,0)
+  OPT_ENTRY(trailerfunction,     TRAILERFUNCTION,  TTT, 0, 0)
+#endif
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
+  OPT_ENTRY(hstsreadfunction,    HSTSREADFUNCTION, TTT, 0, 0)
+  OPT_ENTRY(hstswritefunction,   HSTSWRITEFUNCTION,TTT, 0, 0)
 #endif
   }
 #undef OPT_ENTRY
@@ -2141,6 +2278,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
   OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,19,6)
+  OPT_ENTRY(ssh_keyfunction,   SSH_KEYFUNCTION,  TTT, 0, 0)
+#endif
 #if LCURL_CURL_VER_GE(7,21,0)
   OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
   OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
@@ -2159,7 +2299,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 #if LCURL_CURL_VER_GE(7,64,0)
   OPT_ENTRY(trailerfunction,   TRAILERFUNCTION,  TTT, 0, 0)
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   OPT_ENTRY(hstsreadfunction,  HSTSREADFUNCTION, TTT, 0, 0)
   OPT_ENTRY(hstswritefunction, HSTSWRITEFUNCTION,TTT, 0, 0)
 #endif
@@ -2176,6 +2316,9 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
   OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,19,6)
+  OPT_ENTRY(ssh_keyfunction,   SSH_KEYFUNCTION,  TTT, 0, 0)
+#endif
 #if LCURL_CURL_VER_GE(7,21,0)
   OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
   OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
@@ -2194,7 +2337,7 @@ static const struct luaL_Reg lcurl_easy_methods[] = {
 #if LCURL_CURL_VER_GE(7,64,0)
   OPT_ENTRY(trailerfunction,   TRAILERFUNCTION,  TTT, 0, 0)
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   OPT_ENTRY(hstsreadfunction,  HSTSREADFUNCTION, TTT, 0, 0)
   OPT_ENTRY(hstswritefunction, HSTSWRITEFUNCTION,TTT, 0, 0)
 #endif
@@ -2243,8 +2386,11 @@ static const lcurl_const_t lcurl_easy_opt[] = {
   OPT_ENTRY(progressfunction,  PROGRESSFUNCTION, TTT, 0, 0)
   OPT_ENTRY(seekfunction,      SEEKFUNCTION,     TTT, 0, 0)
   OPT_ENTRY(debugfunction,     DEBUGFUNCTION,    TTT, 0, 0)
+#if LCURL_CURL_VER_GE(7,19,6)
+  OPT_ENTRY(ssh_keyfunction,   SSH_KEYFUNCTION,  TTT, 0, 0)
+#endif
 #if LCURL_CURL_VER_GE(7,21,0)
-  OPT_ENTRY(fnmatch_function,  FNMATCH_FUNCTION, TTT, 0, 0)
+  OPT_ENTRY(fnmatch_function,   FNMATCH_FUNCTION,   TTT, 0, 0)
   OPT_ENTRY(chunk_bgn_function, CHUNK_BGN_FUNCTION, TTT, 0, 0)
   OPT_ENTRY(chunk_end_function, CHUNK_END_FUNCTION, TTT, 0, 0)
 #endif
@@ -2261,7 +2407,7 @@ static const lcurl_const_t lcurl_easy_opt[] = {
 #if LCURL_CURL_VER_GE(7,64,0)
   OPT_ENTRY(trailerfunction,   TRAILERFUNCTION,  TTT, 0, 0)
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   OPT_ENTRY(hstsreadfunction,  HSTSREADFUNCTION, TTT, 0, 0)
   OPT_ENTRY(hstswritefunction, HSTSWRITEFUNCTION,TTT, 0, 0)
 #endif

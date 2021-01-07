@@ -203,7 +203,7 @@ static int lcurl_version_info(lua_State *L){
 
   lua_newtable(L);
   lua_pushstring(L, data->version);         lua_setfield(L, -2, "version");          /* LIBCURL_VERSION     */
-  lua_pushnumber(L, data->version_num);     lua_setfield(L, -2, "version_num");      /* LIBCURL_VERSION_NUM */
+  lutil_pushuint(L, data->version_num);     lua_setfield(L, -2, "version_num");      /* LIBCURL_VERSION_NUM */
   lua_pushstring(L, data->host);            lua_setfield(L, -2, "host");             /* OS/host/cpu/machine when configured */
 
   lua_newtable(L);

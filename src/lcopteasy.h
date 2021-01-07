@@ -504,7 +504,7 @@ OPT_ENTRY(proxy_issuercert_blob, PROXY_ISSUERCERT_BLOB, BLB, 0, 0)
 OPT_ENTRY(ssl_ec_curves,      SSL_EC_CURVES,      STR, 0, LCURL_DEFAULT_VALUE)
 #endif
 
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
 OPT_ENTRY(hsts_ctrl,          HSTS_CTRL,          LNG, 0, 0)
 OPT_ENTRY(hsts,               HSTS,               STR, 0, LCURL_DEFAULT_VALUE)
 #endif

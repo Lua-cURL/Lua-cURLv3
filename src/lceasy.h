@@ -87,10 +87,13 @@ typedef struct lcurl_easy_tag{
   lcurl_callback_t match;
   lcurl_callback_t chunk_bgn;
   lcurl_callback_t chunk_end;
+#if LCURL_CURL_VER_GE(7,19,6)
+  lcurl_callback_t ssh_key;
+#endif
 #if LCURL_CURL_VER_GE(7,64,0)
   lcurl_callback_t trailer;
 #endif
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
   lcurl_callback_t hstsread;
   lcurl_callback_t hstswrite;
 #endif

@@ -10,6 +10,26 @@ FLG_ENTRY(AUTH_NTLM                       )
 #if LCURL_CURL_VER_GE(7,19,3)
 FLG_ENTRY(AUTH_DIGEST_IE                  )
 #endif
+#if LCURL_CURL_VER_GE(7,19,6)
+FLG_ENTRY(KHSTAT_FINE_ADD_TO_FILE         )
+FLG_ENTRY(KHSTAT_FINE                     )
+FLG_ENTRY(KHSTAT_REJECT                   )
+FLG_ENTRY(KHSTAT_DEFER                    )
+FLG_ENTRY(KHMATCH_OK                      )
+FLG_ENTRY(KHMATCH_MISMATCH                )
+FLG_ENTRY(KHMATCH_MISSING                 )
+FLG_ENTRY(KHTYPE_RSA1                     )
+FLG_ENTRY(KHTYPE_RSA                      )
+FLG_ENTRY(KHTYPE_DSS                      )
+#endif
+#if LCURL_CURL_VER_GE(7,58,0)
+FLG_ENTRY(KHTYPE_ECDSA                    )
+FLG_ENTRY(KHTYPE_ED25519                  )
+#endif
+#if LCURL_CURL_VER_GE(7,73,0)
+FLG_ENTRY(KHSTAT_FINE_REPLACE             )
+#endif
+
 #if LCURL_CURL_VER_GE(7,22,0)
 FLG_ENTRY(AUTH_NTLM_WB                    )
 #endif
@@ -254,7 +274,7 @@ FLG_ENTRY(OT_FUNCTION)
 FLG_ENTRY(OT_FLAG_ALIAS)
 #endif
 
-#if LCURL_CURL_VER_GE(7,74,0)
+#if LCURL_CURL_VER_GE(7,74,0) && LCURL_USE_HSTS
 FLG_ENTRY(HSTS_ENABLE)
 FLG_ENTRY(HSTS_READONLYFILE)
 FLG_ENTRY(STS_OK)

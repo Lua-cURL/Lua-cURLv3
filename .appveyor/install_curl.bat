@@ -36,6 +36,7 @@ if not exist %LR_EXTERNAL%\libcurl.dll (
   if not exist %LR_EXTERNAL%\include\curl mkdir %LR_EXTERNAL%\include\curl
   copy "include\curl\*.h" %LR_EXTERNAL%\include\curl
   copy "build\%PLAT_NAME%\VC12\%CURL_CFG%\libcurl.lib" %LR_EXTERNAL%\lib\libcurl.lib
+  copy "build\%PLAT_NAME%\VC12\%CURL_CFG%\libcurl.lib" %LR_EXTERNAL%\libcurl.lib
   copy "build\%PLAT_NAME%\VC12\%CURL_CFG%\libcurl.dll" %LR_EXTERNAL%\libcurl.dll
 )
 

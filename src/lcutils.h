@@ -1,7 +1,7 @@
 /******************************************************************************
 * Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
 *
-* Copyright (C) 2014-2018 Alexey Melnichuk <alexeymelnichuck@gmail.com>
+* Copyright (C) 2014-2021 Alexey Melnichuk <alexeymelnichuck@gmail.com>
 *
 * Licensed according to the included 'LICENSE' document
 *

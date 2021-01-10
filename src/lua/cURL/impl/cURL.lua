@@ -1,7 +1,7 @@
 --
 --  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
---  Copyright (C) 2014-2019 Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--  Copyright (C) 2014-2021 Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
 --  Licensed according to the included 'LICENSE' document
 --
@@ -10,9 +10,9 @@
 
 local module_info = {
   _NAME      = "Lua-cURL";
-  _VERSION   = "0.3.12-dev";
+  _VERSION   = "0.3.12";
   _LICENSE   = "MIT";
-  _COPYRIGHT = "Copyright (c) 2014-2019 Alexey Melnichuk";
+  _COPYRIGHT = "Copyright (c) 2014-2021 Alexey Melnichuk";
 }
 
 local function hash_id(str)

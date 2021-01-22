@@ -79,6 +79,9 @@ OPT_ENTRY(total_time_t,             TOTAL_TIME_T,            OFF, 0)
 
 #if LCURL_CURL_VER_GE(7,66,0)
 OPT_ENTRY(retry_after,              RETRY_AFTER,             OFF, 0)
+#endif
+
+#if LCURL_CURL_VER_GE(7,72,0)
 OPT_ENTRY(effective_method,         EFFECTIVE_METHOD,        STR, 0)
 #endif
 

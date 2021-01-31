@@ -37,6 +37,48 @@ static const char* LCURL_MIME_EASY_MAP = "LCURL Mime easy";
 #define NUP 2
 #endif
 
+static volatile int LCURL_INIT = 0;
+
+static int lcurl_init_in_mode(lua_State *L, long init_mode, int error_mode){
+  if(!LCURL_INIT){
+    /* Note from libcurl documentation.
+     *
+     * The environment it sets up is constant for the life of the program
+     * and is the same for every program, so multiple calls have the same
+     * effect as one call. ... This function is not thread safe.
+     */
+    CURLcode code = curl_global_init(init_mode);
+    if (code != CURLE_OK) {
+      return lcurl_fail_ex(L, error_mode, LCURL_ERROR_CURL, code);
+    }
+    LCURL_INIT = 1;
+  }
+  return 0;
+}
+
+static int lcurl_init(lua_State *L, int error_mode){
+    long init_mode = CURL_GLOBAL_DEFAULT;
+    if (L != NULL) {
+      int type = lua_type(L, 1);
+      if (type == LUA_TNUMBER) {
+        init_mode = lua_tonumber(L, 1);
+      }
+    }
+    return lcurl_init_in_mode(L, init_mode, error_mode);
+}
+
+static int lcurl_init_default(lua_State *L){
+  return lcurl_init_in_mode(L, CURL_GLOBAL_DEFAULT, LCURL_ERROR_RAISE);
+}
+
+static int lcurl_init_unsafe(lua_State *L){
+  return lcurl_init(L, LCURL_ERROR_RAISE);
+}
+
+static int lcurl_init_safe(lua_State *L){
+  return lcurl_init(L, LCURL_ERROR_RETURN);
+}
+
 static int lcurl_easy_new_safe(lua_State *L){
   return lcurl_easy_create(L, LCURL_ERROR_RETURN);
 }
@@ -324,6 +366,7 @@ static int lcurl_version_info(lua_State *L){
 }
 
 static const struct luaL_Reg lcurl_functions[] = {
+  {"init",            lcurl_init_unsafe      },
   {"error",           lcurl_error_new        },
   {"form",            lcurl_hpost_new        },
   {"easy",            lcurl_easy_new         },
@@ -346,6 +389,7 @@ static const struct luaL_Reg lcurl_functions[] = {
 };
 
 static const struct luaL_Reg lcurl_functions_safe[] = {
+  {"init",            lcurl_init_safe             },
   {"error",           lcurl_error_new             },
   {"form",            lcurl_hpost_new_safe        },
   {"easy",            lcurl_easy_new_safe         },
@@ -376,9 +420,6 @@ static const lcurl_const_t lcurl_flags[] = {
   {NULL, 0}
 };
 
-static volatile int LCURL_INIT = 0;
-
-
 #if LCURL_CURL_VER_GE(7,56,0)
 #define LCURL_PUSH_NUP(L) lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);lua_pushvalue(L, -NUP-1);
 #else
@@ -386,15 +427,8 @@ static volatile int LCURL_INIT = 0;
 #endif
 
 static int luaopen_lcurl_(lua_State *L, const struct luaL_Reg *func){
-  if(!LCURL_INIT){
-    /* Note from libcurl documentation.
-     *
-     * The environment it sets up is constant for the life of the program
-     * and is the same for every program, so multiple calls have the same
-     * effect as one call. ... This function is not thread safe.
-     */
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    LCURL_INIT = 1;
+  if (getenv("LCURL_NO_INIT") == NULL) { // do not initialize curl if env variable LCURL_NO_INIT defined
+    lcurl_init_default(L);
   }
 
   lua_rawgetp(L, LUA_REGISTRYINDEX, LCURL_REGISTRY);

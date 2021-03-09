@@ -219,8 +219,9 @@ local function form_add(form, data)
   return form
 end
 
-local function class(ctor)
+local function class(ctor, type_name)
   local C = {}
+  C.__type = type_name or "LcURL Unknown"
   C.__index = function(self, k)
     local fn = C[k]
 
@@ -254,7 +255,7 @@ end
 local function Load_cURLv2(cURL, curl)
 
 -------------------------------------------
-local Easy = class(curl.easy) do
+local Easy = class(curl.easy, "LcURL Easy") do
 
 local perform             = wrap_function("perform")
 local setopt_share        = wrap_function("setopt_share")
@@ -400,7 +401,7 @@ end
 -------------------------------------------
 
 -------------------------------------------
-local Multi = class(curl.multi) do
+local Multi = class(curl.multi, "LcURL Multi") do
 
 local perform       = wrap_function("perform")
 local add_handle    = wrap_function("add_handle")
@@ -460,7 +461,7 @@ end
 -------------------------------------------
 
 -------------------------------------------
-local Share = class(curl.share) do
+local Share = class(curl.share, "LcURL Share") do
 
 Share.setopt_share = wrap_setopt_flags("share", {
   [ "COOKIE"      ] = curl.LOCK_DATA_COOKIE;
@@ -485,7 +486,7 @@ end
 local function Load_cURLv3(cURL, curl)
 
 -------------------------------------------
-local Form = class(curl.form) do
+local Form = class(curl.form, "LcURL Form") do
 
 function Form:__init(opt)
   if opt then return self:add(opt) end
@@ -505,7 +506,7 @@ end
 -------------------------------------------
 
 -------------------------------------------
-local Easy = class(curl.easy) do
+local Easy = class(curl.easy, "LcURL Easy") do
 
 function Easy:__init(opt)
   if opt then return self:setopt(opt) end
@@ -595,7 +596,7 @@ end
 -------------------------------------------
 
 -------------------------------------------
-local Multi = class(curl.multi) do
+local Multi = class(curl.multi, "LcURL Multi") do
 
 local add_handle    = wrap_function("add_handle")
 local remove_handle = wrap_function("remove_handle")
@@ -717,7 +718,7 @@ end
 end
 -------------------------------------------
 
-setmetatable(cURL, {__index = curl})
+setmetatable(cURL, {__index = curl, __type = "LCURL"})
 
 function cURL.form(...)  return Form:new(...)  end
 

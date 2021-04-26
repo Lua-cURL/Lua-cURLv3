@@ -718,7 +718,7 @@ end
 end
 -------------------------------------------
 
-setmetatable(cURL, {__index = curl, __type = "LCURL"})
+setmetatable(cURL, {__index = curl})
 
 function cURL.form(...)  return Form:new(...)  end
 

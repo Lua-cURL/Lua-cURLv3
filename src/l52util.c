@@ -68,6 +68,11 @@ int lutil_newmetatablep (lua_State *L, const void *p) {
 
   lua_newtable(L);  /* create metatable */
   lua_pushvalue(L, -1); /* duplicate metatable to set*/
+  
+  lua_pushliteral (L, "__type"); 
+  lua_pushstring(L, p); // push meta name
+  lua_settable (L, -3); // set meta name
+  
   lua_rawsetp(L, LUA_REGISTRYINDEX, p);
 
   return 1;
@@ -122,7 +127,6 @@ int lutil_createmetap (lua_State *L, const void *p, const luaL_Reg *methods, int
   lua_pushliteral (L, "__index");  /* define metamethods */
   lua_pushvalue (L, -2);
   lua_settable (L, -3);
-
   return 1;
 }
 

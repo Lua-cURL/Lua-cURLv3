@@ -7,6 +7,7 @@
 --
 --  This file is part of Lua-cURL library.
 --
+
 local common = require "cURL.impl.common"
 
 local module_info = {
@@ -15,37 +16,6 @@ local module_info = {
   _LICENSE   = "MIT";
   _COPYRIGHT = "Copyright (c) 2014-2022 Alexey Melnichuk";
 }
-
--- name = <string>/<stream>/<file>/<buffer>/<content>
---
--- <stream> = {
---   stream  = function/object
---   length  = ?number
---   name    = ?string
---   type    = ?string
---   headers = ?table
--- }
---
--- <file> = {
---   file    = string
---   type    = ?string
---   name    = ?string
---   headers = ?table
--- }
---
--- <buffer> = {
---   data    = string
---   name    = string
---   type    = ?string
---   headers = ?table
--- }
---
--- <content> = {
---   content = string -- or first key in table
---   type    = ?string
---   headers = ?table
--- }
--- 
 
 local function Load_cURLv3(cURL, curl)
 

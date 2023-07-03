@@ -183,7 +183,7 @@ static int lcurl_mime_part_assing_table(lua_State *L, int part, int t){
     assert(top == lua_gettop(L));
   }
   else{
-    for(i=0;method = lcurl_mime_part_fields[i]; ++i){
+    for(i=0; (method = lcurl_mime_part_fields[i]) != NULL; ++i){
       lua_getfield(L, t, method);
       if(!lua_isnil(L, -1)){
         int ret = lcurl_mime_part_assign(L, part, method);

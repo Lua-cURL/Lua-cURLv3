@@ -130,7 +130,7 @@ static int lcurl_easy_to_s(lua_State *L){
   return 1;
 }
 
-static int lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
+static void lcurl_easy_cleanup_storage(lua_State *L, lcurl_easy_t *p){
   int i;
 
   if(p->storage != LUA_NOREF){
